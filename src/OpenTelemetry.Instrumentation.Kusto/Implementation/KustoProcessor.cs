@@ -160,8 +160,9 @@ internal static class KustoProcessor
     private sealed class SanitizerVisitor : DefaultSyntaxVisitor
     {
         // Literal token kinds (StringLiteralToken, LongLiteralToken, ...) discovered once by name so any future
-        // literal kind is covered automatically. Used (together with identifier tokens) to redact value-bearing
-        // tokens the parser left loose inside a skipped (unparsable) region of a malformed query.
+        // literal kind is covered automatically. Used to redact literal tokens a node holds directly, and
+        // (together with identifier tokens) value-bearing tokens the parser left loose inside a skipped
+        // (unparsable) region of a malformed query or an unknown control command.
 #if NET
         private static readonly FrozenSet<SyntaxKind> LiteralTokenKinds = BuildLiteralTokenKinds();
 #else
@@ -184,6 +185,11 @@ internal static class KustoProcessor
         public override void VisitDynamicExpression(DynamicExpression node) => this.edits.Add(CreatePlaceholder(node));
 
         public override void VisitSkippedTokens(SkippedTokens node) => this.RedactSkippedTokens(node);
+
+        // A control command whose leading keyword the grammar does not know is kept as a flat token list
+        // without any syntax error, so the literal visitors never see its values. Treat it as the unparsable
+        // region it is and apply the same policy as for skipped tokens.
+        public override void VisitUnknownCommand(UnknownCommand node) => this.RedactSkippedTokens(node);
 
         public override void VisitPrefixUnaryExpression(PrefixUnaryExpression node)
         {
@@ -249,11 +255,14 @@ internal static class KustoProcessor
                     {
                         childNode.Accept(this);
                     }
-                    else if (child is SyntaxToken { Kind: SyntaxKind.InputTextToken } inputText)
+                    else if (child is SyntaxToken token
+                        && (token.Kind == SyntaxKind.InputTextToken || LiteralTokenKinds.Contains(token.Kind)))
                     {
                         // Raw inline data after "<|" (e.g. ".ingest inline" rows) is a single token, not a
                         // parsed expression, so the literal visitors never see it. Redact the whole payload.
-                        this.edits.Add(CreatePlaceholder(inputText));
+                        // The same applies to a literal token a node holds directly (e.g. the boolean in a
+                        // control command) rather than wrapped in a literal expression.
+                        this.edits.Add(CreatePlaceholder(token));
                     }
                 }
             }

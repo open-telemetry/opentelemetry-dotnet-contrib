@@ -23,6 +23,7 @@ internal sealed class ExporterEventSource : EventSource
     private const int EVENT_ID_METRIC_BUFFER_OVERFLOW = 11; // Metric serialization buffer overflow
     private const int EVENT_ID_TRACE_BUFFER_OVERFLOW = 12; // Trace serialization buffer overflow
     private const int EVENT_ID_LOG_BUFFER_OVERFLOW = 13; // Log serialization buffer overflow
+    private const int EVENT_ID_METRIC_ATTRIBUTE_DROPPED = 14; // Metric attribute could not be serialized
 
     [NonEvent]
     public void FailedToSendTraceData(Exception ex)
@@ -93,6 +94,15 @@ internal sealed class ExporterEventSource : EventSource
         {
             // TODO: Do not hit ETW size limit even for external library exception stack.
             this.FailedToSerializeMetric(metricName, ex.ToInvariantString());
+        }
+    }
+
+    [NonEvent]
+    public void FailedToSerializeMetricAttribute(string attributeKey, Exception ex)
+    {
+        if (Log.IsEnabled(EventLevel.Warning, EventKeywords.All))
+        {
+            this.FailedToSerializeMetricAttribute(attributeKey, ex.ToInvariantString());
         }
     }
 
@@ -192,5 +202,11 @@ internal sealed class ExporterEventSource : EventSource
     public void LogSerializationBufferFull()
     {
         this.WriteEvent(EVENT_ID_LOG_BUFFER_OVERFLOW);
+    }
+
+    [Event(EVENT_ID_METRIC_ATTRIBUTE_DROPPED, Message = "Metric attribute '{0}' could not be serialized and was dropped. Exception: {1}", Level = EventLevel.Warning)]
+    public void FailedToSerializeMetricAttribute(string attributeKey, string error)
+    {
+        this.WriteEvent(EVENT_ID_METRIC_ATTRIBUTE_DROPPED, attributeKey, error);
     }
 }
