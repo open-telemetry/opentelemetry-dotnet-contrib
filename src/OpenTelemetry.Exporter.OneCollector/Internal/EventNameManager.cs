@@ -5,6 +5,7 @@ using System.Collections;
 #if NET
 using System.Diagnostics;
 #endif
+using System.Text.Json;
 using System.Text.RegularExpressions;
 
 namespace OpenTelemetry.Exporter.OneCollector;
@@ -58,7 +59,7 @@ internal sealed partial class EventNameManager
             return cachedEventFullName;
         }
 
-        var eventFullNameBlob = BuildEventFullName(string.Empty, eventFullName);
+        var eventFullNameBlob = BuildJsonStringValue(eventFullName);
 
         var resolvedEventFullName = new ResolvedEventFullName(
             eventFullNameBlob,
@@ -101,7 +102,11 @@ internal sealed partial class EventNameManager
 
         var eventNameCache = this.GetEventNameCacheForEventNamespace(eventNamespace!);
 
-        if (eventNameCache[eventName!] is ResolvedEventFullName cachedEventFullName)
+        // Note: ResolveEventNameRare may replace eventName so the key used for the
+        // lookup is captured to make sure the result is cached under the same key.
+        var eventNameCacheKey = eventName!;
+
+        if (eventNameCache[eventNameCacheKey] is ResolvedEventFullName cachedEventFullName)
         {
             return cachedEventFullName;
         }
@@ -111,11 +116,11 @@ internal sealed partial class EventNameManager
             ref eventName!);
 
         var originalEventNamespaceBlob = !string.IsNullOrEmpty(originalEventNamespace) && originalEventNamespace != eventNamespace
-            ? BuildEventFullName(string.Empty, originalEventNamespace!)
+            ? BuildJsonStringValue(originalEventNamespace!)
             : null;
 
         var originalEventNameBlob = !string.IsNullOrEmpty(originalEventName) && originalEventName != eventName
-            ? BuildEventFullName(string.Empty, originalEventName!)
+            ? BuildJsonStringValue(originalEventName!)
             : null;
 
         var resolvedEventFullName = new ResolvedEventFullName(
@@ -125,9 +130,9 @@ internal sealed partial class EventNameManager
 
         lock (eventNameCache)
         {
-            if (eventNameCache[eventName!] is null)
+            if (eventNameCache[eventNameCacheKey] is null)
             {
-                eventNameCache[eventName!] = resolvedEventFullName;
+                eventNameCache[eventNameCacheKey] = resolvedEventFullName;
             }
         }
 
@@ -155,6 +160,9 @@ internal sealed partial class EventNameManager
 
     private static byte[] BuildEventFullName(string eventNamespace, string eventName)
     {
+        // Note: Only called for names which passed validation (ASCII letters,
+        // digits, and '.') and fit in MaximumEventFullNameLength so they can be
+        // copied as-is without JSON escaping.
         Span<byte> destination = stackalloc byte[128];
 
         destination[0] = (byte)'\"';
@@ -173,6 +181,27 @@ internal sealed partial class EventNameManager
         destination[cursor++] = (byte)'\"';
 
         return destination.Slice(0, cursor).ToArray();
+    }
+
+    private static byte[] BuildJsonStringValue(string value)
+    {
+        // Note: Used for names which have not been validated (for example original
+        // names which were replaced by a default or a mapping) so the value may be
+        // any length and contain any characters and must be JSON encoded.
+        var firstChar = value[0];
+        if (char.IsAsciiLetterLower(firstChar))
+        {
+            value = (char)(firstChar - 32) + value.Substring(1);
+        }
+
+        using var stream = new MemoryStream(value.Length + 2);
+
+        using (var writer = new Utf8JsonWriter(stream))
+        {
+            writer.WriteStringValue(value);
+        }
+
+        return stream.ToArray();
     }
 
     private static void WriteEventFullNameComponent(string component, Span<byte> destination, ref int cursor)

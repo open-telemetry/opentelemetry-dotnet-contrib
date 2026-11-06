@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+* Fixed an issue where event names and logger category names that are replaced
+  by a default or an `EventFullNameMappings` rule (and preserved in the
+  `namespace`/`name` data fields), or supplied via `{EventFullName}`, were
+  written to the JSON payload without encoding. Names containing quotes,
+  backslashes, control characters, or non-ASCII characters produced malformed
+  or invalid UTF-8 JSON, and names longer than 126 characters caused the whole
+  batch to fail to export. Also fixed an issue where an original event name
+  could be attached to unrelated log records which resolved to the default
+  event name.
+  ([#TBD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TBD))
+
 ## 1.20.1
 
 Released 2026-Oct-21

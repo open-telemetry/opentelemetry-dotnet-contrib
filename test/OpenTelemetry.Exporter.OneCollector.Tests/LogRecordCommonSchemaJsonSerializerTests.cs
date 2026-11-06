@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using System.Reflection;
 using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using OpenTelemetry.Logs;
 using OpenTelemetry.Resources;
@@ -101,6 +102,29 @@ public class LogRecordCommonSchemaJsonSerializerTests
         Assert.Equal(
             $$$"""{"ver":"4.0","name":"{{{expectedEventFullName}}}","time":"2032-01-18T10:11:12Z","iKey":"o:tenant-token","data":{"namespace":"{{{categoryName}}}",{{{expectedName}}}"severityText":"Trace","severityNumber":1}}""" + "\n",
             json);
+    }
+
+    [Theory]
+    [InlineData("X\"}}\n{\"ver\":\"4.0\",\"name\":\"Other.Event\",\"data\":{\"injected\":1,\"by\":\"")]
+    [InlineData("R\u00e9sum\u00e9 clicked")]
+    [InlineData("Checkout button clicked !!! with a long description that is well over one hundred and twenty eight characters in total length")]
+    public void InvalidEventNameJsonTest(string eventName)
+    {
+        var json = GetLogRecordJson(1, (index, logRecord) =>
+        {
+            logRecord.CategoryName = "MyClass.Company";
+            logRecord.EventId = new(0, eventName);
+        });
+
+        var lines = json.Split(['\n'], StringSplitOptions.RemoveEmptyEntries);
+
+        var line = Assert.Single(lines);
+
+        using var document = JsonDocument.Parse(line);
+
+        Assert.Equal("MyClass.Company.Name", document.RootElement.GetProperty("name").GetString());
+        Assert.Equal(eventName, document.RootElement.GetProperty("data").GetProperty("name").GetString());
+        Assert.Equal("Trace", document.RootElement.GetProperty("data").GetProperty("severityText").GetString());
     }
 
     [Fact]
