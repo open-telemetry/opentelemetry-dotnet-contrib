@@ -8,6 +8,18 @@
 * Add support for .NET 11.0.
   ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
 
+## 1.0.0-beta.19
+
+Released 2026-Nov-05
+
+* Fixed unbounded memory growth on streaming calls when `RecordMessageEvents`
+  is enabled. At most 128 message events are now recorded per call.
+  ([#5879](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5879))
+
+* Fixed `ServerTracingInterceptor` applying the baggage received with one RPC
+  to other RPCs.
+  ([#5874](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5874))
+
 ## 1.0.0-beta.18
 
 Released 2026-Oct-21

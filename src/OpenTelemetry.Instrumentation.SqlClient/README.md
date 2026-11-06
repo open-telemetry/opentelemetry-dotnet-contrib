@@ -326,6 +326,19 @@ feature.
   `traceparent` to the database, where it refers to a span that is never
   exported.
 
+## Pending commands on .NET Framework
+
+SqlClient does not report completion for some failed asynchronous executions on
+.NET Framework. These executions cannot be distinguished from commands that are
+still running, so the instrumentation limits tracking to 10,000 pending commands.
+If another command starts when that limit has been reached, pending tracking is
+cleared before the new command is tracked.
+
+This reset also drops tracking for commands that are still executing. Their later
+completion does not produce a completed span or a duration measurement. Commands
+started after the reset are tracked normally. This bounds memory retained by
+executions that never report completion.
+
 ## Activity Duration calculation
 
 `Activity.Duration` represents the time the underlying connection takes to

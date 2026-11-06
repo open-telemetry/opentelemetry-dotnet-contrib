@@ -42,7 +42,20 @@ internal static class ResourceDetectorUtils
         }
 
 #pragma warning disable CA2000 // Dispose objects before losing scope
-        var httpClient = handler == null ? new HttpClient() : new HttpClient(handler);
+#pragma warning disable CA5399 // Certificate revocation checking is not relevant: the EC2 and ECS endpoints use plain HTTP and the EKS handler is supplied by the caller.
+        handler ??= new HttpClientHandler();
+
+        // Redirects are never followed: whatever answers on a metadata endpoint must not be able to make
+        // this host request (and, for EC2, hand back the response of) an arbitrary URL it can reach.
+        // The property cannot be changed once the handler has sent a request, and a handler can be shared
+        // by several requests, so it is only set when needed.
+        if (handler.AllowAutoRedirect)
+        {
+            handler.AllowAutoRedirect = false;
+        }
+
+        var httpClient = new HttpClient(handler);
+#pragma warning restore CA5399
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
         // Resources are detected while the application starts, so an endpoint that does not

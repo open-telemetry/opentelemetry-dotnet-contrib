@@ -26,6 +26,8 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
     // AWS request/response types and parameter names is small and bounded, so growth is limited.
     private static readonly ConcurrentDictionary<(Type Type, string PropertyName), PropertyInfo?> PropertyCache = new();
 
+    private static readonly IReadOnlyDictionary<string, string> NoPropagationData = new Dictionary<string, string>(0);
+
     private readonly AWSClientInstrumentationOptions options;
     private readonly AWSSemanticConventions awsSemanticConventions;
     private readonly AWSServiceHelper awsServiceHelper;
@@ -65,19 +67,29 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
     private static PropertyInfo? GetCachedProperty(Type type, string propertyName)
         => PropertyCache.GetOrAdd((type, propertyName), static key => key.Type.GetProperty(key.PropertyName));
 
-    private static void AddPropagationDataToRequest(Activity activity, IRequestContext requestContext)
+    private static void AddPropagationDataToRequest(Activity? activity, IRequestContext requestContext)
     {
         var service = requestContext.ServiceMetaData.ServiceId;
+        var isSqs = AWSServiceType.IsSqsService(service);
 
-        if (AWSServiceType.IsSqsService(service))
+        if (!isSqs && !AWSServiceType.IsSnsService(service))
         {
-            SqsRequestContextHelper.AddAttributes(
-                requestContext, AWSMessagingUtils.InjectIntoDictionary(new PropagationContext(activity.Context, Baggage.Current)));
+            return;
         }
-        else if (AWSServiceType.IsSnsService(service))
+
+        // Without a current activity there is nothing to propagate, but any context
+        // injected by an earlier send of a reused request must still be removed.
+        var attributes = activity is null
+            ? NoPropagationData
+            : AWSMessagingUtils.InjectIntoDictionary(new PropagationContext(activity.Context, Baggage.Current));
+
+        if (isSqs)
         {
-            SnsRequestContextHelper.AddAttributes(
-                requestContext, AWSMessagingUtils.InjectIntoDictionary(new PropagationContext(activity.Context, Baggage.Current)));
+            SqsRequestContextHelper.AddAttributes(requestContext, attributes);
+        }
+        else
+        {
+            SnsRequestContextHelper.AddAttributes(requestContext, attributes);
         }
     }
 
@@ -351,6 +363,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 
         if (currentActivity == null)
         {
+            AddPropagationDataToRequest(null, executionContext.RequestContext);
             return null;
         }
 

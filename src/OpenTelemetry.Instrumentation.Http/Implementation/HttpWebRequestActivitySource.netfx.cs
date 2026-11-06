@@ -66,6 +66,69 @@ internal static class HttpWebRequestActivitySource
 
     internal static HttpClientTraceInstrumentationOptions TracingOptions { get; set; } = new();
 
+    /// <summary>
+    /// Processes a request that was just added to <c>Connection.m_WriteList</c> using the
+    /// ambient context (<see cref="Activity.Current"/> and <see cref="Baggage.Current"/>)
+    /// of its own caller.
+    /// <para/>
+    /// A request that has to wait for a free connection is added to the list later by the
+    /// thread that released the connection, typically while it reads the response of an
+    /// unrelated request, so the ambient context of the current thread cannot be trusted.
+    /// </summary>
+    /// <param name="request">The request that was added to the write list.</param>
+    internal static void ProcessRequestInCallerContext(HttpWebRequest request)
+    {
+        var reflection = Reflection;
+
+        // Requests issued with the blocking GetRequestStream()/GetResponse() have no captured
+        // context, so the ambient context of the current thread is all that is available.
+        var asyncResult = reflection is null
+            ? null
+            : reflection.WriteAResultAccessor(request) ?? reflection.ReadAResultAccessor(request);
+
+        if (reflection is null || asyncResult is null || !reflection.IsContextAwareResultChecker(asyncResult))
+        {
+            ProcessRequest(request);
+            return;
+        }
+
+        // Set by Begin* of the caller once it has returned control to the caller.
+        var capturedContext = reflection.ContextAccessor(asyncResult);
+        if (capturedContext is null)
+        {
+            // Begin* is still running. If this is the thread running it, it is the caller's
+            // thread. The lock must not be waited for: this thread holds the connection lock,
+            // which the caller's thread may be waiting for while it holds this one.
+            var postingLock = reflection.PostingLockAccessor(asyncResult);
+            if (postingLock is null || Monitor.IsEntered(postingLock))
+            {
+                ProcessRequest(request);
+            }
+            else
+            {
+                ProcessRequestWithoutAmbientContext(request);
+            }
+
+            return;
+        }
+
+        ExecutionContext callerContext;
+        try
+        {
+            // As for ContextAwareResult.ContextCopy, the captured
+            // context can only be applied once, so run on a copy.
+            callerContext = capturedContext.CreateCopy();
+        }
+        catch (InvalidOperationException)
+        {
+            // The result completed concurrently and its completion already applied the context.
+            ProcessRequestWithoutAmbientContext(request);
+            return;
+        }
+
+        ExecutionContext.Run(callerContext, static state => ProcessRequest((HttpWebRequest)state!), request);
+    }
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void AddRequestTagsAndInstrumentRequest(HttpWebRequest request, Activity activity)
     {
@@ -232,6 +295,28 @@ internal static class HttpWebRequestActivitySource
         }
     }
 
+    private static void ProcessRequestWithoutAmbientContext(HttpWebRequest request)
+    {
+        // The context of the caller is not available, but the one of this thread
+        // belongs to somebody else. Treating the request as having no parent is
+        // better than parenting it to, and propagating the baggage of, the wrong caller.
+        var activity = Activity.Current;
+        var baggage = Baggage.Current;
+
+        try
+        {
+            Activity.Current = null;
+            Baggage.Current = default;
+
+            ProcessRequest(request);
+        }
+        finally
+        {
+            Activity.Current = activity;
+            Baggage.Current = baggage;
+        }
+    }
+
     private static void HookOrProcessResult(HttpWebRequest request)
     {
         var reflection = Reflection;
@@ -277,6 +362,9 @@ internal static class HttpWebRequestActivitySource
         string? errorType = null;
         Version? protocolVersion = null;
         var activityStatus = ActivityStatusCode.Unset;
+
+        // The activity of the context this is completing in, which is the one the original callback will see.
+        var completionActivity = Activity.Current;
 
         // Activity may be null if we are not tracing in these cases:
         // 1. No listeners
@@ -394,6 +482,14 @@ internal static class HttpWebRequestActivitySource
         }
 
         activity?.Stop();
+
+        if (activity is { Parent: null } && completionActivity is { IsStopped: false } && completionActivity != activity)
+        {
+            // Stopping an activity with no parent clears Activity.Current. That is the case when the activity
+            // was started without the context of its caller (see ProcessRequestWithoutAmbientContext), so put
+            // back the activity the completion is running under rather than hide it from the original callback.
+            Activity.Current = completionActivity;
+        }
 
         if (HttpClientRequestDuration.Enabled)
         {
@@ -927,7 +1023,7 @@ internal static class HttpWebRequestActivitySource
 
             if (value is HttpWebRequest request)
             {
-                ProcessRequest(request);
+                ProcessRequestInCallerContext(request);
             }
 
             return index;
@@ -1026,6 +1122,8 @@ internal static class HttpWebRequestActivitySource
         public readonly Func<object, bool> EndCalledAccessor;
         public readonly Func<object, object?> ResultAccessor;
         public readonly Func<object, bool> IsContextAwareResultChecker;
+        public readonly Func<object, ExecutionContext?> ContextAccessor;
+        public readonly Func<object, object?> PostingLockAccessor;
 
         // HttpWebResponse
         public readonly Func<object?[], HttpWebResponse> HttpWebResponseCtor;
@@ -1061,6 +1159,8 @@ internal static class HttpWebRequestActivitySource
             Func<object, bool>? endCalledAccessor = null;
             Func<object, object?>? resultAccessor = null;
             Func<object, bool>? isContextAwareResultChecker = null;
+            Func<object, ExecutionContext?>? contextAccessor = null;
+            Func<object, object?>? postingLockAccessor = null;
 
             var lazyAsyncResultType = systemNetHttpAssembly?.GetType("System.Net.LazyAsyncResult");
             if (lazyAsyncResultType != null)
@@ -1077,6 +1177,8 @@ internal static class HttpWebRequestActivitySource
             if (contextAwareResultType != null)
             {
                 isContextAwareResultChecker = CreateTypeChecker(contextAwareResultType);
+                contextAccessor = CreateFieldGetter<ExecutionContext?>(contextAwareResultType, "_Context", BindingFlags.NonPublic | BindingFlags.Instance);
+                postingLockAccessor = CreateFieldGetter<object?>(contextAwareResultType, "_Lock", BindingFlags.NonPublic | BindingFlags.Instance);
             }
 
             // HttpWebResponse
@@ -1156,6 +1258,11 @@ internal static class HttpWebRequestActivitySource
             this.EndCalledAccessor = endCalledAccessor;
             this.ResultAccessor = resultAccessor;
             this.IsContextAwareResultChecker = isContextAwareResultChecker;
+
+            // These are only used to attribute queued requests to their caller. If they are not
+            // available, requests are processed in the context of the current thread as before.
+            this.ContextAccessor = contextAccessor ?? (static _ => null);
+            this.PostingLockAccessor = postingLockAccessor ?? (static _ => null);
             this.HttpWebResponseCtor = httpWebResponseCtor;
             this.UriAccessor = uriAccessor;
             this.VerbAccessor = verbAccessor;

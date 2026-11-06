@@ -5,6 +5,10 @@
 * Updated Semantic Conventions version to `1.45.0`.
   ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
 
+* Add the `gcp.gce.instance.name` resource attribute when running on Google
+  Compute Engine.
+  ([#5838](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5838))
+
 * **Breaking Change** Dropped support for `net8.0` and `net9.0`.
   ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
 

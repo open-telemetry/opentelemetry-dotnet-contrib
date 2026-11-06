@@ -182,6 +182,32 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         return testCases;
     }
 
+    public static TheoryData<string, int> GetSqlDialectTestCases()
+    {
+        var testCases = new TheoryData<string, int>();
+
+        foreach (var testCase in DbSystemTestCases())
+        {
+            var (name, _, dbSystemName) = testCase.Data;
+
+            var dialect = dbSystemName switch
+            {
+                "mysql" => SqlProcessor.SqlDialect.MySql,
+                "gcp.spanner" => SqlProcessor.SqlDialect.GoogleSql,
+                "microsoft.sql_server" => SqlProcessor.SqlDialect.SqlServer,
+                "sqlite" => SqlProcessor.SqlDialect.Sqlite,
+                "oracle.db" => SqlProcessor.SqlDialect.Oracle,
+                "firebirdsql" => SqlProcessor.SqlDialect.Firebird,
+                "teradata" => SqlProcessor.SqlDialect.Teradata,
+                _ => SqlProcessor.SqlDialect.Default,
+            };
+
+            testCases.Add(name, (int)dialect);
+        }
+
+        return testCases;
+    }
+
     public static TheoryData<string, bool> IsSqlLikeProviderTestCases()
     {
         // Get all the possible names and assume they are false
@@ -235,35 +261,6 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         return testCases;
     }
 
-    public static TheoryData<string, bool> IsBackslashEscapeProviderTestCases()
-    {
-        var values = DbSystemTestCases().ToDictionary((k) => k.Data.Item1, (v) => false);
-
-        string[] backslashEscapeProviders =
-        [
-            "Devart.Data.MySql.Entity.EFCore",
-            "Devart.Data.MySql.MySqlCommand",
-            "MySql.Data.EntityFrameworkCore",
-            "MySql.Data.MySqlClient.MySqlCommand",
-            "MySql.EntityFrameworkCore",
-            "Pomelo.EntityFrameworkCore.MySql",
-        ];
-
-        foreach (var name in backslashEscapeProviders)
-        {
-            values[name] = true;
-        }
-
-        var testCases = new TheoryData<string, bool>();
-
-        foreach ((var name, var expected) in values)
-        {
-            testCases.Add(name, expected);
-        }
-
-        return testCases;
-    }
-
     [Theory]
     [MemberData(nameof(DbSystemTestCases))]
     public void ShouldReturnCorrectAttributeValuesProviderOrCommandName(string name, string expectedDbSystem, string expectedDbSystemName)
@@ -275,19 +272,19 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     }
 
     [Theory]
+    [MemberData(nameof(GetSqlDialectTestCases))]
+    public void ShouldReturnCorrectSqlDialectForProviderOrCommandName(string name, int expected)
+    {
+        var actual = EntityFrameworkProviderInfo.GetSqlDialect(name);
+
+        Assert.Equal((SqlProcessor.SqlDialect)expected, actual);
+    }
+
+    [Theory]
     [MemberData(nameof(IsSqlLikeProviderTestCases))]
     public void ShouldReturnCorrectValueForSqlLikeProviderOrCommandName(string name, bool expected)
     {
         var actual = EntityFrameworkProviderInfo.IsSqlLikeProvider(name);
-
-        Assert.Equal(expected, actual);
-    }
-
-    [Theory]
-    [MemberData(nameof(IsBackslashEscapeProviderTestCases))]
-    public void ShouldReturnCorrectValueForBackslashEscapeProviderOrCommandName(string name, bool expected)
-    {
-        var actual = EntityFrameworkProviderInfo.IsBackslashEscapeProvider(name);
 
         Assert.Equal(expected, actual);
     }
@@ -755,6 +752,38 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
     public void Dispose() => this.connection.Dispose();
 
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void ShouldPreserveDefaultQueryTextSanitization(bool emitOldAttributes, bool emitNewAttributes)
+    {
+        var activity = this.ExecuteCommand(
+            "select * from Items where Name = 'ItemOne'",
+            emitOldAttributes,
+            emitNewAttributes,
+            configure: null);
+
+        const string ExpectedQueryText = "select * from Items where Name = ?";
+
+        if (emitOldAttributes)
+        {
+            Assert.Equal(ExpectedQueryText, activity.GetTagValue(SemanticConventions.AttributeDbStatement));
+        }
+
+        if (emitNewAttributes)
+        {
+            Assert.Equal(ExpectedQueryText, activity.GetTagValue(SemanticConventions.AttributeDbQueryText));
+            Assert.Equal("select Items", activity.GetTagValue(SemanticConventions.AttributeDbQuerySummary));
+            Assert.Equal("select Items", activity.DisplayName);
+        }
+        else
+        {
+            Assert.DoesNotContain(activity.TagObjects, tag => tag.Key == SemanticConventions.AttributeDbQuerySummary);
+            Assert.Equal("main", activity.DisplayName);
+        }
+    }
+
     private static SqliteConnection CreateInMemoryDatabase()
     {
         var connection = new SqliteConnection("Filename=:memory:");
@@ -827,6 +856,31 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
             Assert.Null(activity.StatusDescription);
             Assert.Equal(typeof(SqliteException).FullName, activity.GetTagValue(SemanticConventions.AttributeErrorType));
         }
+    }
+
+    private Activity ExecuteCommand(
+        string commandText,
+        bool emitOldAttributes,
+        bool emitNewAttributes,
+        Action<EntityFrameworkInstrumentationOptions>? configure)
+    {
+        var exportedItems = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                  .AddInMemoryExporter(exportedItems)
+                  .AddEntityFrameworkCoreInstrumentation(options =>
+                  {
+                      configure?.Invoke(options);
+                      options.EmitOldAttributes = emitOldAttributes;
+                      options.EmitNewAttributes = emitNewAttributes;
+                  })
+                  .Build())
+        {
+            using var context = new ItemsContext(this.contextOptions);
+            context.Database.ExecuteSqlRaw(commandText);
+        }
+
+        return Assert.Single(exportedItems);
     }
 
     private void Seed()

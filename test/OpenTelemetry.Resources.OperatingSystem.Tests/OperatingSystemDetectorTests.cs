@@ -60,6 +60,42 @@ public class OperatingSystemDetectorTests
         Assert.Equal(expectedPlatform, resourceAttributes[OperatingSystemSemanticConventions.AttributeOperatingSystemType]);
     }
 
+    [Fact]
+    public void TestDetectWithUnknownPlatformReturnsEmptyResource()
+    {
+        var resource = CreateDetector(null, null).Detect();
+
+        Assert.NotNull(resource);
+        Assert.Empty(resource.Attributes);
+    }
+
+    [Fact]
+    public void TestDetectWithUnsupportedPlatformReturnsOnlyTypeAndDescription()
+    {
+        var resource = CreateDetector("unsupported", null).Detect();
+
+        var attributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
+
+        Assert.Equal(2, attributes.Count);
+        Assert.Equal("unsupported", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemType]);
+        Assert.True(attributes.ContainsKey(OperatingSystemSemanticConventions.AttributeOperatingSystemDescription));
+    }
+
+    [Fact]
+    public void TestDetectWindowsWithMissingRegistryKeyReturnsOnlyTypeAndDescription()
+    {
+        // On Windows the key does not exist, elsewhere the registry is not supported.
+        // Either way the detector should fall back to the basic attributes.
+        var resource = CreateDetector(OperatingSystemSemanticConventions.OperatingSystemsValues.Windows, "OpenTelemetryDoesNotExist").Detect();
+
+        var attributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
+
+        Assert.Equal(2, attributes.Count);
+        Assert.Equal(
+            OperatingSystemSemanticConventions.OperatingSystemsValues.Windows,
+            attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemType]);
+    }
+
 #if NET
     [Fact]
     public void TestParseMacOSPlist()
@@ -107,5 +143,142 @@ public class OperatingSystemDetectorTests
         Assert.Equal("22.04", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemVersion]);
         Assert.Equal("5.15.0-76-generic", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemBuildId]);
     }
+
+    [Fact]
+    public void TestParseLinuxOsReleaseWithQuotedValuesAndBuildId()
+    {
+        WithTempFile(
+            ["NAME='Test OS'", "BUILD_ID=\"2024.01\"", "VERSION_ID=1.2"],
+            path =>
+            {
+                var attributes = DetectLinux(path, null);
+
+                Assert.Equal(5, attributes.Count);
+                Assert.Equal("Test OS", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemName]);
+                Assert.Equal("2024.01", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemBuildId]);
+                Assert.Equal("1.2", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemVersion]);
+            });
+    }
+
+    [Fact]
+    public void TestParseLinuxOsReleaseWithoutNameOrVersionUsesDefaults()
+    {
+        WithTempFile(
+            ["ID=test"],
+            path =>
+            {
+                var attributes = DetectLinux(path, "Samples/kernelOsrelease");
+
+                Assert.Equal(4, attributes.Count);
+                Assert.Equal("Linux", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemName]);
+                Assert.Equal("5.15.0-76-generic", attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemBuildId]);
+                Assert.False(attributes.ContainsKey(OperatingSystemSemanticConventions.AttributeOperatingSystemVersion));
+            });
+    }
+
+    [Fact]
+    public void TestParseLinuxOsReleaseWithMissingKernelReleaseReturnsOnlyTypeAndDescription()
+    {
+        WithTempFile(
+            ["NAME=Test"],
+            path =>
+            {
+                var attributes = DetectLinux(path, "Samples/does-not-exist");
+
+                Assert.Equal(2, attributes.Count);
+            });
+    }
+
+    [Fact]
+    public void TestParseLinuxOsReleaseWithMissingFileReturnsOnlyTypeAndDescription()
+    {
+        var attributes = DetectLinux("Samples/does-not-exist", "Samples/kernelOsrelease");
+
+        Assert.Equal(2, attributes.Count);
+        Assert.Equal(
+            OperatingSystemSemanticConventions.OperatingSystemsValues.Linux,
+            attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemType]);
+    }
+
+    [Fact]
+    public void TestParseMacOSPlistWithMissingFileReturnsOnlyTypeAndDescription()
+    {
+        var attributes = DetectMacOS("Samples/does-not-exist");
+
+        Assert.Equal(2, attributes.Count);
+        Assert.Equal(
+            OperatingSystemSemanticConventions.OperatingSystemsValues.Darwin,
+            attributes[OperatingSystemSemanticConventions.AttributeOperatingSystemType]);
+    }
+
+    [Fact]
+    public void TestParseMacOSPlistWithMismatchedKeysAndValuesReturnsOnlyTypeAndDescription()
+    {
+        WithTempFile(
+            ["<plist version=\"1.0\">", "<dict>", "<key>ProductName</key>", "<key>ProductVersion</key>", "<string>Mac OS X</string>", "</dict>", "</plist>"],
+            path => Assert.Equal(2, DetectMacOS(path).Count));
+    }
+
+    [Fact]
+    public void TestParseMacOSPlistWithoutDictReturnsOnlyTypeAndDescription()
+    {
+        WithTempFile(
+            ["<plist version=\"1.0\">", "</plist>"],
+            path => Assert.Equal(2, DetectMacOS(path).Count));
+    }
+
+    [Fact]
+    public void TestParseMacOSPlistWithInvalidXmlReturnsOnlyTypeAndDescription()
+    {
+        WithTempFile(
+            ["this is not xml"],
+            path => Assert.Equal(2, DetectMacOS(path).Count));
+    }
+
+    private static Dictionary<string, string> DetectLinux(string osReleasePath, string? kernelReleasePath)
+    {
+        var detector = new OperatingSystemDetector(
+            OperatingSystemSemanticConventions.OperatingSystemsValues.Linux,
+            null,
+            kernelReleasePath,
+            [osReleasePath],
+            null);
+
+        return detector.Detect().Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
+    }
+
+    private static Dictionary<string, string> DetectMacOS(string plistPath)
+    {
+        var detector = new OperatingSystemDetector(
+            OperatingSystemSemanticConventions.OperatingSystemsValues.Darwin,
+            null,
+            null,
+            null,
+            [plistPath]);
+
+        return detector.Detect().Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
+    }
+
+    private static void WithTempFile(string[] lines, Action<string> test)
+    {
+        var path = Path.GetTempFileName();
+
+        try
+        {
+            File.WriteAllLines(path, lines);
+            test(path);
+        }
+        finally
+        {
+            File.Delete(path);
+        }
+    }
+#endif
+
+    private static OperatingSystemDetector CreateDetector(string? osType, string? registryKey) =>
+#if NET
+        new(osType, registryKey, null, null, null);
+#else
+        new(osType, registryKey);
 #endif
 }

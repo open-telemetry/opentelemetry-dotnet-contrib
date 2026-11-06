@@ -215,6 +215,39 @@ public class HostDetectorTests
     }
 
     [Fact]
+    public void TestHostMachineIdLinuxSkipsUnreadableFile()
+    {
+        // Sharing is only enforced for a held file handle on Windows.
+        Assert.SkipUnless(OperatingSystem.IsWindows(), "Skipped because the file cannot be locked on this platform.");
+
+        var unreadable = Path.GetTempFileName();
+        var readable = Path.GetTempFileName();
+
+        try
+        {
+            File.WriteAllText(readable, "fallback_machineid" + Environment.NewLine);
+
+            using var handle = new FileStream(unreadable, FileMode.Open, FileAccess.ReadWrite, FileShare.None);
+
+            var detector = new HostDetector(
+                osPlatform => osPlatform == OSPlatform.Linux,
+                () => [unreadable, readable],
+                () => throw new Exception("should not be called"),
+                () => throw new Exception("should not be called"));
+
+            var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
+
+            var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
+            Assert.Equal("fallback_machineid", resourceAttributes[HostSemanticConventions.AttributeHostId]);
+        }
+        finally
+        {
+            File.Delete(unreadable);
+            File.Delete(readable);
+        }
+    }
+
+    [Fact]
     public void TestHostMachineIdMacOs()
     {
         var detector = new HostDetector(
@@ -238,6 +271,30 @@ public class HostDetectorTests
         var id = HostDetector.ParseMacOsOutput(MacOSMachineIdOutput);
         Assert.Equal("1AB2345C-03E4-57D4-A375-1234D48DE123", id);
     }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("no machine identifier in this output")]
+    [InlineData("    IOPlatformUUID = unquoted")]
+    public void TestParseMacOsOutputWithoutMachineId(string? output) =>
+        Assert.Null(HostDetector.ParseMacOsOutput(output));
+#endif
+
+#if NET
+    [Theory]
+    [InlineData(Architecture.X86, "x86")]
+    [InlineData(Architecture.X64, "amd64")]
+    [InlineData(Architecture.Arm, "arm32")]
+    [InlineData(Architecture.Arm64, "arm64")]
+    [InlineData(Architecture.S390x, "s390x")]
+    [InlineData(Architecture.Armv6, "arm32")]
+    [InlineData(Architecture.Ppc64le, "ppc64")]
+    [InlineData(Architecture.Wasm, null)]
+    [InlineData(Architecture.LoongArch64, null)]
+    [InlineData((Architecture)int.MaxValue, null)]
+    public void TestMapArchitectureToOtel(Architecture architecture, string? expected) =>
+        Assert.Equal(expected, HostDetector.MapArchitectureToOtel(architecture));
 #endif
 
     [Fact]
@@ -543,6 +600,10 @@ public class HostDetectorTests
     [InlineData("6291456", 6291456)]
     [InlineData("12288000", 12288000)]
     [InlineData("1024K", 1048576)]
+    [InlineData("2 MB", 2097152)]
+    [InlineData("2M", 2097152)]
+    [InlineData("5 GB", null)]
+    [InlineData("12 xyz", null)]
     [InlineData("unknown", null)]
     [InlineData("   ", null)]
     [InlineData(null, null)]

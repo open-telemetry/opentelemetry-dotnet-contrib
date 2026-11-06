@@ -8,6 +8,28 @@
 * Add support for .NET 11.0.
   ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
 
+## 1.20.2-beta.1
+
+Released 2026-Nov-05
+
+* Fixed failed jobs exporting the exception message as the span status description.
+  The message is now only recorded when `RecordException` is enabled.
+  ([#5884](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5884))
+
+* Fixed baggage from a job being visible to work started by other jobs
+  performed on the same worker.
+  ([#5886](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5886))
+
+* Added `EnrichWithBackgroundJob` and `CustomStateMappings` to
+  `HangfireMetricsInstrumentationOptions`. Use them to add custom attributes to
+  the metrics and to count jobs in custom Hangfire states.
+  ([#5810](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5810))
+
+* Fixed `workflow.execution.duration` for the `executing` state. It included the
+  time of other measurements of this instrumentation, for example the database
+  query that `RecordQueueLatency` adds.
+  ([#5810](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5810))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21

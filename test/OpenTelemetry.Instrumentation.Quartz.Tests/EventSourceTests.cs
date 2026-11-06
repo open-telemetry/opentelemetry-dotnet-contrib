@@ -11,4 +11,8 @@ public class EventSourceTests
     [Fact]
     public void EventSourceTests_QuartzInstrumentationEventSource() =>
         EventSourceTestHelper.ValidateEventSourceIds<QuartzInstrumentationEventSource>();
+
+    [Fact]
+    public void EventSourceTests_QuartzInstrumentationEventSource_WritesEvents() =>
+        EventSourceTestHelper.ExerciseEventSource<QuartzInstrumentationEventSource>();
 }

@@ -10,4 +10,8 @@ public class EventSourceTests
     [Fact]
     public void EventSourceTests_EventCountersInstrumentationEventSource() =>
         EventSourceTestHelper.ValidateEventSourceIds<EventCountersInstrumentationEventSource>();
+
+    [Fact]
+    public void EventSourceTests_EventCountersInstrumentationEventSource_WritesEvents() =>
+        EventSourceTestHelper.ExerciseEventSource<EventCountersInstrumentationEventSource>();
 }

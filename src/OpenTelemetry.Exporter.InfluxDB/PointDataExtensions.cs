@@ -50,19 +50,33 @@ internal static class PointDataExtensions
     /// Escapes the backslashes in a tag key or value that InfluxDB.Client would
     /// otherwise emit in a way that corrupts the line protocol record.
     /// <para/>
-    /// Line protocol parsers interpret two contiguous backslashes as a single
-    /// literal backslash, so every backslash is doubled to preserve the original
-    /// value. This also ensures a trailing backslash, or one preceding a space,
-    /// comma or equals sign that InfluxDB.Client escapes, cannot escape the delimiter.
+    /// Backslashes are doubled before InfluxDB.Client escapes spaces, commas and
+    /// equals signs. InfluxDB 1.x and 2.x consider a tag delimiter escaped whenever
+    /// its preceding character is a backslash, regardless of the backslash count.
+    /// A trailing space is therefore appended to keys and values ending in a
+    /// backslash so that the following delimiter can be recognized.
     /// </summary>
     /// <param name="value">The tag key or value.</param>
     /// <returns>The escaped key or value.</returns>
     internal static string EscapeTagComponent(string value)
+    {
 #if NET
-        => value.Contains('\\', StringComparison.Ordinal) ? value.Replace(@"\", @"\\", StringComparison.Ordinal) : value;
+        if (!value.Contains('\\', StringComparison.Ordinal))
 #else
-        => value.IndexOf('\\') < 0 ? value : value.Replace(@"\", @"\\");
+        if (value.IndexOf('\\') < 0)
 #endif
+        {
+            return value;
+        }
+
+#if NET
+        var escaped = value.Replace(@"\", @"\\", StringComparison.Ordinal);
+#else
+        var escaped = value.Replace(@"\", @"\\");
+#endif
+
+        return value[value.Length - 1] == '\\' ? escaped + " " : escaped;
+    }
 
     private static PointData EscapedTag(this PointData pointData, string key, string? value)
         => pointData.Tag(EscapeTagComponent(key), value == null ? null : EscapeTagComponent(value));

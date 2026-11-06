@@ -2,15 +2,25 @@
 
 ## Unreleased
 
-* Fixed the attributes of a sampling rule being matched incorrectly when a span
-  has more than one tag with the same key.
-  ([#5824](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5824))
-
 * **Breaking Change** Dropped support for `net8.0` and `net9.0`.
   ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
 
 * Add support for .NET 11.0.
   ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+## 0.1.0-alpha.18
+
+Released 2026-Nov-05
+
+* Fixed the attributes of a sampling rule being matched incorrectly when a span
+  has more than one tag with the same key.
+  ([#5824](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5824))
+
+* The sampling endpoint client no longer follows HTTP redirects or retains
+  cookies. A redirect response is now treated as a failed poll, so deployments
+  that rely on a redirect in front of the sampling endpoint must configure the
+  final URL via `SetEndpoint`.
+  ([#5856](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5856))
 
 ## 0.1.0-alpha.17
 

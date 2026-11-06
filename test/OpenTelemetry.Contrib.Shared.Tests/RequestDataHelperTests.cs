@@ -221,6 +221,32 @@ public class RequestDataHelperTests
     }
 
     [Fact]
+    public void GetActivityDisplayNameDoesNotCacheDisplayNamesForLongRoutes()
+    {
+        var requestHelper = new RequestDataHelper(configureByHttpKnownMethodsEnvironmentalVariable: false);
+
+        var atLimit = new string('a', RequestDataHelper.MaxCachedRouteLength);
+        var overLimit = new string('a', RequestDataHelper.MaxCachedRouteLength + 1);
+
+        Assert.Same(requestHelper.GetActivityDisplayName("GET", atLimit), requestHelper.GetActivityDisplayName("GET", atLimit));
+        Assert.Equal(1, requestHelper.CachedDisplayNameCount);
+
+        for (var i = 0; i < 10; i++)
+        {
+            var route = new string((char)('a' + i), RequestDataHelper.MaxCachedRouteLength + 1);
+            Assert.Equal($"GET {route}", requestHelper.GetActivityDisplayName("GET", route));
+        }
+
+        var first = requestHelper.GetActivityDisplayName("GET", overLimit);
+        var second = requestHelper.GetActivityDisplayName("GET", overLimit);
+
+        Assert.Equal($"GET {overLimit}", first);
+        Assert.Equal(first, second);
+        Assert.NotSame(first, second);
+        Assert.Equal(1, requestHelper.CachedDisplayNameCount);
+    }
+
+    [Fact]
     public void GetActivityDisplayNameDoesNotCacheMoreThanMaximumNumberOfDisplayNames()
     {
         var requestHelper = new RequestDataHelper(configureByHttpKnownMethodsEnvironmentalVariable: false);

@@ -77,7 +77,6 @@ internal static class SemanticConventions
     public const string AttributeFaasTime = "faas.time";
     public const string AttributeFaasCron = "faas.cron";
 
-    public const string AttributeMessagingSystem = "messaging.system";
     public const string AttributeMessagingDestination = "messaging.destination";
     public const string AttributeMessagingDestinationKind = "messaging.destination_kind";
     public const string AttributeMessagingTempDestination = "messaging.temp_destination";
@@ -122,27 +121,28 @@ internal static class SemanticConventions
     public const string AttributeNetworkPeerAddress = "network.peer.address"; // replaces: "net.peer.ip" (AttributeNetPeerIp)
     public const string AttributeNetworkPeerPort = "network.peer.port"; // replaces: "net.peer.port" (AttributeNetPeerPort)
 
-    // v1.44.0 Messaging spans
-    // https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/messaging/messaging-spans.md
+    // v1.45.0 Messaging spans
+    // https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/messaging/messaging-spans.md
     public const string AttributeMessagingClientId = "messaging.client.id"; // replaces: "messaging.client_id"
     public const string AttributeMessagingConsumerGroupName = "messaging.consumer.group.name"; // replaces: "messaging.kafka.consumer.group"
     public const string AttributeMessagingDestinationName = "messaging.destination.name";
     public const string AttributeMessagingDestinationPartitionId = "messaging.destination.partition.id"; // replaces: "messaging.kafka.destination.partition"
     public const string AttributeMessagingOperationName = "messaging.operation.name"; // replaces: "messaging.operation"
     public const string AttributeMessagingOperationType = "messaging.operation.type";
+    public const string AttributeMessagingSystemName = "messaging.system.name"; // replaces: "messaging.system"
 
-    // v1.44.0 Messaging metrics
-    // https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/messaging/messaging-metrics.md
+    // v1.45.0 Messaging metrics
+    // https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/messaging/messaging-metrics.md
     public const string MetricMessagingClientOperationDuration = "messaging.client.operation.duration"; // replaces: "messaging.publish.duration" and "messaging.receive.duration"
     public const string MetricMessagingClientSentMessages = "messaging.client.sent.messages"; // replaces: "messaging.publish.messages"
     public const string MetricMessagingClientConsumedMessages = "messaging.client.consumed.messages"; // replaces: "messaging.receive.messages"
 
-    // v1.44.0 Messaging (Kafka)
-    // https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/messaging/kafka.md
-    public const string AttributeMessagingKafkaClusterId = "messaging.kafka.cluster.id";
-    public const string AttributeMessagingKafkaMessageKey = "messaging.kafka.message.key";
-    public const string AttributeMessagingKafkaMessageTombstone = "messaging.kafka.message.tombstone";
-    public const string AttributeMessagingKafkaOffset = "messaging.kafka.offset"; // replaces: "messaging.kafka.message.offset"
+    // v1.45.0 Messaging (Kafka)
+    // https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/messaging/kafka.md
+    public const string AttributeKafkaClusterId = "kafka.cluster.id"; // replaces: "messaging.kafka.cluster.id"
+    public const string AttributeKafkaMessageKey = "kafka.message.key"; // replaces: "messaging.kafka.message.key"
+    public const string AttributeKafkaMessageTombstone = "kafka.message.tombstone"; // replaces: "messaging.kafka.message.tombstone"
+    public const string AttributeKafkaOffset = "kafka.offset"; // replaces: "messaging.kafka.offset" and "messaging.kafka.message.offset"
 
     // v1.36.0 database conventions:
     // https://github.com/open-telemetry/semantic-conventions/tree/v1.36.0/docs/database

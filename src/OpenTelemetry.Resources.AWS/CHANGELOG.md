@@ -8,6 +8,15 @@
 * Add support for .NET 11.0.
   ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
 
+## 1.20.2
+
+Released 2026-Nov-05
+
+* `AWSEC2Detector`, `AWSECSDetector` and `AWSEKSDetector` no longer follow HTTP
+  redirects when requesting metadata. A redirect response is now treated as a
+  failed request.
+  ([#5878](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5878))
+
 ## 1.20.1
 
 Released 2026-Oct-21

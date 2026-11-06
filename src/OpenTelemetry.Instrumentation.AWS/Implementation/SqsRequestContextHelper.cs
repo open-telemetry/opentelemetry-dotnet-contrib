@@ -13,6 +13,8 @@ internal class SqsRequestContextHelper
     // https://docs.aws.amazon.com/sns/latest/dg/sns-message-attributes.html
     private const int MaxMessageAttributes = 10;
 
+    // Adds the specified propagation attributes to the request, replacing any added by an earlier send
+    // of the same request. An empty set of attributes only removes attributes added by an earlier send.
     internal static void AddAttributes(IRequestContext context, IReadOnlyDictionary<string, string> attributes)
     {
         if (context.OriginalRequest is not SendMessageRequest originalRequest)
@@ -20,32 +22,69 @@ internal class SqsRequestContextHelper
             return;
         }
 
-        if (originalRequest.MessageAttributes == null)
+        var existing = originalRequest.MessageAttributes;
+
+        // Never write into the dictionary assigned by the application: it may be shared between
+        // requests (or threads), and anything left in it would be sent again with later messages.
+        var messageAttributes = new Dictionary<string, MessageAttributeValue>((existing?.Count ?? 0) + attributes.Count, existing?.Comparer);
+        if (existing != null)
         {
-            originalRequest.MessageAttributes = [with(attributes.Count)];
-        }
-        else
-        {
-            foreach (var key in attributes.Keys)
+            foreach (var attribute in existing)
             {
-                if (originalRequest.MessageAttributes.ContainsKey(key))
+                // Values injected by an earlier send of the same request object are replaced with the current context,
+                // unless the application has changed them since, in which case they are treated as the application's own.
+                if (attribute.Value is not InjectedMessageAttributeValue { IsUnchanged: true })
                 {
-                    // If at least one attribute is already present in the request then we skip the injection.
-                    return;
+                    messageAttributes.Add(attribute.Key, attribute.Value);
                 }
             }
+        }
 
-            var attributesCount = originalRequest.MessageAttributes.Count;
-            if (attributes.Count + attributesCount > MaxMessageAttributes)
+        if (attributes.Count > 0 && CanInject(messageAttributes, attributes))
+        {
+            foreach (var param in attributes)
             {
-                // TODO: add logging (event source).
-                return;
+                messageAttributes[param.Key] = new InjectedMessageAttributeValue(param.Value);
+            }
+        }
+        else if (messageAttributes.Count == (existing?.Count ?? 0))
+        {
+            // Nothing to inject and nothing stale to remove.
+            return;
+        }
+
+        originalRequest.MessageAttributes = messageAttributes;
+    }
+
+    private static bool CanInject(Dictionary<string, MessageAttributeValue> messageAttributes, IReadOnlyDictionary<string, string> attributes)
+    {
+        foreach (var key in attributes.Keys)
+        {
+            if (messageAttributes.ContainsKey(key))
+            {
+                // If at least one attribute is already present in the request then we skip the injection.
+                return false;
             }
         }
 
-        foreach (var param in attributes)
+        // TODO: add logging (event source) when the limit is exceeded.
+        return attributes.Count + messageAttributes.Count <= MaxMessageAttributes;
+    }
+
+    // Marks values added by the instrumentation so they can be told apart from application-supplied attributes.
+    private sealed class InjectedMessageAttributeValue : MessageAttributeValue
+    {
+        private readonly string injectedValue;
+
+        public InjectedMessageAttributeValue(string value)
         {
-            originalRequest.MessageAttributes[param.Key] = new MessageAttributeValue { DataType = "String", StringValue = param.Value };
+            this.DataType = "String";
+            this.StringValue = value;
+            this.injectedValue = value;
         }
+
+        public bool IsUnchanged =>
+            string.Equals(this.DataType, "String", StringComparison.Ordinal) &&
+            string.Equals(this.StringValue, this.injectedValue, StringComparison.Ordinal);
     }
 }

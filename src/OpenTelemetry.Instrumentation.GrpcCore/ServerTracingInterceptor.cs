@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using Grpc.Core;
 using Grpc.Core.Interceptors;
+using OpenTelemetry.Context;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
 
@@ -154,6 +155,11 @@ public class ServerTracingInterceptor : Interceptor
         where TResponse : class
     {
         /// <summary>
+        /// The name of the runtime context slot in which the baggage holder is kept.
+        /// </summary>
+        private const string BaggageSlotName = "otel.baggage";
+
+        /// <summary>
         /// The metadata setter action.
         /// </summary>
         private static readonly Func<Metadata, string, IEnumerable<string>> MetadataGetter = (metadata, key) =>
@@ -197,6 +203,12 @@ public class ServerTracingInterceptor : Interceptor
 
                 if (propagationContext.Baggage != default)
                 {
+                    // Setting Baggage.Current updates the baggage holder of the current execution
+                    // context in place. Every RPC starts in the execution context the gRPC environment
+                    // was created in, so a holder that already exists there is shared by all RPCs.
+                    // Remove it so that the assignment creates a holder for this RPC only. The slot is
+                    // registered by now because Baggage.Current was read above.
+                    RuntimeContext.SetValue(BaggageSlotName, null);
                     Baggage.Current = propagationContext.Baggage;
                 }
             }

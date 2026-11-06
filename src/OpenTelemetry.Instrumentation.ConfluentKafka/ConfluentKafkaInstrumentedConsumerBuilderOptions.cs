@@ -18,4 +18,12 @@ public sealed class ConfluentKafkaInstrumentedConsumerBuilderOptions
     /// Gets or sets a value indicating whether tracing should be enabled for the consumer.
     /// </summary>
     public bool EnableTraces { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether the <c>process</c> span created when
+    /// processing a message with <c>ConsumeAndProcessMessageAsync</c>
+    /// should use the message creation context (extracted from the message headers) as its
+    /// parent instead of only linking to it. The default value is <see langword="false" />.
+    /// </summary>
+    public bool UseCreationContextAsParent { get; set; }
 }

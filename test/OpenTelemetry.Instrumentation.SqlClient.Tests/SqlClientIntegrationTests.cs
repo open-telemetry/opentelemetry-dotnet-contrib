@@ -284,12 +284,6 @@ public sealed class SqlClientIntegrationTests :
 
         var textActivity = Assert.Single(activities);
 
-        // The stopped activity is left as Activity.Current by the async command, which would
-        // make the stored procedure a child of it. Clear it so the two commands belong to
-        // unrelated traces, which is the case where the stale value attributes the stored
-        // procedure to the wrong trace.
-        Activity.Current = null;
-
         var (connectionId, contextInfo) = await ReadSessionStateAsync(sqlConnection);
 
         // Assert

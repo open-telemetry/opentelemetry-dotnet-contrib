@@ -17,12 +17,18 @@ namespace OpenTelemetry.Instrumentation.ConfluentKafka;
 /// Contains common constants and static members used by the Confluent Kafka instrumentation.
 /// </summary>
 /// <remarks>
-/// Follows the v1.44.0 messaging semantic conventions:
-/// https://github.com/open-telemetry/semantic-conventions/tree/v1.44.0/docs/messaging.
+/// Follows the v1.45.0 messaging semantic conventions:
+/// https://github.com/open-telemetry/semantic-conventions/tree/v1.45.0/docs/messaging.
 /// </remarks>
 internal static class ConfluentKafkaCommon
 {
     internal const string KafkaMessagingSystem = "kafka";
+
+    /// <summary>
+    /// The maximum number of characters of a string message key recorded in the
+    /// <c>messaging.kafka.message.key</c> attribute. Longer keys are truncated.
+    /// </summary>
+    internal const int MaxMessageKeyLength = 256;
 
     // messaging.operation.name values (system-specific operation names).
     internal const string SendOperationName = "send";
@@ -34,7 +40,7 @@ internal static class ConfluentKafkaCommon
     internal const string ReceiveOperationType = "receive";
     internal const string ProcessOperationType = "process";
 
-    internal static readonly Version SemanticConventionsVersion = new(1, 44, 0);
+    internal static readonly Version SemanticConventionsVersion = new(1, 45, 0);
 
     internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create(typeof(ConfluentKafkaCommon), SemanticConventionsVersion);
     internal static readonly Meter Meter = MeterFactory.Create(typeof(ConfluentKafkaCommon), SemanticConventionsVersion);
@@ -85,6 +91,11 @@ internal static class ConfluentKafkaCommon
     /// <see href="https://github.com/open-telemetry/semantic-conventions/blob/89aae438b3b3b0a8dd33003c9d70592baf7dbd0d/docs/messaging/kafka.md#L119"><c>messaging.kafka.message.key</c> semantic convention</see>.
     /// </summary>
     /// <param name="key">The message key, which may be <see langword="null"/>.</param>
+    /// <remarks>
+    /// String keys longer than <see cref="MaxMessageKeyLength"/> are truncated. The key is
+    /// chosen by the producer, so it is untrusted input: without a bound, every span would
+    /// pin the full-size string in memory until it has been exported.
+    /// </remarks>
     /// <returns>
     /// The canonical string representation of <paramref name="key"/>, or <see langword="null"/>
     /// when the key is absent or has no unambiguous, canonical string form (e.g. a
@@ -92,7 +103,7 @@ internal static class ConfluentKafkaCommon
     /// </returns>
     internal static string? FormatMessageKey(object? key) => key switch
     {
-        string value => value,
+        string value => TruncateMessageKey(value),
         char value => value.ToString(),
         bool value => value.ToString(),
         byte value => value.ToString(CultureInfo.InvariantCulture),
@@ -112,6 +123,25 @@ internal static class ConfluentKafkaCommon
         TimeSpan value => value.ToString("c", CultureInfo.InvariantCulture),
         _ => null,
     };
+
+    private static string TruncateMessageKey(string value)
+    {
+        if (value.Length <= MaxMessageKeyLength)
+        {
+            return value;
+        }
+
+        var length = MaxMessageKeyLength;
+
+        // Do not split a surrogate pair at the cut.
+        if (char.IsHighSurrogate(value[length - 1]))
+        {
+            length--;
+        }
+
+        // Substring copies, so the span does not retain the original (potentially huge) string.
+        return value.Substring(0, length);
+    }
 
     private static async Task<string?> FetchClusterIdAsync(Handle handle)
     {
