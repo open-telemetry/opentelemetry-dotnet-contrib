@@ -78,6 +78,10 @@
 * Fixed query sanitization of hexadecimal literals preceded by a unary plus.
   ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
+* Fixed literals being left unsanitized in malformed SQL Server queries when
+  escaped brackets extend an identifier beyond its 128-character limit.
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
+
 ## 1.20.1
 
 Released 2026-Oct-21

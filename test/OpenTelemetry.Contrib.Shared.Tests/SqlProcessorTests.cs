@@ -1667,6 +1667,28 @@ public class SqlProcessorTests(ITestOutputHelper output)
         Assert.Equal("SELECT [?", sqlStatementInfo.SanitizedSql);
     }
 
+    [Theory]
+    [InlineData(0, 128)]
+    [InlineData(126, 128)]
+    [InlineData(0, 129)]
+    [InlineData(127, 129)]
+    [InlineData(128, 130)]
+    [InlineData(129, 131)]
+    public void GetSanitizedSql_EscapedBracketAtIdentifierLengthLimit_DoesNotExposeFollowingLiterals(int leadingLetters, int nameLength)
+    {
+        // The escaped bracket counts as one character. The apostrophe can be after the first bracket past the limit.
+        var name = $"[{new string('a', leadingLetters)}]]'{new string('b', nameLength - leadingLetters - 2)}]";
+        var result = GetSanitizedSql($"SELECT {name} FROM t WHERE a = 'secret-name'", SqlDialect.SqlServer);
+        var inClause = GetSanitizedSql($"SELECT x FROM t WHERE y IN ('value', {name}) AND z = 'secret-name'", SqlDialect.SqlServer);
+
+        Assert.Equal(nameLength <= 128 ? $"SELECT {name} FROM t WHERE a = ?" : "SELECT [?", result.SanitizedSql);
+        Assert.Equal(
+            nameLength <= 128 ? "SELECT x FROM t WHERE y IN (?) AND z = ?" : "SELECT x FROM t WHERE y IN (?, [?",
+            inClause.SanitizedSql);
+        Assert.DoesNotContain("secret-name", result.DbQuerySummary, StringComparison.Ordinal);
+        Assert.DoesNotContain("secret-name", inClause.DbQuerySummary, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void GetSanitizedSql_BracketsDelimitIdentifiersOnlyWithNameLongerThanLimitInInClause_RedactsRemainder()
     {

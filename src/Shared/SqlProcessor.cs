@@ -1304,7 +1304,10 @@ internal static partial class SqlProcessor
             // the statement could be part of it, so none of it is copied.
             if (state.BracketsDelimitIdentifiersOnly && i < sql.Length)
             {
-                state.RedactRemainder = sql.Slice(start + 1, i - start - 1).IndexOf(SingleQuoteChar) >= 0;
+                // An escaped bracket is not the end, and a quote beyond it can still make the boundary ambiguous.
+                state.RedactRemainder =
+                    (i + 1 < sql.Length && sql[i + 1] == CloseSquareBracketChar && !Has(state.Dialect, SqlDialect.NoBracketEscape)) ||
+                    sql.Slice(start + 1, i - start - 1).IndexOf(SingleQuoteChar) >= 0;
                 return i;
             }
 
@@ -1344,6 +1347,14 @@ internal static partial class SqlProcessor
             }
 
             return -1;
+        }
+
+        // Escaped brackets can push the closing delimiter beyond the length limit after the initial check.
+        // Its boundary is then unreliable, including when a later escaped bracket hides an apostrophe.
+        if (state.BracketsDelimitIdentifiersOnly)
+        {
+            state.RedactRemainder = true;
+            return sql.Length - 1;
         }
 
         return -1;
