@@ -10,15 +10,21 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation.Tracing;
 internal sealed class AWSTracer : Tracer
 {
     private readonly ActivitySource activitySource;
+    private readonly bool useProducerKindForMessageSend;
     private int disposed;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="AWSTracer"/> class.
     /// </summary>
     /// <param name="activitySource">The ActivitySource used for creating and tracking the activities.</param>
-    public AWSTracer(ActivitySource activitySource)
+    /// <param name="useProducerKindForMessageSend">
+    /// Whether spans for sending a single message to AWS SNS or AWS SQS are created with <see cref="ActivityKind.Producer"/>
+    /// when no message creation context already exists, as described by the semantic conventions for AWS SNS and AWS SQS since v1.44.0.
+    /// </param>
+    public AWSTracer(ActivitySource activitySource, bool useProducerKindForMessageSend = false)
     {
         this.activitySource = activitySource ?? throw new ArgumentNullException(nameof(activitySource));
+        this.useProducerKindForMessageSend = useProducerKindForMessageSend;
     }
 
     public override TraceSpan CreateSpan(
@@ -34,9 +40,24 @@ internal sealed class AWSTracer : Tracer
 
         var tags = initialAttributes != null ? new ActivityTagsCollection(initialAttributes.AllAttributes) : null;
         var activityKind = ConvertToActivityKind(spanKind);
+        ActivityLink[]? links = null;
+
+        if (this.useProducerKindForMessageSend && activityKind == ActivityKind.Client && IsMessageSend(name))
+        {
+            var creationContext = AWSMessageContextPipelineHandler.CreationContext;
+            if (creationContext != default)
+            {
+                // A separate creation context is preserved in the message; this span describes only its transport.
+                links = [new ActivityLink(creationContext)];
+            }
+            else
+            {
+                activityKind = ActivityKind.Producer;
+            }
+        }
 
         var parentActivityContext = ConvertToActivityContext(parentContext);
-        var activity = this.activitySource.StartActivity(name, activityKind, parentActivityContext, tags);
+        var activity = this.activitySource.StartActivity(name, activityKind, parentActivityContext, tags, links);
 
         return new AWSTraceSpan(activity);
     }
@@ -50,6 +71,14 @@ internal sealed class AWSTracer : Tracer
 
         base.Dispose(disposing);
     }
+
+    // Only spans for sending a single message are considered as the context of the span is only injected into
+    // the message when a single message is sent, which the "Send span (producer)" of the semantic conventions requires.
+    // See https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/messaging/sqs.md#send-span-producer
+    // and https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/messaging/sns.md#send-span-producer.
+    private static bool IsMessageSend(string name)
+        => string.Equals(name, "SQS.SendMessage", StringComparison.Ordinal) ||
+           string.Equals(name, "SNS.Publish", StringComparison.Ordinal);
 
     private static ActivityContext ConvertToActivityContext(SpanContext? parentContext)
     {

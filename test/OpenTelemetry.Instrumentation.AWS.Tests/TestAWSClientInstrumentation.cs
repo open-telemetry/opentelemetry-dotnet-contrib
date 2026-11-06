@@ -15,6 +15,7 @@ using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
+using Amazon.Runtime.Telemetry;
 using Amazon.SimpleNotificationService;
 using Amazon.SQS;
 using Amazon.SQS.Model;
@@ -241,7 +242,7 @@ public class TestAWSClientInstrumentation : IDisposable
         var awssdk_activity = exportedItems.FirstOrDefault(e => e.DisplayName == "SQS.SendMessage");
         Assert.NotNull(awssdk_activity);
 
-        this.ValidateAWSActivity(awssdk_activity, parent);
+        this.ValidateAWSActivity(awssdk_activity, parent, ActivityKind.Producer);
         this.ValidateSqsActivityTags(awssdk_activity);
 
         Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
@@ -364,7 +365,7 @@ public class TestAWSClientInstrumentation : IDisposable
         var activity = exportedItems.FirstOrDefault(e => e.DisplayName == "SNS.Publish");
         Assert.NotNull(activity);
 
-        this.ValidateAWSActivity(activity, parent);
+        this.ValidateAWSActivity(activity, parent, ActivityKind.Producer);
         this.ValidateSnsActivityTags(activity);
 
         Assert.Equal(ActivityStatusCode.Unset, activity.Status);
@@ -750,6 +751,345 @@ public class TestAWSClientInstrumentation : IDisposable
         Assert.Equal(extendedRequestId, Utils.GetTagValue(awssdk_activity, "aws.extended_request_id"));
     }
 
+    [Theory]
+    [InlineData(SemanticConventionVersion.V1_28_0, null, null, ActivityKind.Client)]
+    [InlineData(SemanticConventionVersion.V1_29_0, null, null, ActivityKind.Client)]
+    [InlineData(SemanticConventionVersion.V1_40_0, "messaging.system", "aws_sqs", ActivityKind.Client)]
+    [InlineData(SemanticConventionVersion.V1_45_0, "messaging.system.name", "aws.sqs", ActivityKind.Producer)]
+    [InlineData(SemanticConventionVersion.Latest, "messaging.system.name", "aws.sqs", ActivityKind.Producer)]
+#if NETFRAMEWORK
+    public void TestSQSSendMessageForSemanticConventionVersion(SemanticConventionVersion version, string? expectedKey, string? expectedValue, ActivityKind expectedKind)
+#else
+    public async Task TestSQSSendMessageForSemanticConventionVersion(SemanticConventionVersion version, string? expectedKey, string? expectedValue, ActivityKind expectedKind)
+#endif
+    {
+        var exportedItems = new List<Activity>();
+        var requestId = "fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = "wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation(o => o.SemanticConventionVersion = version)
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            CustomResponses.SetResponse(sqs, """{ "MessageId": "567910cd-659e-55d4-bc19-f29d9g3b2378" }""", requestId, extendedRequestId, true);
+            var request = new SendMessageRequest
+            {
+                QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue",
+                MessageBody = "Hello from OT",
+            };
+#if NETFRAMEWORK
+            sqs.SendMessage(request);
+#else
+            await sqs.SendMessageAsync(request, TestContext.Current.CancellationToken);
+#endif
+        }
+
+        var activity = Assert.Single(exportedItems, e => e.DisplayName == "SQS.SendMessage");
+
+        // Sending a single message is a producer span from v1.44.0 of the semantic conventions onwards.
+        Assert.Equal(expectedKind, activity.Kind);
+
+        // The messaging attributes are only emitted from 1.40.0 onwards, and only the name
+        // defined by the selected version of the semantic conventions should be emitted.
+        Assert.Equal(expectedKey == "messaging.system" ? expectedValue : null, Utils.GetTagValue(activity, "messaging.system"));
+        Assert.Equal(expectedKey == "messaging.system.name" ? expectedValue : null, Utils.GetTagValue(activity, "messaging.system.name"));
+
+        // The batch message count must not be set for operations on a single message.
+        Assert.Null(Utils.GetTagValue(activity, "messaging.batch.message_count"));
+    }
+
+    [Theory]
+    [InlineData(SemanticConventionVersion.V1_28_0, null)]
+    [InlineData(SemanticConventionVersion.V1_29_0, null)]
+    [InlineData(SemanticConventionVersion.V1_40_0, null)]
+    [InlineData(SemanticConventionVersion.V1_45_0, 2)]
+    [InlineData(SemanticConventionVersion.Latest, 2)]
+#if NETFRAMEWORK
+    public void TestSQSSendMessageBatchForSemanticConventionVersion(SemanticConventionVersion version, int? expectedMessageCount)
+#else
+    public async Task TestSQSSendMessageBatchForSemanticConventionVersion(SemanticConventionVersion version, int? expectedMessageCount)
+#endif
+    {
+        var exportedItems = new List<Activity>();
+        var requestId = "fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = "wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation(o => o.SemanticConventionVersion = version)
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            CustomResponses.SetResponse(sqs, """{ "Successful": [], "Failed": [] }""", requestId, extendedRequestId, true);
+            var request = new SendMessageBatchRequest
+            {
+                QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue",
+                Entries =
+                [
+                    new SendMessageBatchRequestEntry { Id = "1", MessageBody = "Hello" },
+                    new SendMessageBatchRequestEntry { Id = "2", MessageBody = "from OT" },
+                ],
+            };
+#if NETFRAMEWORK
+            sqs.SendMessageBatch(request);
+#else
+            await sqs.SendMessageBatchAsync(request, TestContext.Current.CancellationToken);
+#endif
+        }
+
+        var activity = Assert.Single(exportedItems, e => e.DisplayName == "SQS.SendMessageBatch");
+
+        // The context is not injected into the messages of a batch so these spans are not producer spans.
+        Assert.Equal(ActivityKind.Client, activity.Kind);
+        Assert.Equal(expectedMessageCount, Utils.GetTagValue(activity, "messaging.batch.message_count"));
+
+        if (expectedMessageCount is not null)
+        {
+            Assert.Equal("SendMessageBatch", Utils.GetTagValue(activity, "messaging.operation.name"));
+            Assert.Equal("send", Utils.GetTagValue(activity, "messaging.operation.type"));
+            Assert.Equal("MyTestQueue", Utils.GetTagValue(activity, "messaging.destination.name"));
+        }
+    }
+
+    [Theory]
+    [InlineData(SemanticConventionVersion.V1_28_0, 2, null)]
+    [InlineData(SemanticConventionVersion.V1_29_0, 2, null)]
+    [InlineData(SemanticConventionVersion.V1_40_0, 2, null)]
+    [InlineData(SemanticConventionVersion.V1_45_0, 2, 2)]
+    [InlineData(SemanticConventionVersion.V1_45_0, 1, 1)]
+    [InlineData(SemanticConventionVersion.V1_45_0, 0, 0)]
+    [InlineData(SemanticConventionVersion.Latest, 2, 2)]
+#if NETFRAMEWORK
+    public void TestSQSReceiveMessageForSemanticConventionVersion(SemanticConventionVersion version, int receivedMessages, int? expectedMessageCount)
+#else
+    public async Task TestSQSReceiveMessageForSemanticConventionVersion(SemanticConventionVersion version, int receivedMessages, int? expectedMessageCount)
+#endif
+    {
+        var exportedItems = new List<Activity>();
+        var requestId = "fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = "wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+
+        var messages = string.Join(
+            ",",
+            Enumerable.Range(1, receivedMessages).Select(i => $$"""{ "MessageId": "message-{{i}}", "ReceiptHandle": "receipt-{{i}}", "Body": "Hello from OT", "MD5OfBody": "31e2ad304c624ee219a98386463498d9" }"""));
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation(o => o.SemanticConventionVersion = version)
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            CustomResponses.SetResponse(sqs, $$"""{ "Messages": [{{messages}}] }""", requestId, extendedRequestId, true);
+            var request = new ReceiveMessageRequest
+            {
+                QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue",
+                MaxNumberOfMessages = 10,
+            };
+#if NETFRAMEWORK
+            sqs.ReceiveMessage(request);
+#else
+            await sqs.ReceiveMessageAsync(request, TestContext.Current.CancellationToken);
+#endif
+        }
+
+        var activity = Assert.Single(exportedItems, e => e.DisplayName == "SQS.ReceiveMessage");
+
+        // Receiving messages remains a client span.
+        Assert.Equal(ActivityKind.Client, activity.Kind);
+        Assert.Equal(expectedMessageCount, Utils.GetTagValue(activity, "messaging.batch.message_count"));
+
+        if (expectedMessageCount is not null)
+        {
+            Assert.Equal("ReceiveMessage", Utils.GetTagValue(activity, "messaging.operation.name"));
+            Assert.Equal("receive", Utils.GetTagValue(activity, "messaging.operation.type"));
+            Assert.Equal("MyTestQueue", Utils.GetTagValue(activity, "messaging.destination.name"));
+        }
+    }
+
+    [Theory]
+    [InlineData(SemanticConventionVersion.V1_28_0, null)]
+    [InlineData(SemanticConventionVersion.V1_29_0, null)]
+    [InlineData(SemanticConventionVersion.V1_40_0, null)]
+    [InlineData(SemanticConventionVersion.V1_45_0, 3)]
+    [InlineData(SemanticConventionVersion.Latest, 3)]
+#if NETFRAMEWORK
+    public void TestSNSPublishBatchForSemanticConventionVersion(SemanticConventionVersion version, int? expectedMessageCount)
+#else
+    public async Task TestSNSPublishBatchForSemanticConventionVersion(SemanticConventionVersion version, int? expectedMessageCount)
+#endif
+    {
+        var exportedItems = new List<Activity>();
+        var requestId = "fakerequ-esti-dfak-ereq-uestidfakere";
+        var extendedRequestId = "wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation(o => o.SemanticConventionVersion = version)
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            var sns = new AmazonSimpleNotificationServiceClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            var dummyResponse = """
+                <PublishBatchResponse xmlns="https://sns.amazonaws.com/doc/2010-03-31/">
+                  <PublishBatchResult>
+                    <Successful />
+                    <Failed />
+                  </PublishBatchResult>
+                  <ResponseMetadata>
+                    <RequestId>fakerequ-esti-dfak-ereq-uestidfakere</RequestId>
+                  </ResponseMetadata>
+                </PublishBatchResponse>
+                """;
+            CustomResponses.SetResponse(sns, dummyResponse, requestId, extendedRequestId, true);
+            var request = new Amazon.SimpleNotificationService.Model.PublishBatchRequest
+            {
+                TopicArn = "arn:aws:sns:us-east-1:123456789:MyTestTopic",
+                PublishBatchRequestEntries =
+                [
+                    new Amazon.SimpleNotificationService.Model.PublishBatchRequestEntry { Id = "1", Message = "Hello" },
+                    new Amazon.SimpleNotificationService.Model.PublishBatchRequestEntry { Id = "2", Message = "from" },
+                    new Amazon.SimpleNotificationService.Model.PublishBatchRequestEntry { Id = "3", Message = "OT" },
+                ],
+            };
+#if NETFRAMEWORK
+            sns.PublishBatch(request);
+#else
+            await sns.PublishBatchAsync(request, TestContext.Current.CancellationToken);
+#endif
+        }
+
+        var activity = Assert.Single(exportedItems, e => e.DisplayName == "SNS.PublishBatch");
+
+        // The context is not injected into the messages of a batch so these spans are not producer spans.
+        Assert.Equal(ActivityKind.Client, activity.Kind);
+        Assert.Equal(expectedMessageCount, Utils.GetTagValue(activity, "messaging.batch.message_count"));
+
+        if (expectedMessageCount is not null)
+        {
+            Assert.Equal("PublishBatch", Utils.GetTagValue(activity, "messaging.operation.name"));
+            Assert.Equal("send", Utils.GetTagValue(activity, "messaging.operation.type"));
+            Assert.Equal("MyTestTopic", Utils.GetTagValue(activity, "messaging.destination.name"));
+        }
+    }
+
+    [Theory]
+    [InlineData(true, SemanticConventionVersion.V1_40_0)]
+    [InlineData(false, SemanticConventionVersion.V1_40_0)]
+    [InlineData(true, SemanticConventionVersion.V1_45_0)]
+    [InlineData(false, SemanticConventionVersion.V1_45_0)]
+    [InlineData(true, SemanticConventionVersion.Latest)]
+    [InlineData(false, SemanticConventionVersion.Latest)]
+#if NETFRAMEWORK
+    public void TestMessageSendWithCreationContext(bool isSqs, SemanticConventionVersion version)
+#else
+    public async Task TestMessageSendWithCreationContext(bool isSqs, SemanticConventionVersion version)
+#endif
+    {
+        const string TraceParent = "00-5759e988bd862e3fe1be46a994272793-53995c3f42cd8ad8-01";
+        const string TraceState = "key=value";
+        const string RequestId = "fakerequ-esti-dfak-ereq-uestidfakere";
+        var exportedItems = new List<Activity>();
+        var sampledKinds = new List<ActivityKind>();
+        using var parent = new Activity("parent").Start();
+        using var listener = new ActivityListener
+        {
+            ShouldListenTo = source => source.Name.StartsWith(TelemetryConstants.TelemetryScopePrefix, StringComparison.Ordinal),
+            Sample = (ref ActivityCreationOptions<ActivityContext> options) =>
+            {
+                if (options.Name == (isSqs ? "SQS.SendMessage" : "SNS.Publish"))
+                {
+                    sampledKinds.Add(options.Kind);
+                }
+
+                return ActivitySamplingResult.None;
+            },
+        };
+        ActivitySource.AddActivityListener(listener);
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation(o => o.SemanticConventionVersion = version)
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            if (isSqs)
+            {
+                using var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+                CustomResponses.SetResponse(sqs, """{ "MessageId": "567910cd-659e-55d4-bc19-f29d9g3b2378" }""", RequestId, "extended-request-id", true);
+                var request = new SendMessageRequest
+                {
+                    QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue",
+                    MessageBody = "Hello from OT",
+                    MessageAttributes = new Dictionary<string, MessageAttributeValue>
+                    {
+                        ["traceparent"] = new() { DataType = "String", StringValue = TraceParent },
+                        ["tracestate"] = new() { DataType = "String", StringValue = TraceState },
+                    },
+                };
+#if NETFRAMEWORK
+                sqs.SendMessage(request);
+#else
+                await sqs.SendMessageAsync(request, TestContext.Current.CancellationToken);
+#endif
+                Assert.Equal(TraceParent, request.MessageAttributes["traceparent"].StringValue);
+                Assert.Equal(TraceState, request.MessageAttributes["tracestate"].StringValue);
+            }
+            else
+            {
+                using var sns = new AmazonSimpleNotificationServiceClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+                CustomResponses.SetResponse(
+                    sns,
+                    """
+                    <PublishResponse xmlns="https://sns.amazonaws.com/doc/2010-03-31/">
+                      <PublishResult><MessageId>567910cd-659e-55d4-bc19-f29d9g3b2378</MessageId></PublishResult>
+                      <ResponseMetadata><RequestId>fakerequ-esti-dfak-ereq-uestidfakere</RequestId></ResponseMetadata>
+                    </PublishResponse>
+                    """,
+                    RequestId,
+                    "extended-request-id",
+                    true);
+                var request = new Amazon.SimpleNotificationService.Model.PublishRequest
+                {
+                    TopicArn = "arn:aws:sns:us-east-1:123456789:MyTestTopic",
+                    Message = "Hello from OT",
+                    MessageAttributes = new Dictionary<string, Amazon.SimpleNotificationService.Model.MessageAttributeValue>
+                    {
+                        ["traceparent"] = new() { DataType = "String", StringValue = TraceParent },
+                        ["tracestate"] = new() { DataType = "String", StringValue = TraceState },
+                    },
+                };
+#if NETFRAMEWORK
+                sns.Publish(request);
+#else
+                await sns.PublishAsync(request, TestContext.Current.CancellationToken);
+#endif
+                Assert.Equal(TraceParent, request.MessageAttributes["traceparent"].StringValue);
+                Assert.Equal(TraceState, request.MessageAttributes["tracestate"].StringValue);
+            }
+
+            Assert.Same(parent, Activity.Current);
+        }
+
+        var activity = Assert.Single(exportedItems, item => item.DisplayName == (isSqs ? "SQS.SendMessage" : "SNS.Publish"));
+        this.ValidateAWSActivity(activity, parent);
+        Assert.Equal(ActivityKind.Client, Assert.Single(sampledKinds));
+
+        if (version == SemanticConventionVersion.V1_40_0)
+        {
+            Assert.Empty(activity.Links);
+        }
+        else
+        {
+            Assert.True(ActivityContext.TryParse(TraceParent, TraceState, isRemote: true, out var creationContext));
+            Assert.Equal(creationContext, Assert.Single(activity.Links).Context);
+        }
+    }
+
     [Fact]
 #if NETFRAMEWORK
     public void TestSQSSendMessageReusedRequestWithoutActivity_ContextNotResent()
@@ -891,10 +1231,10 @@ public class TestAWSClientInstrumentation : IDisposable
     public void Dispose() =>
         RuntimePipelineCustomizerRegistry.Instance.Deregister(AWS.Implementation.AWSTracingPipelineCustomizer.UniqueName);
 
-    private void ValidateAWSActivity(Activity aws_activity, Activity parent)
+    private void ValidateAWSActivity(Activity aws_activity, Activity parent, ActivityKind expectedKind = ActivityKind.Client)
     {
         Assert.Equal(parent.SpanId, aws_activity.ParentSpanId);
-        Assert.Equal(ActivityKind.Client, aws_activity.Kind);
+        Assert.Equal(expectedKind, aws_activity.Kind);
         Assert.NotNull(aws_activity.Source.Version);
         Assert.NotEmpty(aws_activity.Source.Version);
         Assert.StartsWith("https://opentelemetry.io/schemas/", aws_activity.Source.TelemetrySchemaUrl);
@@ -924,7 +1264,7 @@ public class TestAWSClientInstrumentation : IDisposable
         Assert.Equal("SendMessage", Utils.GetTagValue(sqs_activity, "messaging.operation.name"));
         Assert.Equal("send", Utils.GetTagValue(sqs_activity, "messaging.operation.type"));
         Assert.Equal("sqs.us-east-1.amazonaws.com", Utils.GetTagValue(sqs_activity, "server.address"));
-        Assert.Equal("aws_sqs", Utils.GetTagValue(sqs_activity, "messaging.system"));
+        Assert.Equal("aws.sqs", Utils.GetTagValue(sqs_activity, "messaging.system.name"));
     }
 
     private void ValidateSnsActivityTags(Activity sns_activity)
@@ -938,7 +1278,7 @@ public class TestAWSClientInstrumentation : IDisposable
         Assert.Equal("567910cd-659e-55d4-bc19-f29d9g3b2378", Utils.GetTagValue(sns_activity, "messaging.message.id"));
         Assert.Equal("Publish", Utils.GetTagValue(sns_activity, "messaging.operation.name"));
         Assert.Equal("send", Utils.GetTagValue(sns_activity, "messaging.operation.type"));
-        Assert.Equal("aws.sns", Utils.GetTagValue(sns_activity, "messaging.system"));
+        Assert.Equal("aws.sns", Utils.GetTagValue(sns_activity, "messaging.system.name"));
     }
 
     private void ValidateBedrockActivityTags(Activity bedrock_activity)

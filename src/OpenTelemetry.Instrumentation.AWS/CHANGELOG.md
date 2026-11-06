@@ -8,6 +8,18 @@
   `MessageAttributes` is now a different instance after a send.
   ([#5867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5867))
 
+* **Breaking Change**: Update latest AWS Semantic Conventions to 1.45.0
+  (`SemanticConventionVersion.V1_45_0`). SNS and SQS spans now use
+  `messaging.system.name` instead of `messaging.system`, and SQS spans use the
+  value `aws.sqs` instead of `aws_sqs`. Spans for sending a single message
+  (`SQS.SendMessage` and `SNS.Publish`) now use `ActivityKind.Producer` when
+  their context is injected into the message. Messages with an existing creation
+  context retain `ActivityKind.Client` and link to that context. Spans for
+  `SendMessageBatch` and `PublishBatch`
+  now set `messaging.batch.message_count`, as do spans for `ReceiveMessage` with
+  the number of messages received.
+  ([#5832](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5832))
+
 ## 1.20.3
 
 Released 2026-Nov-03
