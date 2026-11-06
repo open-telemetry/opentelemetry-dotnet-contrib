@@ -11,7 +11,7 @@
   batch to fail to export. Also fixed an issue where an original event name
   could be attached to unrelated log records which resolved to the default
   event name.
-  ([#TBD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TBD))
+  ([#5916](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5916))
 
 ## 1.20.1
 
