@@ -5,6 +5,7 @@
 
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using System.Diagnostics.Tracing;
 using System.Globalization;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
@@ -12,6 +13,7 @@ using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OtlpCollector = OpenTelemetry.Proto.Collector.Metrics.V1;
 using OtlpCommon = OpenTelemetry.Proto.Common.V1;
+using OtlpMetrics = OpenTelemetry.Proto.Metrics.V1;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
 
@@ -1791,6 +1793,41 @@ public abstract class OtlpProtobufMetricExporterTests
         }
     }
 
+    [Fact]
+    public void SerializeTagFailureIsRolledBackAndLogged()
+    {
+        var capturedEvents = new List<EventWrittenEventArgs>();
+
+        using var listener = new WarningEventListener(capturedEvents);
+
+        var buffer = new byte[1024];
+        var cursor = 0;
+
+        OtlpProtobufSerializer.SerializeTag(buffer, ref cursor, "a.before", "before", FieldNumberConstants.NumberDataPoint_attributes);
+
+        var cursorBeforeFailure = cursor;
+
+        // A null key fails while the attribute is partially written (after the tag/length slot was reserved).
+        OtlpProtobufSerializer.SerializeTag(buffer, ref cursor, null!, "dropped", FieldNumberConstants.NumberDataPoint_attributes);
+
+        Assert.Equal(cursorBeforeFailure, cursor);
+
+        OtlpProtobufSerializer.SerializeTag(buffer, ref cursor, "c.after", "after", FieldNumberConstants.NumberDataPoint_attributes);
+
+        var dataPoint = OtlpMetrics.NumberDataPoint.Parser.ParseFrom(buffer, 0, cursor);
+
+        AssertOtlpAttributes(
+            [
+                new KeyValuePair<string, object>("a.before", "before"),
+                new KeyValuePair<string, object>("c.after", "after"),
+            ],
+            dataPoint.Attributes);
+
+        var warning = Assert.Single(capturedEvents, e => e.EventId == 14);
+        Assert.Equal(EventLevel.Warning, warning.Level);
+        Assert.Contains(nameof(ArgumentNullException), warning.Payload?[1] as string, StringComparison.Ordinal);
+    }
+
     internal static void AssertOtlpAttributes(
         IEnumerable<KeyValuePair<string, object>> expected,
         RepeatedField<OtlpCommon.KeyValue> actual)
@@ -1888,6 +1925,36 @@ public abstract class OtlpProtobufMetricExporterTests
 
         public void Dispose()
         {
+        }
+    }
+
+    private sealed class WarningEventListener : EventListener
+    {
+        private readonly List<EventWrittenEventArgs> capturedEvents;
+        private readonly int creatingThreadId;
+
+        public WarningEventListener(List<EventWrittenEventArgs> capturedEvents)
+        {
+            this.capturedEvents = capturedEvents;
+            this.creatingThreadId = Environment.CurrentManagedThreadId;
+        }
+
+        protected override void OnEventSourceCreated(EventSource eventSource)
+        {
+            if (eventSource.Name == "OpenTelemetry-Exporter-Geneva")
+            {
+                this.EnableEvents(eventSource, EventLevel.Warning, EventKeywords.All);
+            }
+        }
+
+        protected override void OnEventWritten(EventWrittenEventArgs eventData)
+        {
+            // The EventSource is a process-wide singleton; only capture events written on the
+            // test's own thread so tests running in parallel do not interfere.
+            if (Environment.CurrentManagedThreadId == this.creatingThreadId)
+            {
+                this.capturedEvents.Add(eventData);
+            }
         }
     }
 }
