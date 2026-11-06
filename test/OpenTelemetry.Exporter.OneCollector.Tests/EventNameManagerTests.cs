@@ -14,6 +14,8 @@ public class EventNameManagerTests
     [InlineData("company.product")]
     [InlineData("company99.1product")]
     [InlineData("c")]
+    [InlineData("a.b")]
+    [InlineData("Company.Product.Area.Feature9")]
     public void ValidEventNamespaceTest(string eventNamespace)
     {
         Assert.True(EventNameManager.IsEventNamespaceValid(eventNamespace));
@@ -25,9 +27,47 @@ public class EventNameManagerTests
     [InlineData("Company.")]
     [InlineData(".Company")]
     [InlineData("")]
+    [InlineData("Company\n")]
+    [InlineData("Company.Product\n")]
+    [InlineData("My-Company.Product")]
     public void InvalidEventNamespaceTest(string eventNamespace)
     {
         Assert.False(EventNameManager.IsEventNamespaceValid(eventNamespace));
+    }
+
+    [Theory]
+    [InlineData("MyCompany.Orders.Api.Controllers.OrdersController`1")]
+    [InlineData("System.Net.Http.HttpClient.orders-service.LogicalHandler")]
+    [InlineData("MyCompany.Platform.Messaging.Handlers.MessageDispatcher<MyCompany.Platform.Messaging.Contracts.OrderSubmitted>")]
+    public async Task InvalidEventNamespaceValidationCompletesTest(string eventNamespace)
+    {
+        Assert.False(await RunWithTimeout(() => EventNameManager.IsEventNamespaceValid(eventNamespace)));
+    }
+
+    [Fact]
+    public async Task LongInvalidEventNamespaceValidationCompletesTest()
+    {
+        var eventNamespaces = new[]
+        {
+            new string('a', 10_000) + "<",
+            string.Concat(Enumerable.Repeat("Segment.", 2_000)) + "Invalid-Name",
+        };
+
+        foreach (var eventNamespace in eventNamespaces)
+        {
+            Assert.False(await RunWithTimeout(() => EventNameManager.IsEventNamespaceValid(eventNamespace)));
+        }
+    }
+
+    [Fact]
+    public async Task LongInvalidCategoryNameResolvesToDefaultNamespaceTest()
+    {
+        var eventNameManager = BuildEventNameManagerWithDefaultOptions();
+
+        var resolveEventFullName = await RunWithTimeout(
+            () => eventNameManager.ResolveEventFullName("MyCompany.Orders.Api.Controllers.OrdersController`1", "MyEvent"));
+
+        Assert.Equal(Encoding.ASCII.GetBytes("\"DefaultNamespace.MyEvent\""), resolveEventFullName.EventFullName);
     }
 
     [Theory]
@@ -46,6 +86,7 @@ public class EventNameManagerTests
     [InlineData("Event.")]
     [InlineData(".Event")]
     [InlineData("")]
+    [InlineData("Event\n")]
     public void InvalidEventNameTest(string eventNamespace)
     {
         Assert.False(EventNameManager.IsEventNameValid(eventNamespace));
@@ -192,6 +233,19 @@ public class EventNameManagerTests
     private static EventNameManager BuildEventNameManagerWithDefaultOptions()
     {
         return new EventNameManager("defaultNamespace", "defaultName");
+    }
+
+    private static async Task<T> RunWithTimeout<T>(Func<T> func)
+    {
+        // Note: Runs on a separate task so a regression to a slow (backtracking)
+        // pattern fails the test instead of hanging the test run.
+        var task = Task.Run(func);
+
+        var completedTask = await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(10)));
+
+        Assert.True(ReferenceEquals(task, completedTask), "Operation did not complete within the timeout.");
+
+        return await task;
     }
 
     private static EventNameManager BuildEventNameManagerWithEventFullNameMappings(
