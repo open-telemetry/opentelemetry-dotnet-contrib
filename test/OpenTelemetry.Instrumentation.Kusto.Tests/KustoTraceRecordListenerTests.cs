@@ -18,7 +18,7 @@ public class KustoTraceRecordListenerTests
     [InlineData(QueryActivityType, true)]
     [InlineData(ControlCommandActivityType, true)]
     [InlineData(StreamIngestActivityType, false)]
-    [InlineData("KD.RestClient.ExcuteDmRequest", false)]
+    [InlineData("KD.RestClient.ExecutedDmRequest", false)]
     [InlineData("KD.RestClient.ExecuteMcpRequest", false)]
     [InlineData("", false)]
     [InlineData(null, false)]
