@@ -68,25 +68,12 @@ internal static class DatabaseSemanticConventionHelper
         Activity activity,
         string? commandText,
         bool emitOldAttributes,
-        bool emitNewAttributes,
-        bool sanitizeQuery = true,
-        bool useBackslashEscapes = false)
+        bool emitNewAttributes)
     {
-        var queryText = commandText ?? string.Empty;
-        var querySummary = string.Empty;
-
-        if (sanitizeQuery)
-        {
-            var sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText, useBackslashEscapes);
-
-            queryText = sqlStatementInfo.SanitizedSql;
-            querySummary = sqlStatementInfo.DbQuerySummary;
-        }
-
         ApplyConventionsForSanitizedQueryText(
             activity,
-            queryText,
-            querySummary,
+            commandText ?? string.Empty,
+            string.Empty,
             emitOldAttributes,
             emitNewAttributes);
     }
@@ -124,14 +111,15 @@ internal static class DatabaseSemanticConventionHelper
         ref TagList tagList,
         string? commandText,
         ref string activityName,
-        bool sanitizeQuery = true)
+        bool sanitizeQuery = true,
+        SqlProcessor.SqlDialect dialect = SqlProcessor.SqlDialect.Default)
     {
         var queryText = commandText ?? string.Empty;
         var querySummary = string.Empty;
 
         if (sanitizeQuery)
         {
-            var sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText);
+            var sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText, dialect);
             queryText = sqlStatementInfo.SanitizedSql;
             querySummary = sqlStatementInfo.DbQuerySummary;
         }
