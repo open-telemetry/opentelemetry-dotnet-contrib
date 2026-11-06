@@ -8,7 +8,7 @@
   For example, category names containing a `-`, `_`, `` ` ``, or `<` after a
   long run of letters. Event namespace and event name validation no longer
   accepts a trailing newline.
-  ([#TBD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TBD))
+  ([#5917](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5917))
 
 ## 1.20.1
 
