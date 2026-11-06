@@ -574,7 +574,13 @@ public class KustoQueryParserTests
     [Fact]
     public void Process_SelfJoinChain_DoesNotPerformSemanticAnalysis()
     {
-        const int Steps = 40;
+        // Each step of the chain doubles the schema semantic analysis computes, so doing that analysis here
+        // would take exponentially more time and memory with every step. The chain is kept short enough that,
+        // even if analysis were reintroduced, the test still completes (allocating tens of MB) and fails the
+        // allocation guard, instead of exhausting the memory of the test process. With only the syntax tree
+        // processed the query allocates about 50 KB.
+        const int Steps = 16;
+
         var query = new System.Text.StringBuilder("let v0 = datatable(a:long)[];");
         for (var i = 1; i <= Steps; i++)
         {
@@ -583,13 +589,26 @@ public class KustoQueryParserTests
 
         query.Append('v').Append(Steps);
 
-        var stopwatch = System.Diagnostics.Stopwatch.StartNew();
+#if NET
+        const long MaxAllocatedBytes = 4 * 1024 * 1024;
+
+        // Warm up so that one-off initialization (JIT, caches) is not counted.
+        _ = KustoProcessor.Process(shouldSummarize: true, shouldSanitize: true, query.ToString());
+
+        var before = GC.GetAllocatedBytesForCurrentThread();
+#endif
+
         var info = KustoProcessor.Process(shouldSummarize: true, shouldSanitize: true, query.ToString());
-        stopwatch.Stop();
 
         Assert.StartsWith("datatable | join", info.Summarized, StringComparison.Ordinal);
         Assert.NotNull(info.Sanitized);
-        Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(5), $"Processing took {stopwatch.Elapsed}.");
+
+#if NET
+        // Allocations of the thread are not available on .NET Framework, where the shorter chain only bounds
+        // the damage if analysis is reintroduced.
+        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+        Assert.True(allocated < MaxAllocatedBytes, $"Processing allocated {allocated:N0} bytes.");
+#endif
     }
 
     [Theory]
