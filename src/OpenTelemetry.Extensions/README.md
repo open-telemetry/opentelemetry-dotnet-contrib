@@ -68,10 +68,27 @@ public static TracerProviderBuilder AddMyExporter(this TracerProviderBuilder bui
 
 ### BaggageActivityProcessor
 
-The BaggageActivityProcessor reads entries stored in Baggage from the current `Baggage`
-and adds the baggage keys and values to the `Activity` as tags (attributes) on start.
+The BaggageActivityProcessor reads entries stored in Baggage from the `Baggage`
+which is current when an `Activity` starts and adds the baggage keys and values
+to the `Activity` as tags (attributes) when it ends, after its other tags.
+Baggage can be set by callers, so entries whose keys are already present on the
+`Activity` are not added, and the tags set while the `Activity` is running
+(by the application and by instrumentation) are never replaced or pushed out
+by baggage.
 
-Add this activity processor to a tracer provider.
+Processors run in the order they are added, so the order matters. Add this
+activity processor to a tracer provider:
+
+1. *After* any processors which add tags to the `Activity` when it ends.
+   Tags added by a processor which runs after this one are placed behind the
+   baggage tags, and can be dropped by an exporter which limits the number of
+   tags (for example the OTLP exporter, which keeps the first 128 by default).
+2. *Before* any exporting processor (for example `BatchActivityExportProcessor`),
+   otherwise the baggage tags will not be present when the `Activity` is
+   exported.
+
+That is: enriching processors, then `BaggageActivityProcessor`, then exporters.
+Baggage tags are not present on the `Activity` while it is running.
 
 For example, to add all baggage entries to new activities:
 
@@ -104,7 +121,7 @@ var tracerProvider = Sdk.CreateTracerProviderBuilder()
 ```
 
 Warning: The baggage key predicate is executed for every baggage entry for each
-started activity.
+activity.
 Do not use slow or intensive operations.
 
 ### RateLimitingSampler

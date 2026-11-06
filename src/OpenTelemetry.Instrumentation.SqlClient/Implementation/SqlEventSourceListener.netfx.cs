@@ -243,7 +243,7 @@ internal sealed class SqlEventSourceListener : EventListener
         SqlStatementInfo sqlStatementInfo = default;
         if (!string.IsNullOrEmpty(commandText))
         {
-            sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText);
+            sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText, SqlProcessor.SqlDialect.SqlServer);
         }
 
         // Metrics-only fast path: if the ActivitySource has no listeners then StartActivity

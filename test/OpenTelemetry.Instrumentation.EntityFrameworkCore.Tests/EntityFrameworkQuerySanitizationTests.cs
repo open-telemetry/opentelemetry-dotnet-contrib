@@ -116,6 +116,217 @@ public sealed class EntityFrameworkQuerySanitizationTests : IDisposable
         Assert.DoesNotContain("@example.com", exported[1].DisplayName, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData("ALTER USER app_reader IDENTIFIED BY Tr0ub4dor3xQ9", "ALTER USER ? IDENTIFIED BY ?")]
+    [InlineData("CREATE USER app_writer IDENTIFIED BY \"P@ss#w0rd!Zk7\" DEFAULT TABLESPACE users", "CREATE USER ? IDENTIFIED BY \"?\" DEFAULT TABLESPACE users")]
+    [InlineData("ALTER USER app_reader IDENTIFIED BY NewPw_2026 REPLACE OldPw_2025", "ALTER USER ? IDENTIFIED BY ? REPLACE ?")]
+    public void OracleProvider_PasswordWhichIsNotALiteral_IsRedactedFromQueryText(string commandText, string expected)
+    {
+        var exported = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddInMemoryExporter(exported)
+                   .AddEntityFrameworkCoreInstrumentation()
+                   .Build())
+        {
+            // The Oracle provider is not referenced, so the SQLite provider reports its name instead.
+            RenamedSqliteDatabaseProvider.NameOverride = "Oracle.EntityFrameworkCore";
+
+            using var context = new AccountsContext(OfflineOptions(b =>
+            {
+                b.UseSqlite("Data Source=:memory:");
+#pragma warning disable EF1001 // Internal EF Core API usage.
+                b.ReplaceService<IDatabaseProvider, DatabaseProvider<SqliteOptionsExtension>, RenamedSqliteDatabaseProvider>();
+#pragma warning restore EF1001 // Internal EF Core API usage.
+            }));
+
+            context.Database.ExecuteSqlRaw(commandText);
+        }
+
+        var activity = Assert.Single(exported);
+        var queryText = this.GetQueryText(activity);
+
+        Assert.Equal("oracle", activity.GetTagValue(SemanticConventions.AttributeDbSystem));
+        Assert.Equal(expected, queryText);
+    }
+
+    [Theory]
+    [InlineData("SELECT Id, Name AS ['Tis the season] FROM Accounts WHERE ApiKey = 'sk_test_hunter-two'", "SELECT Id, Name AS ['Tis the season] FROM Accounts WHERE ApiKey = ?")]
+    [InlineData("UPDATE Accounts SET Verified = 1 WHERE[Mother's Maiden Name] = 'hunter-two'", "UPDATE Accounts SET Verified = ? WHERE[Mother's Maiden Name] = ?")]
+    public void SqliteProvider_BracketedIdentifierWithApostrophe_IsNotParsedAsSql(string commandText, string expected)
+    {
+        var exported = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddInMemoryExporter(exported)
+                   .AddEntityFrameworkCoreInstrumentation()
+                   .Build())
+        {
+            using var context = new AccountsContext(OfflineOptions(b => b.UseSqlite("Data Source=:memory:")));
+
+            context.Database.ExecuteSqlRaw(commandText);
+        }
+
+        var activity = Assert.Single(exported);
+        var queryText = this.GetQueryText(activity);
+
+        Assert.DoesNotContain("hunter-two", queryText, StringComparison.Ordinal);
+        Assert.Equal(expected, queryText);
+    }
+
+    [Theory]
+    [InlineData("BEGIN $IF $$DEBUG $THEN dbms_output.put_line('hunter-two'); $END END;", "BEGIN $IF $$DEBUG $THEN dbms_output.put_line(?); $END END;")]
+    public void OracleProvider_ConditionalCompilationDirective_IsNotAStringInDollarQuotes(string commandText, string expected)
+    {
+        var exported = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddInMemoryExporter(exported)
+                   .AddEntityFrameworkCoreInstrumentation()
+                   .Build())
+        {
+            // The Oracle provider is not referenced, so the SQLite provider reports its name instead.
+            RenamedSqliteDatabaseProvider.NameOverride = "Oracle.EntityFrameworkCore";
+
+            using var context = new AccountsContext(OfflineOptions(b =>
+            {
+                b.UseSqlite("Data Source=:memory:");
+#pragma warning disable EF1001 // Internal EF Core API usage.
+                b.ReplaceService<IDatabaseProvider, DatabaseProvider<SqliteOptionsExtension>, RenamedSqliteDatabaseProvider>();
+#pragma warning restore EF1001 // Internal EF Core API usage.
+            }));
+
+            context.Database.ExecuteSqlRaw(commandText);
+        }
+
+        var activity = Assert.Single(exported);
+        var queryText = this.GetQueryText(activity);
+
+        Assert.Equal("oracle", activity.GetTagValue(SemanticConventions.AttributeDbSystem));
+        Assert.DoesNotContain("hunter-two", queryText, StringComparison.Ordinal);
+        Assert.Equal(expected, queryText);
+    }
+
+    [Fact]
+    public void SqliteProvider_SlashAsteriskInBlockComment_DoesNotAffectLaterLiterals()
+    {
+        var exported = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddInMemoryExporter(exported)
+                   .AddEntityFrameworkCoreInstrumentation()
+                   .Build())
+        {
+            using var context = new AccountsContext(OfflineOptions(b => b.UseSqlite("Data Source=:memory:")));
+
+            // SQLite ends a block comment at the first */, so the comment ends before SELECT.
+            context.Database.ExecuteSqlRaw(
+                "/* served on GET /notes/* */ UPDATE Accounts SET Note = '*/ ends nothing' WHERE ApiKey = 'sk_test_hunter-two'");
+        }
+
+        var activity = Assert.Single(exported);
+        var queryText = this.GetQueryText(activity);
+
+        Assert.DoesNotContain("hunter-two", queryText, StringComparison.Ordinal);
+        Assert.Equal("UPDATE Accounts SET Note = ? WHERE ApiKey = ?", queryText.Trim());
+    }
+
+    [Fact]
+    public void PostgresProvider_NestedBlockComment_IsSkippedAsAWhole()
+    {
+        var exported = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddInMemoryExporter(exported)
+                   .AddEntityFrameworkCoreInstrumentation()
+                   .Build())
+        {
+            using var context = new AccountsContext(OfflineOptions(b => b.UseNpgsql("Host=pg.internal;Database=crm")));
+
+            // PostgreSQL nests block comments, so the apostrophe is part of the comment.
+            context.Database.ExecuteSqlRaw(
+                "/* a /* b */ don't */ UPDATE Accounts SET Note = 'x' WHERE ApiKey = 'sk_test_hunter-two'");
+        }
+
+        var activity = Assert.Single(exported);
+        var queryText = this.GetQueryText(activity);
+
+        Assert.DoesNotContain("hunter-two", queryText, StringComparison.Ordinal);
+        Assert.Equal("UPDATE Accounts SET Note = ? WHERE ApiKey = ?", queryText.Trim());
+    }
+
+    [Theory]
+    [InlineData("UPDATE Cases SET Note = '''The customer's recovery code is hunter-two''' WHERE CaseId = 4711", "UPDATE Cases SET Note = ? WHERE CaseId = ?")]
+    [InlineData("UPDATE Customers SET LastName = 'O\\'Brien', AccessCode = 'hunter-two' WHERE CustomerId = 7", "UPDATE Customers SET LastName = ?, AccessCode = ? WHERE CustomerId = ?")]
+    [InlineData("SELECT * FROM Customers WHERE Email = \"hunter-two@example.com\"", "SELECT * FROM Customers WHERE Email = ?")]
+    public void SpannerProvider_GoogleSqlStringLiterals_AreRedactedFromQueryText(string commandText, string expected)
+    {
+        var exported = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddInMemoryExporter(exported)
+                   .AddEntityFrameworkCoreInstrumentation()
+                   .Build())
+        {
+            // The Spanner provider is not referenced, so the SQLite provider reports its name instead.
+            RenamedSqliteDatabaseProvider.NameOverride = "Google.Cloud.EntityFrameworkCore.Spanner";
+
+            using var context = new AccountsContext(OfflineOptions(b =>
+            {
+                b.UseSqlite("Data Source=:memory:");
+#pragma warning disable EF1001 // Internal EF Core API usage.
+                b.ReplaceService<IDatabaseProvider, DatabaseProvider<SqliteOptionsExtension>, RenamedSqliteDatabaseProvider>();
+#pragma warning restore EF1001 // Internal EF Core API usage.
+            }));
+
+            context.Database.ExecuteSqlRaw(commandText);
+        }
+
+        var activity = Assert.Single(exported);
+        var queryText = this.GetQueryText(activity);
+
+        Assert.Equal("spanner", activity.GetTagValue(SemanticConventions.AttributeDbSystem));
+        Assert.DoesNotContain("hunter-two", queryText, StringComparison.Ordinal);
+        Assert.Equal(expected, queryText);
+    }
+
+    [Theory]
+    [InlineData("Npgsql.EntityFrameworkCore.PostgreSQL", "SELECT $t\u00e4g$secret-name$t\u00e4g$", "SELECT ?")]
+    [InlineData("Npgsql.EntityFrameworkCore.PostgreSQL", "CREATE USER a\u0301lice WITH PASSWORD 'secret-name'", "CREATE USER ? WITH PASSWORD ?")]
+    [InlineData("Npgsql.EntityFrameworkCore.PostgreSQL", "SELECT 0b101010, 0o173, 1_000_000", "SELECT ?, ?, ?")]
+    [InlineData("Pomelo.EntityFrameworkCore.MySql", "CREATE USER alice IDENTIFIED BY 'secret-name', bob IDENTIFIED BY 'other'", "CREATE USER ? IDENTIFIED BY ?, ? IDENTIFIED BY ?")]
+    [InlineData("Pomelo.EntityFrameworkCore.MySql", "SELECT $$col FROM t WHERE a = '$$' AND b = 'secret-name'", "SELECT $$col FROM t WHERE a = ? AND b = ?")]
+    [InlineData("Oracle.EntityFrameworkCore", "ALTER USER alice IDENTIFIED BY p\u0301assword", "ALTER USER ? IDENTIFIED BY ?")]
+    [InlineData("Google.Cloud.EntityFrameworkCore.Spanner", "SELECT `a\\`b` FROM t WHERE a = '`' AND b = 'secret-name'", "SELECT `a\\`b` FROM t WHERE a = ? AND b = ?")]
+    [InlineData("Microsoft.EntityFrameworkCore.Sqlite", "SELECT $tag$col FROM t WHERE a = '$tag$' AND b = 'secret-name'", "SELECT $tag$col FROM t WHERE a = ? AND b = ?")]
+    public void ProviderDialect_RedactsExtendedLiteralAndAccountForms(string providerName, string sql, string expected)
+    {
+        var exported = new List<Activity>();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddInMemoryExporter(exported)
+                   .AddEntityFrameworkCoreInstrumentation()
+                   .Build())
+        {
+            RenamedSqliteDatabaseProvider.NameOverride = providerName;
+
+            using var context = new AccountsContext(OfflineOptions(b =>
+            {
+                b.UseSqlite("Data Source=:memory:");
+#pragma warning disable EF1001 // Internal EF Core API usage.
+                b.ReplaceService<IDatabaseProvider, DatabaseProvider<SqliteOptionsExtension>, RenamedSqliteDatabaseProvider>();
+#pragma warning restore EF1001 // Internal EF Core API usage.
+            }));
+
+            context.Database.ExecuteSqlRaw(sql);
+        }
+
+        var activity = Assert.Single(exported);
+        Assert.Equal(expected, this.GetQueryText(activity));
+        Assert.DoesNotContain("secret-name", activity.DisplayName, StringComparison.Ordinal);
+        Assert.DoesNotContain("secret-name", activity.GetTagValue(SemanticConventions.AttributeDbQuerySummary)?.ToString() ?? string.Empty, StringComparison.Ordinal);
+    }
+
     private static AccountsContext CreateSqliteContext(SqliteConnection connection, bool renameProvider = false)
     {
         var builder = new DbContextOptionsBuilder<AccountsContext>().UseSqlite(connection);

@@ -24,6 +24,7 @@
 | :broken_heart: | RazorPages | [Index page](#activity__razorpages-index-page) |
 | :broken_heart: | RazorPages | [Throws exception](#activity__razorpages-throws-exception) |
 | :green_heart: | RazorPages | [Static content](#activity__razorpages-static-content) |
+| :broken_heart: | FallbackRouting | [Fallback route with a page route parameter](#activity__fallbackrouting-fallback-route-with-a-page-route-parameter) |
 | :green_heart: | MinimalApi | [Action without parameter](#activity__minimalapi-action-without-parameter) |
 | :green_heart: | MinimalApi | [Action with parameter](#activity__minimalapi-action-with-parameter) |
 | :green_heart: | MinimalApi | [Action without parameter (MapGroup)](#activity__minimalapi-action-without-parameter-mapgroup) |
@@ -52,6 +53,7 @@
 | :broken_heart: | RazorPages | [Index page](#metrics__razorpages-index-page) |
 | :broken_heart: | RazorPages | [Throws exception](#metrics__razorpages-throws-exception) |
 | :green_heart: | RazorPages | [Static content](#metrics__razorpages-static-content) |
+| :broken_heart: | FallbackRouting | [Fallback route with a page route parameter](#metrics__fallbackrouting-fallback-route-with-a-page-route-parameter) |
 | :green_heart: | MinimalApi | [Action without parameter](#metrics__minimalapi-action-without-parameter) |
 | :green_heart: | MinimalApi | [Action with parameter](#metrics__minimalapi-action-with-parameter) |
 | :green_heart: | MinimalApi | [Action without parameter (MapGroup)](#metrics__minimalapi-action-without-parameter-mapgroup) |
@@ -567,6 +569,39 @@
     "IRouteDiagnosticsMetadata.Route": null,
     "HttpContext.GetRouteData()": {},
     "ActionDescriptor": null
+  }
+}
+```
+<a name="activity__fallbackrouting-fallback-route-with-a-page-route-parameter"></a>
+## FallbackRouting: Fallback route with a page route parameter
+
+```json
+{
+  "ActivityDisplayName": "GET",
+  "ActivityHttpRoute": "",
+  "IdealHttpRoute": "Fallback/{*page}",
+  "RouteInfo": {
+    "HttpMethod": "GET",
+    "Path": "/Fallback/text/chosen/by/the/caller",
+    "RoutePattern.RawText": null,
+    "IRouteDiagnosticsMetadata.Route": null,
+    "HttpContext.GetRouteData()": {
+      "action": "Show",
+      "controller": "FallbackRoute",
+      "area": null,
+      "page": "text/chosen/by/the/caller"
+    },
+    "ActionDescriptor": {
+      "AttributeRouteInfo.Template": null,
+      "Parameters": [
+        "page"
+      ],
+      "ControllerActionDescriptor": {
+        "ControllerName": "FallbackRoute",
+        "ActionName": "Show"
+      },
+      "PageActionDescriptor": null
+    }
   }
 }
 ```
@@ -1156,6 +1191,38 @@
     "IRouteDiagnosticsMetadata.Route": null,
     "HttpContext.GetRouteData()": {},
     "ActionDescriptor": null
+  }
+}
+```
+<a name="metrics__fallbackrouting-fallback-route-with-a-page-route-parameter"></a>
+## FallbackRouting: Fallback route with a page route parameter
+
+```json
+{
+  "MetricHttpRoute": "",
+  "IdealHttpRoute": "Fallback/{*page}",
+  "RouteInfo": {
+    "HttpMethod": "GET",
+    "Path": "/Fallback/text/chosen/by/the/caller",
+    "RoutePattern.RawText": null,
+    "IRouteDiagnosticsMetadata.Route": null,
+    "HttpContext.GetRouteData()": {
+      "action": "Show",
+      "controller": "FallbackRoute",
+      "area": null,
+      "page": "text/chosen/by/the/caller"
+    },
+    "ActionDescriptor": {
+      "AttributeRouteInfo.Template": null,
+      "Parameters": [
+        "page"
+      ],
+      "ControllerActionDescriptor": {
+        "ControllerName": "FallbackRoute",
+        "ActionName": "Show"
+      },
+      "PageActionDescriptor": null
+    }
   }
 }
 ```
