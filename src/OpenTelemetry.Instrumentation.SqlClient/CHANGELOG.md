@@ -62,6 +62,11 @@
   `EnrichWithSqlCommand` instead.
   ([#5866](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5866))
 
+* Fixed a memory leak on .NET when a command executed asynchronously is
+  started with a `CancellationToken` that is already cancelled and has no
+  activity.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.20.1
 
 Released 2026-Oct-21

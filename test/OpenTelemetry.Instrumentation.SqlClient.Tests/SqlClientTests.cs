@@ -6,6 +6,7 @@ using System.Collections;
 #endif
 using System.Data;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Tests;
@@ -300,6 +301,104 @@ public class SqlClientTests
 
         Assert.Equal(0, listener.PendingCommandCount);
     }
+
+#if NET
+    [Fact]
+    public void PendingStartTimestampIsNotRetainedForCommandWhichNeverCompletes()
+    {
+        var listener = new SqlClientDiagnosticListener(SqlClientInstrumentation.SqlClientDiagnosticListenerName);
+
+        using (Sdk.CreateMeterProviderBuilder().AddSqlClientInstrumentation().Build())
+        {
+            Assert.False(SqlTelemetryHelper.ActivitySource.HasListeners());
+
+            // SqlClient writes the before event but no completion event if
+            // the cancellation token is already cancelled when the command starts.
+            var reference = WriteBeforeEventWithoutCompletion(listener);
+
+            Assert.True(reference.IsAlive);
+            Assert.Equal(1, listener.PendingCommandCount);
+
+            for (var i = 0; i < 10 && reference.IsAlive; i++)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+
+            Assert.False(reference.IsAlive);
+            Assert.Equal(0, listener.PendingCommandCount);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static WeakReference WriteBeforeEventWithoutCompletion(SqlClientDiagnosticListener listener)
+        {
+            var command = new FakeDbCommand
+            {
+                CommandType = CommandType.StoredProcedure,
+                CommandText = "SP_GetOrders",
+                Connection = new FakeDbConnection(),
+            };
+
+            listener.OnEventWritten(
+                SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand,
+                new
+                {
+                    OperationId = Guid.NewGuid(),
+                    Command = command,
+                    Timestamp = (long?)1000000L,
+                });
+
+            return new WeakReference(command);
+        }
+    }
+
+    [Fact]
+    public void PendingStartTimestampOfCommandWhichNeverCompletedIsReplacedWhenCommandIsExecutedAgain()
+    {
+        var metrics = new List<Metric>();
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build();
+
+        Assert.False(SqlTelemetryHelper.ActivitySource.HasListeners());
+
+        var listener = new SqlClientDiagnosticListener(SqlClientInstrumentation.SqlClientDiagnosticListenerName);
+
+        var command = new FakeDbCommand
+        {
+            CommandType = CommandType.StoredProcedure,
+            CommandText = "SP_GetOrders",
+            Connection = new FakeDbConnection(),
+        };
+
+        // The first execution never completes
+        listener.OnEventWritten(
+            SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand,
+            new { OperationId = Guid.NewGuid(), Command = command, Timestamp = (long?)1000000L });
+
+        Assert.Equal(1, listener.PendingCommandCount);
+
+        var operationId = Guid.NewGuid();
+
+        listener.OnEventWritten(
+            SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand,
+            new { OperationId = operationId, Command = command, Timestamp = (long?)2000000L });
+
+        Assert.Equal(1, listener.PendingCommandCount);
+
+        listener.OnEventWritten(
+            SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand,
+            new { OperationId = operationId, Command = command, Statistics = (IDictionary?)null, Timestamp = 3000000L });
+
+        Assert.Equal(0, listener.PendingCommandCount);
+
+        meterProvider.ForceFlush();
+
+        Assert.Single(metrics);
+    }
+#endif
 
     [Fact]
     public void MetricDurationNotRecordedWhenCommandHasNoStartTimestamp()
