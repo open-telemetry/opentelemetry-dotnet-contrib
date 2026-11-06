@@ -133,6 +133,23 @@ public static class KustoProcessorTests
     }
 
     [Property(MaxTest = MaxTest)]
+    public static void Process_Unknown_Command_Literal_Is_Sanitized_Or_Omitted(NonEmptyString input)
+    {
+        var secret = "secret_" + Alphanumeric(input.Get);
+
+        // ".list" is not a command the grammar knows, so the parser keeps the whole command as a flat list of
+        // tokens (an UnknownCommand) with no syntax error and no literal expression nodes.
+        var query = $".list blobs (h'https://account.blob.core.windows.net/container;{secret}') MaxFiles=10";
+
+        var info = KustoProcessor.Process(shouldSummarize: false, shouldSanitize: true, query);
+
+        if (info.Sanitized is not null)
+        {
+            Assert.DoesNotContain(secret, info.Sanitized);
+        }
+    }
+
+    [Property(MaxTest = MaxTest)]
     public static void Process_Malformed_Query_Literal_Is_Sanitized_Or_Omitted(NonEmptyString input)
     {
         var secret = "secret_" + Alphanumeric(input.Get);
