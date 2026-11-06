@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+* **Breaking Change** `BaggageActivityProcessor` now adds baggage as tags when
+  the activity ends instead of when it starts, and no longer replaces tags
+  which are already present on the activity. Baggage tags are therefore not
+  present while the activity is running. To have them exported, call
+  `AddBaggageActivityProcessor` before adding the exporter.
+  ([#5857](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5857))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21

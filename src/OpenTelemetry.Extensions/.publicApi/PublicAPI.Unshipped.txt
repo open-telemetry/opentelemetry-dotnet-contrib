@@ -20,6 +20,7 @@ OpenTelemetry.Trace.W3CTraceState.Set(string! key, string! value) -> OpenTelemet
 OpenTelemetry.Trace.W3CTraceState.TryGetValue(string! key, out string? value) -> bool
 override OpenTelemetry.ConsistentProbabilitySampler.ShouldSample(in OpenTelemetry.Trace.SamplingParameters samplingParameters) -> OpenTelemetry.Trace.SamplingResult
 override OpenTelemetry.RateLimitingSampler.ShouldSample(in OpenTelemetry.Trace.SamplingParameters samplingParameters) -> OpenTelemetry.Trace.SamplingResult
+override OpenTelemetry.Trace.BaggageActivityProcessor.OnEnd(System.Diagnostics.Activity! data) -> void
 override OpenTelemetry.Trace.BaggageActivityProcessor.OnStart(System.Diagnostics.Activity! data) -> void
 override OpenTelemetry.Trace.W3CTraceState.ToString() -> string!
 static Microsoft.Extensions.Logging.OpenTelemetryLoggingExtensions.AddBaggageProcessor(this OpenTelemetry.Logs.LoggerProviderBuilder! builder) -> OpenTelemetry.Logs.LoggerProviderBuilder!
