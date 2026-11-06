@@ -108,8 +108,14 @@ internal sealed partial class EventNameManager
         var lookupEventNamespace = eventNamespace!;
         var eventNameCacheKey = eventName!;
 
+        // Note: A non-empty whitespace namespace or name is replaced by the
+        // default above but its original value is still preserved, so such
+        // inputs can't reuse an entry shared by case variants.
+        var inputReplaced = (!string.IsNullOrEmpty(originalEventNamespace) && !string.Equals(originalEventNamespace, lookupEventNamespace, StringComparison.Ordinal))
+            || (!string.IsNullOrEmpty(originalEventName) && !string.Equals(originalEventName, eventNameCacheKey, StringComparison.Ordinal));
+
         if (eventNameCache[eventNameCacheKey] is ResolvedEventFullName cachedEventFullName
-            && cachedEventFullName.IsMatch(lookupEventNamespace, eventNameCacheKey))
+            && cachedEventFullName.IsMatch(originalEventNamespace, originalEventName, inputReplaced))
         {
             return cachedEventFullName;
         }
@@ -121,19 +127,23 @@ internal sealed partial class EventNameManager
         var preserveOriginalEventNamespace = !string.IsNullOrEmpty(originalEventNamespace) && originalEventNamespace != eventNamespace;
         var preserveOriginalEventName = !string.IsNullOrEmpty(originalEventName) && originalEventName != eventName;
 
-        // Note: The caches are case-insensitive. When a mapping or a default
-        // replaced the namespace or name, the result (including which original
-        // values are preserved) depends on the exact casing, so the entry is only
+        // Note: The caches are case-insensitive. When mappings are configured or a
+        // default replaced the namespace or name, the result (including which
+        // original values are preserved) depends on the exact casing, even when a
+        // mapping produced the same value as the input, so the entry is only
         // reused for an exact match. Otherwise case variants share the entry.
-        var requiresExactMatch = !string.Equals(lookupEventNamespace, eventNamespace, StringComparison.Ordinal)
+        var requiresExactMatch = this.eventFullNameMappings != null
+            || inputReplaced
+            || !string.Equals(lookupEventNamespace, eventNamespace, StringComparison.Ordinal)
             || !string.Equals(eventNameCacheKey, eventName, StringComparison.Ordinal);
 
         var resolvedEventFullName = new ResolvedEventFullName(
             eventFullNameBlob,
             preserveOriginalEventNamespace ? BuildJsonStringValue(originalEventNamespace!) : null,
             preserveOriginalEventName ? BuildJsonStringValue(originalEventName!) : null,
-            requiresExactMatch ? lookupEventNamespace : null,
-            requiresExactMatch ? eventNameCacheKey : null);
+            requiresExactMatch,
+            originalEventNamespace,
+            originalEventName);
 
         lock (eventNameCache)
         {
@@ -347,21 +357,24 @@ internal sealed partial class EventNameManager
 
     internal sealed class ResolvedEventFullName
     {
-        private readonly string? exactMatchEventNamespace;
-        private readonly string? exactMatchEventName;
+        private readonly bool requiresExactMatch;
+        private readonly string? eventNamespace;
+        private readonly string? eventName;
 
         public ResolvedEventFullName(
             byte[] eventFullName,
             byte[]? originalEventNamespace,
             byte[]? originalEventName,
-            string? exactMatchEventNamespace = null,
-            string? exactMatchEventName = null)
+            bool requiresExactMatch = false,
+            string? eventNamespace = null,
+            string? eventName = null)
         {
             this.EventFullName = eventFullName;
             this.OriginalEventNamespace = originalEventNamespace;
             this.OriginalEventName = originalEventName;
-            this.exactMatchEventNamespace = exactMatchEventNamespace;
-            this.exactMatchEventName = exactMatchEventName;
+            this.requiresExactMatch = requiresExactMatch;
+            this.eventNamespace = eventNamespace;
+            this.eventName = eventName;
         }
 
         public byte[] EventFullName { get; }
@@ -370,9 +383,10 @@ internal sealed partial class EventNameManager
 
         public byte[]? OriginalEventName { get; }
 
-        public bool IsMatch(string eventNamespace, string eventName)
-            => (this.exactMatchEventNamespace == null && this.exactMatchEventName == null)
-            || (string.Equals(this.exactMatchEventNamespace, eventNamespace, StringComparison.Ordinal)
-                && string.Equals(this.exactMatchEventName, eventName, StringComparison.Ordinal));
+        public bool IsMatch(string? eventNamespace, string? eventName, bool inputReplaced)
+            => this.requiresExactMatch
+                ? string.Equals(this.eventNamespace, eventNamespace, StringComparison.Ordinal)
+                    && string.Equals(this.eventName, eventName, StringComparison.Ordinal)
+                : !inputReplaced;
     }
 }

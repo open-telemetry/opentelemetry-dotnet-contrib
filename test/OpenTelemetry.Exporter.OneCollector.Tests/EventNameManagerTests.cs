@@ -345,10 +345,13 @@ public class EventNameManagerTests
     [InlineData("MyCompany.Orders.Mapped")]
     [InlineData("DefaultLogs")]
     [InlineData("*")]
+    [InlineData("MyCompany.Orders.Event")]
     public void WarmCacheMatchesColdCacheForPreservedOriginalsTest(string? defaultMapping)
     {
-        (string EventNamespace, string EventName)[] inputs =
+        (string? EventNamespace, string? EventName)[] inputs =
         [
+            ("MyCompany.Orders", "Mapped"),
+            ("MyCompany.ORDERS", "MAPPED"),
             ("MyCompany.Orders", "Event"),
             ("MyCompany.ORDERS", "Event"),
             ("MyCompany.Orders", "EVENT"),
@@ -365,7 +368,44 @@ public class EventNameManagerTests
 
         foreach (var (eventNamespace, eventName) in inputs)
         {
-            var warm = warmEventNameManager.ResolveEventFullName(eventNamespace, eventName);
+            AssertWarmMatchesCold(warmEventNameManager, eventNamespace, eventName);
+        }
+
+        // Every ordered pair: warm the cache with the first input, then resolve the second.
+        (string? EventNamespace, string? EventName)[] pairInputs =
+        [
+            .. inputs,
+            ("MyCompany.Orders", "mapped"),
+            ("mycompany.orders", "Event"),
+            ("Default.Logs", "Event"),
+            ("DefaultLogs", "Event"),
+            (" ", "Event"),
+            ("MyCompany.Orders", " "),
+            (null, "Event"),
+            ("MyCompany.Orders", null),
+            ("defaultNamespace", "Event"),
+            ("DefaultNamespace", "Event"),
+            ("MyCompany.Orders", "defaultName"),
+            ("MyCompany.Orders", "DefaultName"),
+            (" ", "Bad Event"),
+            ("defaultNamespace", "Bad Event"),
+        ];
+
+        foreach (var first in pairInputs)
+        {
+            foreach (var second in pairInputs)
+            {
+                var pairEventNameManager = Build();
+
+                pairEventNameManager.ResolveEventFullName(first.EventNamespace, first.EventName);
+
+                AssertWarmMatchesCold(pairEventNameManager, second.EventNamespace, second.EventName);
+            }
+        }
+
+        void AssertWarmMatchesCold(EventNameManager warmManager, string? eventNamespace, string? eventName)
+        {
+            var warm = warmManager.ResolveEventFullName(eventNamespace, eventName);
             var cold = Build().ResolveEventFullName(eventNamespace, eventName);
 
             Assert.Equal(cold.OriginalEventNamespace, warm.OriginalEventNamespace);
