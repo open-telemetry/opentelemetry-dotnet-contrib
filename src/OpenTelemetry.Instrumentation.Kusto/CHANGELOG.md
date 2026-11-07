@@ -22,6 +22,11 @@
   commands the Kusto grammar does not recognize (such as `.list blobs`).
   ([#5936](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5936))
 
+* Fixed failed operations exporting the error message returned by the cluster as
+  the span status description. The message is now only recorded as an exception
+  event when the new `RecordException` option is enabled.
+  ([#5911](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5911))
+
 ## 0.1.0-alpha.7
 
 Released 2026-Oct-21

@@ -8,6 +8,7 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Kusto.Tests;
 
+[Collection("KustoInstrumentation")]
 public class DependencyInjectionConfigTests : IDisposable
 {
     public DependencyInjectionConfigTests()
