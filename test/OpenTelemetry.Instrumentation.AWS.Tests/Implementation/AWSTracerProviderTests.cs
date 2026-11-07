@@ -23,7 +23,7 @@ public class AWSTracerProviderTests
 
         ActivitySource.AddActivityListener(listener);
 
-        var tracerProvider = new AWSTracerProvider(AWSSemanticConventions.DefaultSemanticConventionVersion);
+        var tracerProvider = new AWSTracerProvider(AWSSemanticConventions.DefaultSemanticConventionVersion, recordException: false);
         var disposedTracer = tracerProvider.GetTracer(Scope);
 
         disposedTracer.Dispose();

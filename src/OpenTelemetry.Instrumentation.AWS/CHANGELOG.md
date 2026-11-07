@@ -8,6 +8,15 @@
   `MessageAttributes` is now a different instance after a send.
   ([#5867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5867))
 
+* **Breaking Change**: Failed AWS SDK calls no longer export the exception
+  message as the span status description, nor record the exception as an
+  `exception` event or the `exception.message` and `exception.stacktrace`
+  span attributes by default, as the message returned by an AWS service may
+  quote sensitive values from the request. The event and attributes are now
+  only recorded when the new `AWSClientInstrumentationOptions.RecordException`
+  option is set to `true`.
+  ([#5862](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5862))
+
 ## 1.20.3
 
 Released 2026-Nov-03
