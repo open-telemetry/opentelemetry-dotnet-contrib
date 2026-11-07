@@ -13,6 +13,7 @@ using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Kusto.Tests;
 
+[Collection("KustoInstrumentation")]
 [Trait("CategoryName", "KustoIntegrationTests")]
 public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsFixture>
 {

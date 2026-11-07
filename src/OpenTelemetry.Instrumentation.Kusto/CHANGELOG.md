@@ -10,6 +10,23 @@
   for `https`), to follow the v1.45.0 database semantic conventions.
   ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
 
+* Fixed query text sanitization taking quadratic time for queries with many
+  signed numeric literals when `RecordQueryText` is enabled.
+  ([#5937](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5937))
+
+* Fixed excessive CPU usage when generating `db.query.summary` for queries
+  containing a very large number of `materialized_view()` calls.
+  ([#5938](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5938))
+
+* Fixed literal values not being sanitized in `db.query.text` for control
+  commands the Kusto grammar does not recognize (such as `.list blobs`).
+  ([#5936](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5936))
+
+* Fixed failed operations exporting the error message returned by the cluster as
+  the span status description. The message is now only recorded as an exception
+  event when the new `RecordException` option is enabled.
+  ([#5911](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5911))
+
 * **Breaking Change** Dropped support for `net8.0` and `net9.0`.
   ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
 

@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics;
 using OpenTelemetry.Instrumentation.Kusto.Implementation;
 
 namespace OpenTelemetry.Instrumentation.Kusto.Tests;
@@ -145,6 +146,32 @@ public class KustoQueryParserTests
             ".ingest inline into table T <| ?"
         },
 
+        // A literal token held directly by a command node (not wrapped in a literal expression) must be
+        // redacted too.
+        {
+            ".alter table T policy restricted_view_access true",
+            ".alter",
+            ".alter table T policy restricted_view_access ?"
+        },
+
+        // Control commands the grammar does not know parse, without a syntax error, to a flat token list.
+        // Nothing in them can be told apart from a value, so they are redacted like a skipped region.
+        {
+            ".list blobs (h'https://account.blob.core.windows.net/container;SECRET') MaxFiles=10",
+            string.Empty,
+            ".? ? (?) ?=?"
+        },
+        {
+            ".purge table T records in database D with (verificationtoken=h'SECRET') <| where Id == 'SECRET'",
+            string.Empty,
+            ".? ? ? ? in database ? with (?=?) <| where ? == ?"
+        },
+        {
+            ".dup-next-ingest into T to h@'https://a.blob.core.windows.net/c;SECRET'",
+            string.Empty,
+            ".?-?-? ? ? to ?"
+        },
+
         // Nested queries
         {
             "StormEvents | union OtherEvents",
@@ -251,6 +278,12 @@ public class KustoQueryParserTests
             "StormEvents | where Value == -2.5e+8",
             "StormEvents | where",
             "StormEvents | where Value == ?"
+        },
+        {
+            // A signed literal is redacted as a whole, whether or not whitespace separates the sign from the value.
+            "StormEvents | where Offset in (-1, - 2, +3, -4.5, -6d)",
+            "StormEvents | where",
+            "StormEvents | where Offset in (?, ?, ?, ?, ?)"
         },
         {
             // A unary operator on a non-literal operand must be preserved: only literals are redacted, so
@@ -432,5 +465,24 @@ public class KustoQueryParserTests
 
         Assert.Equal(expectedSummary, info.Summarized);
         Assert.Equal(expectedSanitizedQuery, info.Sanitized);
+    }
+
+    [Fact]
+    public void GenerateQuerySummary_ManyMaterializedViewCallsAfterTruncation_CompletesInReasonableTime()
+    {
+        // A long list followed by many materialized_view() calls: the summary is full after a handful of calls,
+        // so the remaining calls must not be rendered, as rendering each one is proportional to its position.
+        const int Length = 800_000;
+        var query = "Events | where Id in (1" + string.Concat(Enumerable.Repeat(",1", Length / 4)) + string.Concat(Enumerable.Repeat(",materialized_view()", Length / 40)) + ")";
+
+        var stopwatch = Stopwatch.StartNew();
+        var info = KustoProcessor.Process(shouldSummarize: true, shouldSanitize: false, query);
+        stopwatch.Stop();
+
+        // The summary holds as many whole calls as fit within the 255 character limit.
+        Assert.Equal("Events | where " + string.Concat(Enumerable.Repeat("materialized_view() ", 12)).TrimEnd(), info.Summarized);
+
+        // Without the fix this takes at least tens of seconds, with it the cost is dominated by parsing (~1 second).
+        Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(15), $"Summarizing took {stopwatch.Elapsed}.");
     }
 }

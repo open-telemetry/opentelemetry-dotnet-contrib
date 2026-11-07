@@ -17,7 +17,8 @@ Released 2026-Nov-06
   endpoint that has no route template (such as `MapFallbackToController`,
   `MapDynamicControllerRoute` or `IRouter`-based routing). The `page` route value
   is now only used as a fallback for Razor Pages endpoints with an empty route
-  template.
+  template. Resolves
+  [GHSA-6xq4-gr25-qg2x](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/security/advisories/GHSA-6xq4-gr25-qg2x).
   ([#5929](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5929))
 
 * Routes longer than 256 characters are no longer added to the cache of span

@@ -134,8 +134,10 @@ internal sealed partial class EventNameManager
         return resolvedEventFullName;
     }
 
+    // Note: The namespace pattern avoids nested quantifiers so validation runs
+    // in linear time for any input.
 #if NET
-    [GeneratedRegex(@"^[A-Za-z](?:\.?[A-Za-z0-9]+?)*$")]
+    [GeneratedRegex(@"^[A-Za-z][A-Za-z0-9]*(?:\.[A-Za-z0-9]+)*$")]
     private static partial Regex EventNamespaceValidationRegex();
 
     [GeneratedRegex(@"^[A-Za-z][A-Za-z0-9]*$")]
@@ -144,7 +146,7 @@ internal sealed partial class EventNameManager
 #else
 
 #pragma warning disable SA1201 // A field should not follow a method
-    private static readonly Regex EventNamespaceValidationRegexField = new(@"^[A-Za-z](?:\.?[A-Za-z0-9]+?)*$", RegexOptions.Compiled);
+    private static readonly Regex EventNamespaceValidationRegexField = new(@"^[A-Za-z][A-Za-z0-9]*(?:\.[A-Za-z0-9]+)*$", RegexOptions.Compiled);
     private static readonly Regex EventNameValidationRegexField = new(@"^[A-Za-z][A-Za-z0-9]*$", RegexOptions.Compiled);
 #pragma warning restore SA1201 // A field should not follow a method
 
