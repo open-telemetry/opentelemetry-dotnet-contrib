@@ -26,8 +26,8 @@ internal static class KustoProcessor
     /// provided options.
     /// </summary>
     /// <remarks>
-    /// If both summarization and sanitization are requested, the query is parsed only once for
-    /// efficiency. The returned <see cref="KustoStatementInfo"/> will have null values for summary or sanitized output
+    /// The query is parsed only if at least one of summarization or sanitization is requested, and only once if both
+    /// are. The returned <see cref="KustoStatementInfo"/> will have null values for summary or sanitized output
     /// if the corresponding option is not enabled.
     /// </remarks>
     /// <param name="shouldSummarize">
@@ -47,6 +47,11 @@ internal static class KustoProcessor
     /// </returns>
     public static KustoStatementInfo Process(bool shouldSummarize, bool shouldSanitize, string query)
     {
+        if (!shouldSummarize && !shouldSanitize)
+        {
+            return default;
+        }
+
         string? summarized = null;
         string? sanitized = null;
 

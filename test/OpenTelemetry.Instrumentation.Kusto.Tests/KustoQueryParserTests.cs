@@ -647,6 +647,15 @@ public class KustoQueryParserTests
 #endif
     }
 
+    [Fact]
+    public void Process_NeitherSummaryNorSanitizationRequested_ReturnsNothing()
+    {
+        var info = KustoProcessor.Process(shouldSummarize: false, shouldSanitize: false, "StormEvents | where State == 'TEXAS'");
+
+        Assert.Null(info.Summarized);
+        Assert.Null(info.Sanitized);
+    }
+
     [Theory]
     [MemberData(nameof(QuerySummaryTestCases))]
     public void GenerateQuerySummary_ReturnsExpectedSummary(string query, string? expectedSummary, string? expectedSanitizedQuery)
