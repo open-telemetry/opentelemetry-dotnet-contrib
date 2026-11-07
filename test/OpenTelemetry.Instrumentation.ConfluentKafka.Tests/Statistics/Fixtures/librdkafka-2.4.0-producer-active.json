@@ -1,0 +1,32 @@
+{
+  "name": "rdkafka#producer-1",
+  "client_id": "rdkafka",
+  "type": "producer",
+  "ts": 1000000,
+  "txmsgs": 10,
+  "txmsg_bytes": 1000,
+  "msg_size": 100,
+  "msg_size_max": 1000,
+  "brokers": {
+    "bootstrap": {
+      "nodeid": -1,
+      "waitresp_cnt": 0,
+      "int_latency": { "sum": 0, "avg": 0, "cnt": 0 },
+      "throttle": { "sum": 0, "avg": 0, "max": 0, "cnt": 0 }
+    },
+    "broker-1": {
+      "nodeid": 1,
+      "waitresp_cnt": 2,
+      "int_latency": { "sum": 4000, "avg": 2000, "cnt": 2 },
+      "throttle": { "sum": 14, "avg": 7, "max": 9, "cnt": 2 }
+    },
+    "broker-2": {
+      "nodeid": 2,
+      "waitresp_cnt": 1,
+      "int_latency": { "sum": 5000, "avg": 5000, "cnt": 1 },
+      "throttle": { "sum": 10, "avg": 10, "max": 12, "cnt": 1 }
+    }
+  },
+  "topics": { "ignored": { "partitions": { "0": { "txmsgs": 999, "txbytes": 999 } } } },
+  "unknown_field": true
+}
