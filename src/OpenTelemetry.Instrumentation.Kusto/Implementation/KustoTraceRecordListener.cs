@@ -143,6 +143,23 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
 
     private static double GetElapsedTime(long begin) => Stopwatch.GetElapsedTime(begin).TotalSeconds;
 
+    private static void AddExceptionEvent(Activity activity, ReadOnlySpan<char> errorType, ReadOnlySpan<char> errorMessage)
+    {
+        var tags = new ActivityTagsCollection();
+
+        if (!errorType.IsEmpty)
+        {
+            tags[SemanticConventions.AttributeExceptionType] = errorType.ToString();
+        }
+
+        if (!errorMessage.IsEmpty)
+        {
+            tags[SemanticConventions.AttributeExceptionMessage] = errorMessage.ToString();
+        }
+
+        activity.AddEvent(new ActivityEvent("exception", tags: tags));
+    }
+
     private bool ShouldComputeTags(Activity? activity) =>
         (activity?.IsAllDataRequested is true) || this.HandleManager.IsMetricsActive();
 
@@ -180,8 +197,15 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
 
         if (activity is not null)
         {
-            var description = result.ErrorMessage.IsEmpty ? null : result.ErrorMessage.ToString();
-            activity.SetStatus(ActivityStatusCode.Error, description);
+            // The error message is free text written by the cluster and can quote parts of the query
+            // (including literals that would be redacted from db.query.text), so it is not used as the
+            // status description and is only recorded when explicitly opted into.
+            if (this.TraceOptions.RecordException && activity.IsAllDataRequested)
+            {
+                AddExceptionEvent(activity, result.ErrorType, result.ErrorMessage);
+            }
+
+            activity.SetStatus(ActivityStatusCode.Error);
         }
 
         this.CallEnrichment(record);
