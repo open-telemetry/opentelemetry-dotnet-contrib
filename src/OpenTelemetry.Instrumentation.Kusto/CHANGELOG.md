@@ -27,6 +27,12 @@
   event when the new `RecordException` option is enabled.
   ([#5911](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5911))
 
+* Fixed `db.query.summary` generation consuming excessive CPU and memory for
+  some queries. Table names are now identified from the query syntax, so
+  `db.query.summary` may differ for some queries (for example, column names
+  are no longer included).
+  ([#5912](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5912))
+
 ## 0.1.0-alpha.7
 
 Released 2026-Oct-21
