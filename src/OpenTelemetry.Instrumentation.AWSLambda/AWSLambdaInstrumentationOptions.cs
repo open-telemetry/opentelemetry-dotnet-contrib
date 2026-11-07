@@ -38,6 +38,16 @@ public class AWSLambdaInstrumentationOptions
     /// </remarks>
     public Action<Activity, object?, ILambdaContext>? EnrichWithInput { get; set; }
 
+    /// <summary>
+    /// Gets or sets a value indicating whether exceptions thrown by the Lambda handler are
+    /// recorded as <c>exception</c> events on the invocation Activity. Default value is false.
+    /// </summary>
+    /// <remarks>
+    /// Exception messages and stack traces can contain data from the function input,
+    /// so they are not recorded by default.
+    /// </remarks>
+    public bool RecordException { get; set; }
+
     /// <inheritdoc cref="AWSLambda.SemanticConventionVersion"/>
     public SemanticConventionVersion SemanticConventionVersion { get; set; } = AWSSemanticConventions.DefaultSemanticConventionVersion;
 }

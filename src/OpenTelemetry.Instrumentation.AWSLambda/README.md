@@ -36,6 +36,7 @@ AWS lambda instrumentation:
 * [`DisableAwsXRayContextExtraction`](/src/OpenTelemetry.Instrumentation.AWSLambda/AWSLambdaInstrumentationOptions.cs)
 * [`SetParentFromBatch`](/src/OpenTelemetry.Instrumentation.AWSLambda/AWSLambdaInstrumentationOptions.cs)
 * [`EnrichWithInput`](/src/OpenTelemetry.Instrumentation.AWSLambda/AWSLambdaInstrumentationOptions.cs)
+* [`RecordException`](/src/OpenTelemetry.Instrumentation.AWSLambda/AWSLambdaInstrumentationOptions.cs)
 
 ### Enriching the invocation span
 
@@ -76,6 +77,22 @@ TracerProvider tracerProvider = Sdk.CreateTracerProviderBuilder()
 > [!NOTE]
 > The action runs after the activity is created, so attributes it sets are not
 > visible to samplers.
+
+### RecordException
+
+The instrumentation sets the span status to `Error` and the `error.type`
+attribute to the exception type if the handler throws an exception. The
+exception message is never recorded in the status description.
+Additionally, the `RecordException` option may be turned on to record the
+exception as an `exception` event on the span. Exception messages and stack
+traces may contain data from the function input, such as values the
+instrumentation otherwise redacts, so this option is off by default.
+
+```csharp
+using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .AddAWSLambdaConfigurations(options => options.RecordException = true)
+    .Build();
+```
 
 ### Query string redaction
 
