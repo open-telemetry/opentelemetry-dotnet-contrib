@@ -18,6 +18,15 @@
   containing a very large number of `materialized_view()` calls.
   ([#5938](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5938))
 
+* Fixed literal values not being sanitized in `db.query.text` for control
+  commands the Kusto grammar does not recognize (such as `.list blobs`).
+  ([#5936](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5936))
+
+* Fixed failed operations exporting the error message returned by the cluster as
+  the span status description. The message is now only recorded as an exception
+  event when the new `RecordException` option is enabled.
+  ([#5911](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5911))
+
 * Fixed `db.query.summary` generation consuming excessive CPU and memory for
   some queries. Table names are now identified from the query syntax, so
   `db.query.summary` may differ for some queries (for example, column names

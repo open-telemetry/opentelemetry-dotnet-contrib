@@ -146,6 +146,32 @@ public class KustoQueryParserTests
             ".ingest inline into table T <| ?"
         },
 
+        // A literal token held directly by a command node (not wrapped in a literal expression) must be
+        // redacted too.
+        {
+            ".alter table T policy restricted_view_access true",
+            ".alter",
+            ".alter table T policy restricted_view_access ?"
+        },
+
+        // Control commands the grammar does not know parse, without a syntax error, to a flat token list.
+        // Nothing in them can be told apart from a value, so they are redacted like a skipped region.
+        {
+            ".list blobs (h'https://account.blob.core.windows.net/container;SECRET') MaxFiles=10",
+            string.Empty,
+            ".? ? (?) ?=?"
+        },
+        {
+            ".purge table T records in database D with (verificationtoken=h'SECRET') <| where Id == 'SECRET'",
+            string.Empty,
+            ".? ? ? ? in database ? with (?=?) <| where ? == ?"
+        },
+        {
+            ".dup-next-ingest into T to h@'https://a.blob.core.windows.net/c;SECRET'",
+            string.Empty,
+            ".?-?-? ? ? to ?"
+        },
+
         // Nested queries
         {
             "StormEvents | union OtherEvents",
