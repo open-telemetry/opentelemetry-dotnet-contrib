@@ -3,9 +3,6 @@
 
 #if !NETFRAMEWORK
 using System.Diagnostics;
-#if !NET11_0_OR_GREATER
-using System.Text;
-#endif
 #endif
 using System.Globalization;
 using System.Net;
@@ -705,7 +702,6 @@ internal sealed class HostDetector : IResourceDetector
                 RedirectStandardError = true,
             };
 
-            var sb = new StringBuilder();
             using var process = Process.Start(startInfo);
             if (process != null)
             {
@@ -721,8 +717,7 @@ internal sealed class HostDetector : IResourceDetector
                         return null;
                     }
 
-                    sb.Append(output);
-                    return sb.ToString();
+                    return output;
                 }
                 else
                 {
