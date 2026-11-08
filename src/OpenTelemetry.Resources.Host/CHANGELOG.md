@@ -5,6 +5,9 @@
 * Updated Semantic Conventions version to `1.45.0`.
   ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
 
+* Added `host.id` on FreeBSD.
+  ([#5943](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5943))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21
