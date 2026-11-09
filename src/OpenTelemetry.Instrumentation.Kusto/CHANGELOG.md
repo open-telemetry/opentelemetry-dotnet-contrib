@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.8
+
+Released 2026-Nov-09
+
 * Updated Semantic Conventions version to `1.45.0`.
   ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
 
