@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+* Fixed an issue where validating a logger category name (event namespace)
+  that is not a valid OneCollector event namespace could take an extremely long
+  time (growing exponentially with the length of the name), blocking log export.
+  For example, category names containing a `-`, `_`, `` ` ``, or `<` after a
+  long run of letters.
+  ([#5917](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5917))
+
 * Fixed an issue where event names and logger category names that are replaced
   by a default or an `EventFullNameMappings` rule (and preserved in the
   `namespace`/`name` data fields), or supplied via `{EventFullName}`, were
