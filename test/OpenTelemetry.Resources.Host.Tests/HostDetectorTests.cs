@@ -195,6 +195,8 @@ public class HostDetectorTests
                 osPlatform => osPlatform == OSPlatform.Linux,
                 () => path,
                 () => throw new Exception("should not be called"),
+                () => throw new Exception("should not be called"),
+                () => throw new Exception("should not be called"),
                 () => throw new Exception("should not be called"));
             var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
 
@@ -233,6 +235,8 @@ public class HostDetectorTests
                 osPlatform => osPlatform == OSPlatform.Linux,
                 () => [unreadable, readable],
                 () => throw new Exception("should not be called"),
+                () => throw new Exception("should not be called"),
+                () => throw new Exception("should not be called"),
                 () => throw new Exception("should not be called"));
 
             var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
@@ -254,6 +258,8 @@ public class HostDetectorTests
             osPlatform => osPlatform == OSPlatform.OSX,
             () => [],
             () => MacOSMachineIdOutput,
+            () => throw new Exception("should not be called"),
+            () => throw new Exception("should not be called"),
             () => throw new Exception("should not be called"));
         var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
 
@@ -279,6 +285,61 @@ public class HostDetectorTests
     [InlineData("    IOPlatformUUID = unquoted")]
     public void TestParseMacOsOutputWithoutMachineId(string? output) =>
         Assert.Null(HostDetector.ParseMacOsOutput(output));
+
+    [Theory]
+    [InlineData("fdbf79e8af94cb7f9e8df36789187052\n", null, "fdbf79e8af94cb7f9e8df36789187052")]
+    [InlineData(null, "1AB2345C-03E4-57D4-A375-1234D48DE123\n", "1AB2345C-03E4-57D4-A375-1234D48DE123")]
+    [InlineData("", "1AB2345C-03E4-57D4-A375-1234D48DE123\n", "1AB2345C-03E4-57D4-A375-1234D48DE123")]
+    [InlineData(" \n", "1AB2345C-03E4-57D4-A375-1234D48DE123\n", "1AB2345C-03E4-57D4-A375-1234D48DE123")]
+    public void TestHostMachineIdFreeBsd(string? hostId, string? systemUuid, string expected)
+    {
+        var detector = new HostDetector(
+            osPlatform => osPlatform == OSPlatform.FreeBSD,
+            () => throw new Exception("should not be called"),
+            () => throw new Exception("should not be called"),
+            () => hostId,
+            () => systemUuid,
+            () => throw new Exception("should not be called"));
+        var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
+
+        var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
+        Assert.Equal(expected, Assert.Contains(HostSemanticConventions.AttributeHostId, resourceAttributes));
+    }
+
+    [Theory]
+    [InlineData(null, null)]
+    [InlineData("", "")]
+    [InlineData(" \n", "\n")]
+    public void TestHostMachineIdFreeBsdWithoutMachineId(string? hostId, string? systemUuid)
+    {
+        var detector = new HostDetector(
+            osPlatform => osPlatform == OSPlatform.FreeBSD,
+            () => throw new Exception("should not be called"),
+            () => throw new Exception("should not be called"),
+            () => hostId,
+            () => systemUuid,
+            () => throw new Exception("should not be called"));
+        var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
+
+        var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
+        Assert.False(resourceAttributes.ContainsKey(HostSemanticConventions.AttributeHostId), "host.id should not be detected when neither FreeBSD source has a value.");
+    }
+
+    [Fact]
+    public void TestHostMachineIdFreeBsdSkipsSystemUuidWhenHostIdIsSet()
+    {
+        var detector = new HostDetector(
+            osPlatform => osPlatform == OSPlatform.FreeBSD,
+            () => throw new Exception("should not be called"),
+            () => throw new Exception("should not be called"),
+            () => "1ab2345c-03e4-57d4-a375-1234d48de123\n",
+            () => throw new Exception("should not be called"),
+            () => throw new Exception("should not be called"));
+        var resource = ResourceBuilder.CreateEmpty().AddDetector(detector).Build();
+
+        var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => (string)x.Value);
+        Assert.Equal("1ab2345c-03e4-57d4-a375-1234d48de123", Assert.Contains(HostSemanticConventions.AttributeHostId, resourceAttributes));
+    }
 #endif
 
 #if NET
@@ -301,7 +362,13 @@ public class HostDetectorTests
     public void TestHostMachineIdWindows()
     {
 #if NET
-        var detector = new HostDetector(osPlatform => osPlatform == OSPlatform.Windows, () => [], () => throw new Exception("should not be called"), () => "windows-machine-id");
+        var detector = new HostDetector(
+            osPlatform => osPlatform == OSPlatform.Windows,
+            () => [],
+            () => throw new Exception("should not be called"),
+            () => throw new Exception("should not be called"),
+            () => throw new Exception("should not be called"),
+            () => "windows-machine-id");
 #else
         var detector = new HostDetector(() => "windows-machine-id");
 #endif

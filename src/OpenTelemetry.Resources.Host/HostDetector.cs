@@ -3,9 +3,6 @@
 
 #if !NETFRAMEWORK
 using System.Diagnostics;
-#if !NET11_0_OR_GREATER
-using System.Text;
-#endif
 #endif
 using System.Globalization;
 using System.Net;
@@ -56,6 +53,8 @@ internal sealed class HostDetector : IResourceDetector
     private readonly Func<OSPlatform, bool> isOsPlatform;
     private readonly Func<IEnumerable<string>> getFilePaths;
     private readonly Func<string?> getMacOsMachineId;
+    private readonly Func<string?> getFreeBsdHostId;
+    private readonly Func<string?> getFreeBsdSystemUuid;
 #endif
     private readonly Func<string?> getWindowsMachineId;
 
@@ -68,6 +67,8 @@ internal sealed class HostDetector : IResourceDetector
         RuntimeInformation.IsOSPlatform,
         GetFilePaths,
         GetMachineIdMacOs,
+        GetHostIdFreeBsd,
+        GetSystemUuidFreeBsd,
 #endif
         GetMachineIdWindows)
     {
@@ -82,6 +83,8 @@ internal sealed class HostDetector : IResourceDetector
             RuntimeInformation.IsOSPlatform,
             getFilePaths,
             getMacOsMachineId,
+            GetHostIdFreeBsd,
+            GetSystemUuidFreeBsd,
             getWindowsMachineId)
     {
     }
@@ -92,6 +95,8 @@ internal sealed class HostDetector : IResourceDetector
         Func<OSPlatform, bool> isOsPlatform,
         Func<IEnumerable<string>> getFilePaths,
         Func<string?> getMacOsMachineId,
+        Func<string?> getFreeBsdHostId,
+        Func<string?> getFreeBsdSystemUuid,
 #endif
         Func<string?> getWindowsMachineId)
     {
@@ -99,6 +104,8 @@ internal sealed class HostDetector : IResourceDetector
         Guard.ThrowIfNull(isOsPlatform);
         Guard.ThrowIfNull(getFilePaths);
         Guard.ThrowIfNull(getMacOsMachineId);
+        Guard.ThrowIfNull(getFreeBsdHostId);
+        Guard.ThrowIfNull(getFreeBsdSystemUuid);
 #endif
         Guard.ThrowIfNull(getWindowsMachineId);
 
@@ -106,6 +113,8 @@ internal sealed class HostDetector : IResourceDetector
         this.isOsPlatform = isOsPlatform;
         this.getFilePaths = getFilePaths;
         this.getMacOsMachineId = getMacOsMachineId;
+        this.getFreeBsdHostId = getFreeBsdHostId;
+        this.getFreeBsdSystemUuid = getFreeBsdSystemUuid;
 #endif
         this.getWindowsMachineId = getWindowsMachineId;
     }
@@ -528,7 +537,7 @@ internal sealed class HostDetector : IResourceDetector
     {
         const string ProcCpuInfo = "/proc/cpuinfo";
 
-        var cpuInfo = ReadCpuFile(ProcCpuInfo);
+        var cpuInfo = ReadFile(ProcCpuInfo);
 
         // The processor blocks after the first repeat these fields for the other cores, so the
         // first match is the one to report.
@@ -555,10 +564,10 @@ internal sealed class HostDetector : IResourceDetector
             {
                 // sysfs states the level, which /proc/cpuinfo's "cache size" leaves to be
                 // guessed at: it is the last-level cache on some vendors and L2 on others.
-                var level = TrimToNull(ReadCpuFile(Path.Combine(cacheDirectory, "level")));
+                var level = TrimToNull(ReadFile(Path.Combine(cacheDirectory, "level")));
                 if (string.Equals(level, "2", StringComparison.Ordinal))
                 {
-                    return ParseCacheSize(ReadCpuFile(Path.Combine(cacheDirectory, "size")));
+                    return ParseCacheSize(ReadFile(Path.Combine(cacheDirectory, "size")));
                 }
             }
         }
@@ -570,7 +579,7 @@ internal sealed class HostDetector : IResourceDetector
         return null;
     }
 
-    private static string? ReadCpuFile(string path)
+    private static string? ReadFile(string path)
     {
         try
         {
@@ -723,7 +732,6 @@ internal sealed class HostDetector : IResourceDetector
 
             return result.StandardOutput;
 #else
-            var sb = new StringBuilder();
             using var process = Process.Start(startInfo);
             if (process != null)
             {
@@ -739,8 +747,7 @@ internal sealed class HostDetector : IResourceDetector
                         return null;
                     }
 
-                    sb.Append(output);
-                    return sb.ToString();
+                    return output;
                 }
                 else
                 {
@@ -783,6 +790,74 @@ internal sealed class HostDetector : IResourceDetector
         return null;
     }
 
+#if !NETFRAMEWORK
+    private static string? GetHostIdFreeBsd() => ReadFile("/etc/hostid");
+
+    private static string? GetSystemUuidFreeBsd()
+    {
+        try
+        {
+            var timeoutMilliseconds = 5_000;
+            var startInfo = new ProcessStartInfo
+            {
+                FileName = "/bin/kenv",
+#if !NET
+                Arguments = "-q smbios.system.uuid",
+#endif
+                UseShellExecute = false,
+                CreateNoWindow = true,
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+            };
+
+#if NET
+            startInfo.ArgumentList.Add("-q");
+            startInfo.ArgumentList.Add("smbios.system.uuid");
+#endif
+
+#if NET11_0_OR_GREATER
+            var result = Process.RunAndCaptureText(startInfo, TimeSpan.FromMilliseconds(timeoutMilliseconds));
+
+            if (result.ExitStatus.Canceled || result.ExitStatus.ExitCode != 0)
+            {
+                HostResourceEventSource.Log.FailedToExtractResourceAttributes(nameof(HostDetector), result.StandardError);
+                return null;
+            }
+
+            return result.StandardOutput;
+#else
+            using var process = Process.Start(startInfo);
+            if (process != null)
+            {
+                if (!process.WaitForExit(timeoutMilliseconds))
+                {
+                    HostResourceEventSource.Log.ProcessTimeout($"Process did not exit within {timeoutMilliseconds} ms");
+
+                    try
+                    {
+                        process.Kill();
+                    }
+                    catch (Exception ex)
+                    {
+                        HostResourceEventSource.Log.ResourceAttributesExtractException(nameof(HostDetector), ex);
+                    }
+
+                    return null;
+                }
+
+                return process.StandardOutput.ReadToEnd();
+            }
+#endif
+        }
+        catch (Exception ex)
+        {
+            HostResourceEventSource.Log.ResourceAttributesExtractException(nameof(HostDetector), ex);
+        }
+
+        return null;
+    }
+#endif
+
     private string? GetMachineId() =>
 #if NETFRAMEWORK
         this.getWindowsMachineId();
@@ -790,6 +865,7 @@ internal sealed class HostDetector : IResourceDetector
         this.isOsPlatform(OSPlatform.Windows) ? this.getWindowsMachineId() :
         this.isOsPlatform(OSPlatform.Linux) ? this.GetMachineIdLinux() :
         this.isOsPlatform(OSPlatform.OSX) ? ParseMacOsOutput(this.getMacOsMachineId()) :
+        this.isOsPlatform(OSPlatform.Create("FREEBSD")) ? TrimToNull(this.getFreeBsdHostId()) ?? TrimToNull(this.getFreeBsdSystemUuid()) :
         null;
 #endif
 
