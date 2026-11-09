@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+* Add support for .NET 11.0.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
 ## 0.1.0-alpha.8
 
 Released 2026-Nov-09
@@ -40,12 +46,6 @@ Released 2026-Nov-09
   `db.query.summary` may differ for some queries (for example, column names
   are no longer included).
   ([#5912](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5912))
-
-* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
-  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
-
-* Add support for .NET 11.0.
-  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
 
 ## 0.1.0-alpha.7
 
