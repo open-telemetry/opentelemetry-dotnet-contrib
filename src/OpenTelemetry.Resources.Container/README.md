@@ -54,6 +54,15 @@ your application is running:
   - `container.id`
   - `container.runtime.name` (when the container runtime is Docker or Podman).
 
+> [!NOTE]
+> When running in Kubernetes with containerd and cgroup v2, the id of the
+> container is not exposed to the process inside the container. Only the id of
+> the pod sandbox is visible, which is shared by every container in the pod, so
+> it is not reported as `container.id`. To add `container.id` in this
+> environment, use the
+> [`k8sattributes` processor](https://github.com/open-telemetry/opentelemetry-collector-contrib/tree/main/processor/k8sattributesprocessor)
+> in the OpenTelemetry Collector.
+
 ## References
 
 - [OpenTelemetry Project](https://opentelemetry.io/)
