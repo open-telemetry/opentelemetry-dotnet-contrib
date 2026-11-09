@@ -66,7 +66,7 @@ public class InstrumentedProducerTests
 
         Assert.Equal(ActivityKind.Producer, activity.Kind);
         Assert.StartsWith("https://opentelemetry.io/schemas/", activity.Source.TelemetrySchemaUrl, StringComparison.Ordinal);
-        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystem));
+        Assert.Equal("kafka", activity.GetTagValue(SemanticConventions.AttributeMessagingSystemName));
         Assert.Equal("send", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationName));
         Assert.Equal("send", activity.GetTagValue(SemanticConventions.AttributeMessagingOperationType));
         Assert.Equal("unit-test-topic", activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationName));
@@ -100,8 +100,8 @@ public class InstrumentedProducerTests
 
         var activity = activities.Single(a => a.DisplayName == "send partition-topic");
         Assert.Equal("3", activity.GetTagValue(SemanticConventions.AttributeMessagingDestinationPartitionId));
-        Assert.Equal("msg-key", activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageKey));
-        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageTombstone));
+        Assert.Equal("msg-key", activity.GetTagValue(SemanticConventions.AttributeKafkaMessageKey));
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeKafkaMessageTombstone));
     }
 
     [Fact]
@@ -131,7 +131,7 @@ public class InstrumentedProducerTests
         }
 
         var activity = activities.Single(a => a.DisplayName == "send empty-key-topic");
-        Assert.Equal(string.Empty, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageKey));
+        Assert.Equal(string.Empty, activity.GetTagValue(SemanticConventions.AttributeKafkaMessageKey));
     }
 
     [Fact]
@@ -161,7 +161,7 @@ public class InstrumentedProducerTests
         }
 
         var activity = activities.Single(a => a.DisplayName == "send tombstone-topic");
-        Assert.Equal(true, activity.GetTagValue(SemanticConventions.AttributeMessagingKafkaMessageTombstone));
+        Assert.Equal(true, activity.GetTagValue(SemanticConventions.AttributeKafkaMessageTombstone));
     }
 
     [Fact]

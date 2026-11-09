@@ -35,6 +35,37 @@ public class ConfluentKafkaCommonTests
         Assert.Null(actual);
     }
 
+    [Fact]
+    public void FormatMessageKey_DoesNotTruncateKeyAtMaximumLength()
+    {
+        var key = new string('a', ConfluentKafkaCommon.MaxMessageKeyLength);
+
+        var actual = ConfluentKafkaCommon.FormatMessageKey(key);
+
+        Assert.Same(key, actual);
+    }
+
+    [Fact]
+    public void FormatMessageKey_TruncatesLongStringKey()
+    {
+        var key = new string('a', 900_000);
+
+        var actual = ConfluentKafkaCommon.FormatMessageKey(key);
+
+        Assert.Equal(new string('a', ConfluentKafkaCommon.MaxMessageKeyLength), actual);
+    }
+
+    [Fact]
+    public void FormatMessageKey_DoesNotSplitSurrogatePairWhenTruncating()
+    {
+        // The emoji (a surrogate pair) straddles the maximum length.
+        var key = new string('a', ConfluentKafkaCommon.MaxMessageKeyLength - 1) + "\U0001F600" + new string('b', 10);
+
+        var actual = ConfluentKafkaCommon.FormatMessageKey(key);
+
+        Assert.Equal(new string('a', ConfluentKafkaCommon.MaxMessageKeyLength - 1), actual);
+    }
+
     private sealed class DisplayOnlyKey : IFormattable
     {
         public string ToString(string? format, IFormatProvider? formatProvider) => "display-value";

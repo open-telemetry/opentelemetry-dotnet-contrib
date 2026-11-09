@@ -8,4 +8,6 @@ internal class ConfluentKafkaConsumerInstrumentationOptions<TKey, TValue>
     public bool Metrics { get; set; }
 
     public bool Traces { get; set; }
+
+    public bool UseCreationContextAsParent { get; set; }
 }

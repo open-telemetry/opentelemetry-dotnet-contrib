@@ -42,4 +42,12 @@ public class KustoTraceProviderBuilderTests
 
         Assert.Null(options.Enrich);
     }
+
+    [Fact]
+    public void KustoTraceInstrumentationOptions_RecordExceptionIsDisabledByDefault()
+    {
+        var options = new KustoTraceInstrumentationOptions();
+
+        Assert.False(options.RecordException);
+    }
 }

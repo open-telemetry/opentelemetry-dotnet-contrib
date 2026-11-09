@@ -31,7 +31,8 @@ Additional context specific to this project can be found in the sections below.
   compiled directly into the packages that reference them (using
   `<Compile Include="..."/>`). A defect in a shared file therefore affects every
   package that links it. Notable shared files include:
-  - `SqlProcessor.cs` and `SqlParameterProcessor.cs` - sanitize SQL query text
+  - `SqlProcessor.cs`, `SqlProcessor.Accounts.cs` and
+    `SqlParameterProcessor.cs` - sanitize SQL query text
     before it is recorded as an attribute. Used by
     `OpenTelemetry.Instrumentation.SqlClient` and
     `OpenTelemetry.Instrumentation.EntityFrameworkCore`.

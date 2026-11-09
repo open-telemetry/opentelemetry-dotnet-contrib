@@ -288,7 +288,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
                 SemanticConventions.AttributeMessagingOperationType,
                 ConfluentKafkaCommon.SendOperationType),
             new KeyValuePair<string, object?>(
-                SemanticConventions.AttributeMessagingSystem,
+                SemanticConventions.AttributeMessagingSystemName,
                 ConfluentKafkaCommon.KafkaMessagingSystem),
             new KeyValuePair<string, object?>(
                 SemanticConventions.AttributeMessagingDestinationName,
@@ -343,7 +343,7 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
             { SemanticConventions.AttributeMessagingDestinationName, topic },
             { SemanticConventions.AttributeMessagingOperationName, ConfluentKafkaCommon.SendOperationName },
             { SemanticConventions.AttributeMessagingOperationType, ConfluentKafkaCommon.SendOperationType },
-            { SemanticConventions.AttributeMessagingSystem, ConfluentKafkaCommon.KafkaMessagingSystem },
+            { SemanticConventions.AttributeMessagingSystemName, ConfluentKafkaCommon.KafkaMessagingSystem },
         };
 
         if (partition is { } partitionValue)
@@ -370,18 +370,18 @@ internal sealed class InstrumentedProducer<TKey, TValue> : IProducer<TKey, TValu
 
             if (ConfluentKafkaCommon.FormatMessageKey(message.Key) is { } messageKey)
             {
-                activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageKey, messageKey);
+                activity.SetTag(SemanticConventions.AttributeKafkaMessageKey, messageKey);
             }
 
             if (message.Value is null)
             {
-                activity.SetTag(SemanticConventions.AttributeMessagingKafkaMessageTombstone, true);
+                activity.SetTag(SemanticConventions.AttributeKafkaMessageTombstone, true);
             }
 
             if (this.clusterIdTask?.Status == TaskStatus.RanToCompletion
                 && this.clusterIdTask.Result is { Length: > 0 } clusterId)
             {
-                activity.SetTag(SemanticConventions.AttributeMessagingKafkaClusterId, clusterId);
+                activity.SetTag(SemanticConventions.AttributeKafkaClusterId, clusterId);
             }
         }
 

@@ -20,6 +20,14 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     where TResponse : class
 {
     /// <summary>
+    /// The maximum number of message events recorded for a single RPC.
+    /// The number of messages on a stream is controlled by the peer, so the
+    /// events are capped to stop an open streaming call growing the activity without bound.
+    /// This matches the default span event count limit of the OpenTelemetry specification.
+    /// </summary>
+    internal const int MaxMessageEvents = 128;
+
+    /// <summary>
     /// The host.
     /// </summary>
     private readonly string? host;
@@ -53,6 +61,16 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     /// The response counter.
     /// </summary>
     private int responseMessageCounter;
+
+    /// <summary>
+    /// The number of message events recorded.
+    /// </summary>
+    private int messageEventCounter;
+
+    /// <summary>
+    /// Whether the message event limit being exceeded has been logged (0 or 1).
+    /// </summary>
+    private int messageEventLimitLogged;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="RpcScope{TRequest, TResponse}" /> class.
@@ -268,6 +286,29 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
         => Interlocked.CompareExchange(ref this.complete, 1, 0) == 0;
 
     /// <summary>
+    /// Atomically reserves one of the message events allowed for the RPC.
+    /// Requests and responses can be recorded concurrently on duplex calls.
+    /// </summary>
+    /// <returns>Returns <c>true</c> if an event may be recorded.</returns>
+    private bool TryReserveMessageEvent()
+    {
+        var current = Volatile.Read(ref this.messageEventCounter);
+
+        while (current < MaxMessageEvents)
+        {
+            var observed = Interlocked.CompareExchange(ref this.messageEventCounter, current + 1, current);
+            if (observed == current)
+            {
+                return true;
+            }
+
+            current = observed;
+        }
+
+        return false;
+    }
+
+    /// <summary>
     /// Adds a message event.
     /// </summary>
     /// <param name="eventName">Name of the event.</param>
@@ -277,6 +318,17 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     {
         if (message == null || this.activity is null)
         {
+            return;
+        }
+
+        if (!this.TryReserveMessageEvent())
+        {
+            // Only log once per call so a peer cannot also flood the log.
+            if (Interlocked.Exchange(ref this.messageEventLimitLogged, 1) == 0)
+            {
+                GrpcCoreInstrumentationEventSource.Log.MessageEventLimitExceeded(this.FullServiceName, MaxMessageEvents);
+            }
+
             return;
         }
 

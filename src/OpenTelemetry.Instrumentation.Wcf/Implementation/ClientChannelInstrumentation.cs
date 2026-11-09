@@ -41,6 +41,10 @@ internal static class ClientChannelInstrumentation
                 activity.DisplayName = action;
             }
 
+            // Write the HTTP headers into a copy owned by this message, never into
+            // an HttpRequestMessageProperty that the application may share between calls.
+            TelemetryPropagationWriter.PrepareHttpRequestProperty(request);
+
             Propagators.DefaultTextMapPropagator.Inject(
                 new PropagationContext(activity.Context, Baggage.Current),
                 request,

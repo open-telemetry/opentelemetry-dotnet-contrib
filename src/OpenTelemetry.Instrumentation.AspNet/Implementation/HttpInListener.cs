@@ -43,6 +43,15 @@ internal sealed class HttpInListener : IDisposable
         }
     }
 
+    private string? GetRouteTemplate(HttpContextBase context, HttpRequestBase request, HttpResponseBase response)
+    {
+        // Only the route values of requests that were served can be trusted to be names of an existing controller and action.
+        // The error type is stored when the exception is raised, so unlike context.Error it is still
+        // set if the application clears the error and then redirects or renders an error page.
+        var isSuccessful = response.StatusCode < 400 && context.Error is null && context.Items[ErrorTypeHttpContextItemsKey] is null;
+        return this.routeHelper.GetRouteTemplate(request, isSuccessful);
+    }
+
     private void RecordDuration(Activity? activity, HttpContextBase context, HttpRequestBase? request = null, HttpResponseBase? response = null, string? routeTemplate = null)
     {
         double duration;
@@ -111,7 +120,7 @@ internal sealed class HttpInListener : IDisposable
             tags.Add(SemanticConventions.AttributeNetworkProtocolVersion, protocolVersion);
         }
 
-        var template = routeTemplate ?? this.routeHelper.GetRouteTemplate(request);
+        var template = routeTemplate ?? this.GetRouteTemplate(context, request, response);
         if (!string.IsNullOrEmpty(template))
         {
             tags.Add(SemanticConventions.AttributeHttpRoute, template);
@@ -265,7 +274,7 @@ internal sealed class HttpInListener : IDisposable
                 activity.SetStatus(SpanHelper.ResolveActivityStatusForHttpStatusCode(activity.Kind, response.StatusCode));
             }
 
-            template = this.routeHelper.GetRouteTemplate(request);
+            template = this.GetRouteTemplate(context, request, response);
 
             if (!string.IsNullOrEmpty(template))
             {

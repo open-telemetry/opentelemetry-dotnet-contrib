@@ -37,6 +37,11 @@ public enum TestApplicationScenario
     /// Application with Exception Handling Middleware.
     /// </summary>
     ExceptionMiddleware,
+
+    /// <summary>
+    /// An application that uses a fallback route to a controller action, with a route parameter named "page".
+    /// </summary>
+    FallbackRouting,
 }
 
 internal class TestApplicationFactory
@@ -59,6 +64,7 @@ internal class TestApplicationFactory
             TestApplicationScenario.MinimalApi => CreateMinimalApiApplication(),
             TestApplicationScenario.RazorPages => CreateRazorPagesApplication(),
             TestApplicationScenario.ExceptionMiddleware => CreateExceptionHandlerApplication(),
+            TestApplicationScenario.FallbackRouting => CreateFallbackRoutingApplication(),
             _ => throw new ArgumentException($"Invalid {nameof(TestApplicationScenario)}"),
         };
     }
@@ -95,6 +101,25 @@ internal class TestApplicationFactory
         app.MapControllerRoute(
             name: "default",
             pattern: "{controller=ConventionalRoute}/{action=Default}/{id?}");
+
+        return app;
+    }
+
+    private static WebApplication CreateFallbackRoutingApplication()
+    {
+        var builder = WebApplication.CreateBuilder();
+        builder.Logging.ClearProviders();
+
+        builder.Services
+            .AddControllers()
+            .AddApplicationPart(typeof(RoutingTests).Assembly);
+
+        var app = builder.Build();
+        app.Urls.Clear();
+        app.Urls.Add("http://[::1]:0");
+
+        // The "page" route parameter is populated from the request path and must not be used as the http.route.
+        app.MapFallbackToController("Fallback/{*page}", "Show", "FallbackRoute");
 
         return app;
     }

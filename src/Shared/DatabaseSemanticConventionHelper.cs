@@ -68,19 +68,26 @@ internal static class DatabaseSemanticConventionHelper
         Activity activity,
         string? commandText,
         bool emitOldAttributes,
-        bool emitNewAttributes,
-        bool sanitizeQuery = true,
-        bool useBackslashEscapes = false)
+        bool emitNewAttributes)
     {
-        var queryText = commandText ?? string.Empty;
-        var querySummary = string.Empty;
+        ApplyConventionsForSanitizedQueryText(
+            activity,
+            commandText ?? string.Empty,
+            string.Empty,
+            emitOldAttributes,
+            emitNewAttributes);
+    }
 
-        if (sanitizeQuery)
+    public static void ApplyConventionsForSanitizedQueryText(
+        Activity activity,
+        string? queryText,
+        string? querySummary,
+        bool emitOldAttributes,
+        bool emitNewAttributes)
+    {
+        if (queryText is null)
         {
-            var sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText, useBackslashEscapes);
-
-            queryText = sqlStatementInfo.SanitizedSql;
-            querySummary = sqlStatementInfo.DbQuerySummary;
+            return;
         }
 
         if (emitOldAttributes)
@@ -92,7 +99,7 @@ internal static class DatabaseSemanticConventionHelper
         {
             activity.SetTag(SemanticConventions.AttributeDbQueryText, queryText);
 
-            if (!string.IsNullOrEmpty(querySummary))
+            if (querySummary is { Length: > 0 })
             {
                 activity.SetTag(SemanticConventions.AttributeDbQuerySummary, querySummary);
                 activity.DisplayName = querySummary;
@@ -104,14 +111,15 @@ internal static class DatabaseSemanticConventionHelper
         ref TagList tagList,
         string? commandText,
         ref string activityName,
-        bool sanitizeQuery = true)
+        bool sanitizeQuery = true,
+        SqlProcessor.SqlDialect dialect = SqlProcessor.SqlDialect.Default)
     {
         var queryText = commandText ?? string.Empty;
         var querySummary = string.Empty;
 
         if (sanitizeQuery)
         {
-            var sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText);
+            var sqlStatementInfo = SqlProcessor.GetSanitizedSql(commandText, dialect);
             queryText = sqlStatementInfo.SanitizedSql;
             querySummary = sqlStatementInfo.DbQuerySummary;
         }

@@ -2,6 +2,40 @@
 
 ## Unreleased
 
+## 0.5.0-alpha.1
+
+Released 2026-Nov-05
+
+* **Breaking change**: Updated the traces and metrics emitted by the Kafka
+  producer and consumer to follow the
+  [v1.45.0 messaging semantic conventions](https://github.com/open-telemetry/semantic-conventions/tree/v1.45.0/docs/messaging).
+  The following attributes were renamed:
+
+  * `messaging.system.name` (replacing `messaging.system`), on both spans and
+    metrics
+  * `kafka.offset` (replacing `messaging.kafka.offset`)
+  * `kafka.message.key` (replacing `messaging.kafka.message.key`)
+  * `kafka.message.tombstone` (replacing `messaging.kafka.message.tombstone`)
+  * `kafka.cluster.id` (replacing `messaging.kafka.cluster.id`)
+
+  ([#5831](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5831))
+
+## 0.4.0-alpha.1
+
+Released 2026-Nov-04
+
+* Fixed unbounded memory use caused by long string message keys being recorded
+  in full in the `messaging.kafka.message.key` span attribute. Keys longer than
+  256 characters are now truncated.
+  ([#5859](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5859))
+
+* Added the `UseCreationContextAsParent` option to
+  `ConfluentKafkaInstrumentedConsumerBuilderOptions`. When enabled, the
+  `process` span created by `ConsumeAndProcessMessageAsync` uses the message
+  creation context (extracted from the message headers) as its parent instead
+  of only linking to it, as allowed by the messaging semantic conventions.
+  ([#5510](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5510))
+
 ## 0.3.0-alpha.4
 
 Released 2026-Oct-21

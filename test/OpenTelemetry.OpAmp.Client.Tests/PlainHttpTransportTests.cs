@@ -426,4 +426,54 @@ public class PlainHttpTransportTests
         Assert.Equal(instanceUid, frame.InstanceUid.ToByteArray());
         Assert.Contains(opAmpServer.GetHeaders(), headers => headers["OpAMP-Instance-UID"] == "01234567-89ab-cdef-0123-456789abcdef");
     }
+
+    [Theory]
+    [InlineData(false, false, false)] // default client blocks redirects
+    [InlineData(true, false, true)] // default client follows redirects when allowed
+    [InlineData(false, true, true)] // custom factory owns redirect behavior
+    public async Task Http_Redirect(bool allowRedirects, bool customFactory, bool expectFollowed)
+    {
+        var targetHits = 0;
+        using var target = TestHttpServer.RunServer(
+            ctx =>
+            {
+                Interlocked.Increment(ref targetHits);
+                ctx.Response.Close();
+            },
+            out var targetUri);
+        using var redirector = RunRedirector(targetUri, out var redirectorUri);
+
+        var settings = new OpAmpClientSettings { ServerUrl = redirectorUri, AllowRedirects = allowRedirects };
+        if (customFactory)
+        {
+            settings.HttpClientFactory = () => new HttpClient();
+        }
+
+        using var transport = new PlainHttpTransport(settings, new FrameProcessor());
+
+        // The target replies with an empty body, so only whether it was contacted matters.
+        var ex = await Record.ExceptionAsync(
+            () => transport.SendAsync(FrameGenerator.GenerateMockAgentFrame().Frame, CancellationToken.None));
+
+        if (expectFollowed)
+        {
+            Assert.IsNotType<HttpRequestException>(ex);
+        }
+        else
+        {
+            Assert.IsType<HttpRequestException>(ex);
+        }
+
+        Assert.Equal(expectFollowed ? 1 : 0, Volatile.Read(ref targetHits));
+    }
+
+    private static IDisposable RunRedirector(Uri location, out Uri address)
+        => TestHttpServer.RunServer(
+            ctx =>
+            {
+                ctx.Response.StatusCode = 307;
+                ctx.Response.RedirectLocation = location.ToString();
+                ctx.Response.Close();
+            },
+            out address);
 }

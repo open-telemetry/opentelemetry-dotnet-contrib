@@ -16,6 +16,15 @@ public sealed class MetadataEndpointTimeoutTests
     private static readonly TimeSpan MaxBuildTime = TimeSpan.FromSeconds(15);
     private static readonly TimeSpan GenerousWait = TimeSpan.FromSeconds(25);
 
+    public static TheoryData<HttpStatusCode> RedirectStatusCodes() =>
+    [
+        HttpStatusCode.Moved,
+        HttpStatusCode.Redirect,
+        HttpStatusCode.SeeOther,
+        HttpStatusCode.TemporaryRedirect,
+        (HttpStatusCode)308,
+    ];
+
     [Fact]
     public async Task Ec2DetectorReadsPromptImdsResponses()
     {
@@ -94,7 +103,45 @@ public sealed class MetadataEndpointTimeoutTests
         Assert.Empty((await build).Attributes);
     }
 
+    [Theory]
+    [MemberData(nameof(RedirectStatusCodes))]
+    public async Task Ec2DetectorDoesNotFollowRedirects(HttpStatusCode statusCode)
+    {
+        using var endpoint = new FakeMetadataEndpoint(FakeMetadataEndpoint.ResponseMode.Redirect, statusCode);
+        using var proxy = RouteDefaultProxyTo(endpoint);
+
+        var build = BuildOnDedicatedThread(() => ResourceBuilder.CreateEmpty().AddAWSEC2Detector().Build());
+
+        Assert.True(await CompletesWithinAsync(build, GenerousWait), "Build() did not complete.");
+        Assert.Empty((await build).Attributes);
+
+        // Only the token request is made: neither the redirect target nor any request using its response is.
+        var requests = endpoint.RequestHeads.ToArray();
+        var request = Assert.Single(requests);
+        Assert.StartsWith("PUT http://169.254.169.254/latest/api/token ", request, StringComparison.Ordinal);
+    }
+
 #if NET
+    [Theory]
+    [MemberData(nameof(RedirectStatusCodes))]
+    public async Task EcsDetectorDoesNotFollowRedirects(HttpStatusCode statusCode)
+    {
+        using var endpoint = new FakeMetadataEndpoint(FakeMetadataEndpoint.ResponseMode.Redirect, statusCode);
+        using var proxy = RouteDefaultProxyTo(endpoint);
+
+        using var environment = EnvironmentVariableScope.Create("ECS_CONTAINER_METADATA_URI_V4", "http://169.254.170.2/v4/5fb8fcdab2e54a6d8e3e2b5e3d8f3b5a-1234567890");
+
+        var build = BuildOnDedicatedThread(() => ResourceBuilder.CreateEmpty().AddAWSECSDetector().Build());
+
+        Assert.True(await CompletesWithinAsync(build, GenerousWait), "Build() did not complete.");
+
+        var attributes = (await build).Attributes.ToDictionary(x => x.Key, x => x.Value);
+        Assert.DoesNotContain("aws.ecs.task.arn", attributes.Keys);
+
+        var request = Assert.Single(endpoint.RequestHeads.ToArray());
+        Assert.StartsWith("GET http://169.254.170.2/v4/", request, StringComparison.Ordinal);
+    }
+
     [Fact]
     public async Task EcsDetectorGivesUpOnTaskMetadataResponseBodyThatStalls()
     {
@@ -167,15 +214,17 @@ public sealed class MetadataEndpointTimeoutTests
 
         private readonly TcpListener listener = new(IPAddress.Loopback, 0);
         private readonly ResponseMode mode;
+        private readonly HttpStatusCode redirectStatusCode;
         private readonly ManualResetEventSlim release = new(false);
         private readonly TaskCompletionSource<bool> requestReceived = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly TaskCompletionSource<bool> headersSent = new(TaskCreationOptions.RunContinuationsAsynchronously);
         private readonly List<TcpClient> clients = [];
         private readonly Thread acceptThread;
 
-        public FakeMetadataEndpoint(ResponseMode mode)
+        public FakeMetadataEndpoint(ResponseMode mode, HttpStatusCode redirectStatusCode = HttpStatusCode.Redirect)
         {
             this.mode = mode;
+            this.redirectStatusCode = redirectStatusCode;
             this.listener.Start();
             this.Port = ((IPEndPoint)this.listener.LocalEndpoint).Port;
             this.acceptThread = new Thread(this.AcceptLoop) { IsBackground = true, Name = nameof(FakeMetadataEndpoint) };
@@ -192,6 +241,9 @@ public sealed class MetadataEndpointTimeoutTests
 
             /// <summary>Send the status line, headers and the first body byte, then stall.</summary>
             HeadersThenStall,
+
+            /// <summary>Answer every request with a redirect to another address served by the endpoint.</summary>
+            Redirect,
         }
 
         public int Port { get; }
@@ -316,6 +368,16 @@ public sealed class MetadataEndpointTimeoutTests
 
                 case ResponseMode.StallBeforeHeaders:
                     this.release.Wait();
+                    break;
+
+                case ResponseMode.Redirect:
+                    var redirect =
+                        $"HTTP/1.1 {(int)this.redirectStatusCode} Redirect\r\n" +
+                        "Location: http://169.254.169.254/redirected\r\n" +
+                        "Content-Length: 0\r\n" +
+                        "Connection: close\r\n" +
+                        "\r\n";
+                    Write(stream, redirect);
                     break;
 
                 case ResponseMode.HeadersThenStall:
