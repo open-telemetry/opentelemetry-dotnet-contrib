@@ -6,7 +6,7 @@
   `IConsumer<TKey, TValue>` implementation (such as test doubles in unit tests)
   instead of throwing `ArgumentException` when the consumer is not an internal
   `InstrumentedConsumer<TKey, TValue>`.
-  ([#2356](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/2356))
+  ([#5918](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5918))
 
 ## 0.5.0-alpha.1
 
