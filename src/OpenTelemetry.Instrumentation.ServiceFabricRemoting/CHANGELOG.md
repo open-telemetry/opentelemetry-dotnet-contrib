@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Added the OpenTelemetry semantic conventions schema URL to the instrumentation's `ActivitySource`.
+  ([#PR_NUMBER](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/PR_NUMBER))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21
