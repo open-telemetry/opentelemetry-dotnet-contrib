@@ -4,11 +4,10 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT_DIR="${SCRIPT_DIR}/../"
 
-# freeze the spec version to make SemanticAttributes generation reproducible
-SEMCONV_VERSION="1.45.0"
-GENERATOR_VERSION="v0.28.0"
+# Keep generation versions in one file shared with generate.ps1.
+source "${SCRIPT_DIR}/versions.env"
 
-cd ${SCRIPT_DIR}
+cd "${SCRIPT_DIR}"
 
 rm -rf semantic-conventions || true
 mkdir semantic-conventions
@@ -21,9 +20,9 @@ git reset --hard FETCH_HEAD
 cd ${SCRIPT_DIR}
 
 docker run --rm \
-  -v ${SCRIPT_DIR}/semantic-conventions/model:/source \
-  -v ${SCRIPT_DIR}/templates:/templates \
-  -v ${ROOT_DIR}/Attributes/:/output \
+  -v "${SCRIPT_DIR}/semantic-conventions/model:/source" \
+  -v "${SCRIPT_DIR}/templates:/templates" \
+  -v "${ROOT_DIR}/Attributes:/output" \
   otel/weaver:$GENERATOR_VERSION \
   registry \
   generate \
