@@ -1,0 +1,2 @@
+#nullable enable
+OpenTelemetry.PersistentStorage.FileSystem.FileBlobProvider.FileBlobProvider(string! path, bool checkPermissions) -> void

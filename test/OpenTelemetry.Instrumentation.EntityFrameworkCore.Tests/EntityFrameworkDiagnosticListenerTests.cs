@@ -182,6 +182,32 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         return testCases;
     }
 
+    public static TheoryData<string, int> GetSqlDialectTestCases()
+    {
+        var testCases = new TheoryData<string, int>();
+
+        foreach (var testCase in DbSystemTestCases())
+        {
+            var (name, _, dbSystemName) = testCase.Data;
+
+            var dialect = dbSystemName switch
+            {
+                "mysql" => SqlProcessor.SqlDialect.MySql,
+                "gcp.spanner" => SqlProcessor.SqlDialect.GoogleSql,
+                "microsoft.sql_server" => SqlProcessor.SqlDialect.SqlServer,
+                "sqlite" => SqlProcessor.SqlDialect.Sqlite,
+                "oracle.db" => SqlProcessor.SqlDialect.Oracle,
+                "firebirdsql" => SqlProcessor.SqlDialect.Firebird,
+                "teradata" => SqlProcessor.SqlDialect.Teradata,
+                _ => SqlProcessor.SqlDialect.Default,
+            };
+
+            testCases.Add(name, (int)dialect);
+        }
+
+        return testCases;
+    }
+
     public static TheoryData<string, bool> IsSqlLikeProviderTestCases()
     {
         // Get all the possible names and assume they are false
@@ -235,35 +261,6 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         return testCases;
     }
 
-    public static TheoryData<string, bool> IsBackslashEscapeProviderTestCases()
-    {
-        var values = DbSystemTestCases().ToDictionary((k) => k.Data.Item1, (v) => false);
-
-        string[] backslashEscapeProviders =
-        [
-            "Devart.Data.MySql.Entity.EFCore",
-            "Devart.Data.MySql.MySqlCommand",
-            "MySql.Data.EntityFrameworkCore",
-            "MySql.Data.MySqlClient.MySqlCommand",
-            "MySql.EntityFrameworkCore",
-            "Pomelo.EntityFrameworkCore.MySql",
-        ];
-
-        foreach (var name in backslashEscapeProviders)
-        {
-            values[name] = true;
-        }
-
-        var testCases = new TheoryData<string, bool>();
-
-        foreach ((var name, var expected) in values)
-        {
-            testCases.Add(name, expected);
-        }
-
-        return testCases;
-    }
-
     [Theory]
     [MemberData(nameof(DbSystemTestCases))]
     public void ShouldReturnCorrectAttributeValuesProviderOrCommandName(string name, string expectedDbSystem, string expectedDbSystemName)
@@ -275,19 +272,19 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
     }
 
     [Theory]
+    [MemberData(nameof(GetSqlDialectTestCases))]
+    public void ShouldReturnCorrectSqlDialectForProviderOrCommandName(string name, int expected)
+    {
+        var actual = EntityFrameworkProviderInfo.GetSqlDialect(name);
+
+        Assert.Equal((SqlProcessor.SqlDialect)expected, actual);
+    }
+
+    [Theory]
     [MemberData(nameof(IsSqlLikeProviderTestCases))]
     public void ShouldReturnCorrectValueForSqlLikeProviderOrCommandName(string name, bool expected)
     {
         var actual = EntityFrameworkProviderInfo.IsSqlLikeProvider(name);
-
-        Assert.Equal(expected, actual);
-    }
-
-    [Theory]
-    [MemberData(nameof(IsBackslashEscapeProviderTestCases))]
-    public void ShouldReturnCorrectValueForBackslashEscapeProviderOrCommandName(string name, bool expected)
-    {
-        var actual = EntityFrameworkProviderInfo.IsBackslashEscapeProvider(name);
 
         Assert.Equal(expected, actual);
     }

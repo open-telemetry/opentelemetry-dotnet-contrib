@@ -4,6 +4,7 @@
 using System.Diagnostics;
 using Hangfire;
 using Hangfire.Server;
+using OpenTelemetry.Metrics;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 
@@ -196,6 +197,58 @@ internal static class HangfireTagBuilder
         };
 
         return tags;
+    }
+
+    /// <summary>
+    /// Adds the tags of <see cref="HangfireMetricsInstrumentationOptions.EnrichWithBackgroundJob"/>
+    /// whose keys are not in <paramref name="tags"/>.
+    /// </summary>
+    /// <param name="tags">Tags set by the instrumentation.</param>
+    /// <param name="backgroundJob">The Hangfire background job.</param>
+    /// <param name="options">The metrics options.</param>
+    /// <returns><paramref name="tags"/> unchanged if the delegate throws.</returns>
+    public static TagList Enrich(TagList tags, BackgroundJob backgroundJob, HangfireMetricsInstrumentationOptions options)
+    {
+        if (options.EnrichWithBackgroundJob is not { } enrich)
+        {
+            return tags;
+        }
+
+        TagList enrichedTags;
+
+        try
+        {
+            enrichedTags = enrich(backgroundJob);
+        }
+        catch (Exception ex)
+        {
+            HangfireInstrumentationEventSource.Log.EnrichmentException(ex);
+            return tags;
+        }
+
+        var result = tags;
+
+        for (var i = 0; i < enrichedTags.Count; i++)
+        {
+            var enrichedTag = enrichedTags[i];
+            var isInstrumentationKey = false;
+
+            for (var j = 0; j < tags.Count; j++)
+            {
+                if (string.Equals(tags[j].Key, enrichedTag.Key, StringComparison.Ordinal))
+                {
+                    isInstrumentationKey = true;
+                    break;
+                }
+            }
+
+            if (!isInstrumentationKey)
+            {
+                result.Add(enrichedTag);
+            }
+        }
+
+        return result;
     }
 
     // Required workflow attributes

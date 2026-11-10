@@ -123,6 +123,8 @@ internal sealed class OtlpProtobufSerializer
 
     internal static void SerializeTag(byte[] buffer, ref int cursor, string key, object value, int fieldNumber)
     {
+        var startCursor = cursor;
+
         try
         {
             // TODO : Check if calculating the length in advance could be more efficient in this case.
@@ -155,8 +157,20 @@ internal sealed class OtlpProtobufSerializer
                 case int:
                 case uint:
                 case long:
-                case ulong:
                     ProtobufSerializerHelper.WriteInt64WithTag(buffer, ref cursor, FieldNumberConstants.AnyValue_int_value, (ulong)Convert.ToInt64(value, CultureInfo.InvariantCulture));
+                    break;
+                case ulong ulongValue:
+                    if (ulongValue <= long.MaxValue)
+                    {
+                        ProtobufSerializerHelper.WriteInt64WithTag(buffer, ref cursor, FieldNumberConstants.AnyValue_int_value, ulongValue);
+                    }
+                    else
+                    {
+                        // OTLP AnyValue has no unsigned 64-bit type. Values that do not fit in int64 are
+                        // written as their decimal string so the dimension value is preserved as-is.
+                        ProtobufSerializerHelper.WriteStringTag(buffer, ref cursor, FieldNumberConstants.AnyValue_string_value, ulongValue.ToString(CultureInfo.InvariantCulture));
+                    }
+
                     break;
                 case float:
                 case double:
@@ -184,9 +198,12 @@ internal sealed class OtlpProtobufSerializer
         }
         catch (Exception ex) when (!GenevaBufferOverflowExceptionHelper.IsMetricBufferOverflow(ex))
         {
-            // TODO: log exception.
             // Buffer overflow exceptions are intentionally not caught here so they propagate to the
             // per-metric-point handler, which reports them via the dedicated buffer overflow event.
+            // Any other failure drops only this attribute: rewind so no partially written bytes
+            // (including the reserved tag and length slots) remain in the message.
+            cursor = startCursor;
+            ExporterEventSource.Log.FailedToSerializeMetricAttribute(key, ex);
         }
     }
 

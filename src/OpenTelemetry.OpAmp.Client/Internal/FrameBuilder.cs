@@ -161,6 +161,8 @@ internal sealed class FrameBuilder : IFrameBuilder
         return this;
     }
 
+    public int CalculateSize() => this.currentMessage.CalculateSize();
+
     public AgentToServer Build()
     {
         // OpAMP requires capabilities in every AgentToServer message, even when unchanged.

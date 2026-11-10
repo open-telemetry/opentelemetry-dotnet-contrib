@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using System.Reflection;
 using System.Runtime.CompilerServices;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Trace;
@@ -18,6 +19,13 @@ namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 /// </remarks>
 internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
 {
+    private const string QueryActivityType = "KD.RestClient.ExecuteQuery";
+    private const string ControlCommandActivityType = "KD.RestClient.ExecuteControlCommand";
+
+    private static readonly Lazy<FieldInfo?> TraceRequestBodyField = new(() =>
+        Type.GetType("Kusto.Data.Net.Client.RestClient2, Kusto.Data", throwOnError: false)?
+            .GetField("s_traceRequestBody", BindingFlags.NonPublic | BindingFlags.Static));
+
     // record.Activity (the Kusto-side activity object) is a stable reference across the start, exception, and
     // complete callbacks for a single operation, and the client releases it once the operation finishes. Keying a
     // ConditionalWeakTable on it lets an operation that never reports completion be evicted automatically when the
@@ -47,6 +55,11 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
     public override string Name { get; } = nameof(KustoTraceRecordListener);
 
     public override bool IsThreadSafe => true;
+
+    /// <summary>
+    /// Gets or sets a delegate that reports whether the Kusto client writes the query text to its trace messages.
+    /// </summary>
+    internal Func<bool> RequestBodyTraced { get; set; } = IsRequestBodyTraced;
 
     public override void Flush()
     {
@@ -86,7 +99,66 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
         }
     }
 
+    /// <summary>
+    /// Gets a value indicating whether the Kusto client writes the query text to its request trace messages.
+    /// </summary>
+    /// <returns>
+    /// <see langword="true"/> if the client is known to trace the request body; otherwise <see langword="false"/>,
+    /// including when that cannot be determined.
+    /// </returns>
+    /// <remarks>
+    /// The client reads the <c>KUSTO_DATA_TRACE_REQUEST_BODY</c> environment variable once and caches the result,
+    /// so the current value of the variable does not say whether request bodies are being traced. The client's
+    /// cached value is read instead. There is no public API for it, so if it cannot be found, the answer is "no".
+    /// </remarks>
+    internal static bool IsRequestBodyTraced()
+    {
+        try
+        {
+            return TraceRequestBodyField.Value?.GetValue(null) is true;
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Gets a value indicating whether the Kusto client sends a request body, and so can write the query text to
+    /// the request trace message, for an operation of the specified type.
+    /// </summary>
+    /// <param name="activityType">The Kusto activity type of the operation.</param>
+    /// <returns>
+    /// <see langword="true"/> if the client can write the query text for the operation; otherwise <see langword="false"/>.
+    /// </returns>
+    /// <remarks>
+    /// The client only writes the <c>text=</c> field when request body tracing is enabled and the request has a
+    /// body to trace. Only queries and control commands do: stream ingestion, queued ingestion and the like send
+    /// their payload another way, so their messages have no <c>text=</c> field and any occurrence of it in the
+    /// message was supplied by the caller (e.g. via the client request id).
+    /// </remarks>
+    internal static bool HasRequestBody(string? activityType) =>
+        string.Equals(activityType, QueryActivityType, StringComparison.Ordinal) ||
+        string.Equals(activityType, ControlCommandActivityType, StringComparison.Ordinal);
+
     private static double GetElapsedTime(long begin) => Stopwatch.GetElapsedTime(begin).TotalSeconds;
+
+    private static void AddExceptionEvent(Activity activity, ReadOnlySpan<char> errorType, ReadOnlySpan<char> errorMessage)
+    {
+        var tags = new ActivityTagsCollection();
+
+        if (!errorType.IsEmpty)
+        {
+            tags[SemanticConventions.AttributeExceptionType] = errorType.ToString();
+        }
+
+        if (!errorMessage.IsEmpty)
+        {
+            tags[SemanticConventions.AttributeExceptionMessage] = errorMessage.ToString();
+        }
+
+        activity.AddEvent(new ActivityEvent("exception", tags: tags));
+    }
 
     private bool ShouldComputeTags(Activity? activity) =>
         (activity?.IsAllDataRequested is true) || this.HandleManager.IsMetricsActive();
@@ -125,8 +197,15 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
 
         if (activity is not null)
         {
-            var description = result.ErrorMessage.IsEmpty ? null : result.ErrorMessage.ToString();
-            activity.SetStatus(ActivityStatusCode.Error, description);
+            // The error message is free text written by the cluster and can quote parts of the query
+            // (including literals that would be redacted from db.query.text), so it is not used as the
+            // status description and is only recorded when explicitly opted into.
+            if (this.TraceOptions.RecordException && activity.IsAllDataRequested)
+            {
+                AddExceptionEvent(activity, result.ErrorType, result.ErrorMessage);
+            }
+
+            activity.SetStatus(ActivityStatusCode.Error);
         }
 
         this.CallEnrichment(record);
@@ -155,7 +234,13 @@ internal sealed class KustoTraceRecordListener : KustoUtils.ITraceListener
             context.AddMeterTag(SemanticConventions.AttributeDbSystemName, KustoSemanticConventions.DbSystemNameValue);
             context.AddMeterTag(SemanticConventions.AttributeDbOperationName, operationName);
 
-            var result = TraceRecordParser.ParseRequestStart(record.Message.AsSpan());
+            // A sub-activity (a query run within an existing Kusto activity) reports the client request id of its
+            // parent, which may not be the one the client wrote to the message when the request overrides it.
+            var kustoActivity = record.Activity;
+            var clientRequestIdKnown = kustoActivity.SubActivityId == kustoActivity.ActivityId;
+            var result = clientRequestIdKnown
+                ? TraceRecordParser.ParseRequestStart(record.Message.AsSpan(), kustoActivity.ClientRequestId.AsSpan())
+                : TraceRecordParser.ParseRequestStart(record.Message.AsSpan(), [], this.RequestBodyTraced() && HasRequestBody(operationName));
 
             if (!string.IsNullOrEmpty(result.ServerAddress))
             {

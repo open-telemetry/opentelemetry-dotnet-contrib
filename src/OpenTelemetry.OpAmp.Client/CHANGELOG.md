@@ -2,10 +2,37 @@
 
 ## Unreleased
 
+## 0.10.0-alpha.1
+
+Released 2026-Nov-05
+
 * Fixed `OpAmpClient.FlushAsync()` potentially waiting indefinitely when new
   messages kept being queued. Messages queued after a flush starts no longer
   delay its completion.
   ([#5882](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5882))
+
+* Fixed the pending message byte limit not counting state reports queued together
+  with custom messages, which allowed pending frames to retain more memory than
+  the configured limit.
+  ([#5881](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5881))
+
+* **Breaking change:** Renamed `OpAmpClientSettings.MaxPendingCustomMessageBytes`
+  to `MaxPendingMessageBytes` to reflect that the limit also counts state reports
+  queued with custom messages.
+  ([#5881](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5881))
+
+* Fix WebSocket transport startup blocking when the server sends messages
+  immediately after the handshake.
+  ([#5883](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5883))
+
+* **Breaking Change**: The default HTTP client and the default WebSocket
+  client no longer follow HTTP redirects. A redirect response now fails the
+  request or connection instead of being followed. To restore redirects, set
+  the new `OpAmpClientSettings.AllowRedirects` to `true`; it does not apply to
+  clients returned by `HttpClientFactory` or `ClientWebSocketFactory`.
+  WebSocket redirects cannot be disabled on .NET Framework and
+  .NET Standard 2.0 targets.
+  ([#5885](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5885))
 
 ## 0.9.0-alpha.3
 
