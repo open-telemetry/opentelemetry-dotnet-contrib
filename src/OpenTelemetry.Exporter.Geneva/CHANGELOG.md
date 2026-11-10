@@ -10,6 +10,10 @@
   cleanly and reported through the exporter's `EventSource`.
   ([#5915](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5915))
 
+* Improved JSON numeric serialization throughput on .NET 10 and later by formatting
+  directly into the UTF-8 output buffer.
+  ([#5941](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5941))
+
 ## 1.20.1
 
 Released 2026-Oct-21
