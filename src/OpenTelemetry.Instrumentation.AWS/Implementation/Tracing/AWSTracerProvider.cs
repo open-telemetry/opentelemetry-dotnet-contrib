@@ -18,7 +18,7 @@ internal sealed class AWSTracerProvider : TracerProvider
     {
         // Since v1.44.0 the semantic conventions for AWS SNS and AWS SQS describe sending a message as a producer span.
         this.semanticConventionVersion = AWSSemanticConventions.GetVersion(version);
-        this.useProducerKindForMessageSend = this.semanticConventionVersion >= new Version(1, 44, 0);
+        this.useProducerKindForMessageSend = AWSServiceHelper.UsesProducerSpansForMessageSend(version);
     }
 
     public override Tracer GetTracer(string scope)

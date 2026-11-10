@@ -13,6 +13,9 @@ internal class SqsRequestContextHelper
     // https://docs.aws.amazon.com/sns/latest/dg/sns-message-attributes.html
     private const int MaxMessageAttributes = 10;
 
+    internal static bool IsInjectedByInstrumentation(MessageAttributeValue value)
+        => value is InjectedMessageAttributeValue { IsUnchanged: true };
+
     // Adds the specified propagation attributes to the request, replacing any added by an earlier send
     // of the same request. An empty set of attributes only removes attributes added by an earlier send.
     internal static void AddAttributes(IRequestContext context, IReadOnlyDictionary<string, string> attributes)
@@ -33,7 +36,7 @@ internal class SqsRequestContextHelper
             {
                 // Values injected by an earlier send of the same request object are replaced with the current context,
                 // unless the application has changed them since, in which case they are treated as the application's own.
-                if (attribute.Value is not InjectedMessageAttributeValue { IsUnchanged: true })
+                if (!IsInjectedByInstrumentation(attribute.Value))
                 {
                     messageAttributes.Add(attribute.Key, attribute.Value);
                 }

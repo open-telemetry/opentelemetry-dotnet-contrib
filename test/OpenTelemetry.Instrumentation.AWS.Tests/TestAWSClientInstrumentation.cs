@@ -1090,6 +1090,96 @@ public class TestAWSClientInstrumentation : IDisposable
         }
     }
 
+    [Theory]
+    [InlineData(true, SemanticConventionVersion.V1_45_0)]
+    [InlineData(false, SemanticConventionVersion.V1_45_0)]
+    [InlineData(true, SemanticConventionVersion.Latest)]
+    [InlineData(false, SemanticConventionVersion.Latest)]
+#if NETFRAMEWORK
+    public void TestMessageSendReusedRequestIsProducerEachTime(bool isSqs, SemanticConventionVersion version)
+#else
+    public async Task TestMessageSendReusedRequestIsProducerEachTime(bool isSqs, SemanticConventionVersion version)
+#endif
+    {
+        const string RequestId = "fakerequ-esti-dfak-ereq-uestidfakere";
+        var exportedItems = new List<Activity>();
+        string? lastInjectedTraceParent = null;
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation(o => o.SemanticConventionVersion = version)
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            if (isSqs)
+            {
+                using var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+                var request = new SendMessageRequest
+                {
+                    QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue",
+                    MessageBody = "Hello from OT",
+                };
+
+                for (var i = 0; i < 2; i++)
+                {
+                    CustomResponses.SetResponse(sqs, """{ "MessageId": "567910cd-659e-55d4-bc19-f29d9g3b2378" }""", RequestId, "extended-request-id", true);
+#if NETFRAMEWORK
+                    sqs.SendMessage(request);
+#else
+                    await sqs.SendMessageAsync(request, TestContext.Current.CancellationToken);
+#endif
+                }
+
+                lastInjectedTraceParent = request.MessageAttributes["traceparent"].StringValue;
+            }
+            else
+            {
+                using var sns = new AmazonSimpleNotificationServiceClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+                var request = new Amazon.SimpleNotificationService.Model.PublishRequest
+                {
+                    TopicArn = "arn:aws:sns:us-east-1:123456789:MyTestTopic",
+                    Message = "Hello from OT",
+                };
+
+                for (var i = 0; i < 2; i++)
+                {
+                    CustomResponses.SetResponse(
+                        sns,
+                        """
+                        <PublishResponse xmlns="https://sns.amazonaws.com/doc/2010-03-31/">
+                          <PublishResult><MessageId>567910cd-659e-55d4-bc19-f29d9g3b2378</MessageId></PublishResult>
+                          <ResponseMetadata><RequestId>fakerequ-esti-dfak-ereq-uestidfakere</RequestId></ResponseMetadata>
+                        </PublishResponse>
+                        """,
+                        RequestId,
+                        "extended-request-id",
+                        true);
+#if NETFRAMEWORK
+                    sns.Publish(request);
+#else
+                    await sns.PublishAsync(request, TestContext.Current.CancellationToken);
+#endif
+                }
+
+                lastInjectedTraceParent = request.MessageAttributes["traceparent"].StringValue;
+            }
+        }
+
+        // The context injected by the first send is the instrumentation's own, not a creation context
+        // supplied by the application, so the second send must not be a client span linked to the first.
+        var sends = exportedItems.Where(a => a.DisplayName == (isSqs ? "SQS.SendMessage" : "SNS.Publish")).ToList();
+        Assert.Equal(2, sends.Count);
+        Assert.All(sends, activity =>
+        {
+            Assert.Equal(ActivityKind.Producer, activity.Kind);
+            Assert.Empty(activity.Links);
+        });
+
+        // The context of the last send replaces the one injected by the first.
+        Assert.Contains(sends[1].SpanId.ToHexString(), lastInjectedTraceParent, StringComparison.Ordinal);
+        Assert.DoesNotContain(sends[0].SpanId.ToHexString(), lastInjectedTraceParent, StringComparison.Ordinal);
+    }
+
     [Fact]
 #if NETFRAMEWORK
     public void TestSQSSendMessageReusedRequestWithoutActivity_ContextNotResent()

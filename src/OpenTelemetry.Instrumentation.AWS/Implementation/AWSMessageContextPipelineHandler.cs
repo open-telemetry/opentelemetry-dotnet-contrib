@@ -49,17 +49,17 @@ internal sealed class AWSMessageContextPipelineHandler : PipelineHandler
         }
     }
 
-    private static ActivityContext ExtractCreationContext(AmazonWebServiceRequest request)
+    internal static ActivityContext ExtractCreationContext(AmazonWebServiceRequest request)
         => request switch
         {
             SQS.SendMessageRequest { MessageAttributes: { } attributes } => Propagators.DefaultTextMapPropagator.Extract(
                 default,
                 attributes,
-                static (carrier, key) => carrier.TryGetValue(key, out var value) ? [value.StringValue] : []).ActivityContext,
+                static (carrier, key) => carrier.TryGetValue(key, out var value) && value?.StringValue is { } stringValue && !SqsRequestContextHelper.IsInjectedByInstrumentation(value) ? [stringValue] : []).ActivityContext,
             SNS.PublishRequest { MessageAttributes: { } attributes } => Propagators.DefaultTextMapPropagator.Extract(
                 default,
                 attributes,
-                static (carrier, key) => carrier.TryGetValue(key, out var value) ? [value.StringValue] : []).ActivityContext,
+                static (carrier, key) => carrier.TryGetValue(key, out var value) && value?.StringValue is { } stringValue && !SnsRequestContextHelper.IsInjectedByInstrumentation(value) ? [stringValue] : []).ActivityContext,
             _ => default,
         };
 }

@@ -3,7 +3,6 @@
 
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
-using OpenTelemetry.AWS;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 
@@ -31,7 +30,7 @@ internal class AWSTracingPipelineCustomizer : IRuntimePipelineCustomizer
             return;
         }
 
-        if (AWSSemanticConventions.GetVersion(this.options.SemanticConventionVersion) >= new Version(1, 44, 0))
+        if (AWSServiceHelper.UsesProducerSpansForMessageSend(this.options.SemanticConventionVersion))
         {
             // MetricsHandler creates the SDK span, so the message's creation context must be available before it runs.
             pipeline.AddHandlerBefore<MetricsHandler>(new AWSMessageContextPipelineHandler());
