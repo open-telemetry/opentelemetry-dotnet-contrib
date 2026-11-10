@@ -5,8 +5,11 @@ using OpenTelemetry.Tests;
 
 namespace OpenTelemetry.PersistentStorage.Abstractions.Tests;
 
+[Collection(CollectionName)]
 public class EventSourceTests
 {
+    internal const string CollectionName = "PersistentStorageAbstractionsEventSource";
+
     [Fact]
     public void EventSourceTests_PersistentStorageAbstractionsEventSource() =>
         EventSourceTestHelper.ValidateEventSourceIds<PersistentStorageAbstractionsEventSource>();
