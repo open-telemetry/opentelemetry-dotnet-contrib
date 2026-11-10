@@ -1180,6 +1180,122 @@ public class TestAWSClientInstrumentation : IDisposable
         Assert.DoesNotContain(sends[0].SpanId.ToHexString(), lastInjectedTraceParent, StringComparison.Ordinal);
     }
 
+    [Theory]
+    [InlineData(true, 9, null, ActivityKind.Producer, true, false)] // Fits: 9 + traceparent = 10
+    [InlineData(false, 9, null, ActivityKind.Producer, true, false)]
+    [InlineData(true, 10, null, ActivityKind.Client, false, false)] // Full: the limit would be exceeded
+    [InlineData(false, 10, null, ActivityKind.Client, false, false)]
+    [InlineData(true, 0, "not-a-traceparent", ActivityKind.Client, false, false)] // Application supplied, but not a valid context
+    [InlineData(false, 0, "not-a-traceparent", ActivityKind.Client, false, false)]
+    [InlineData(true, 8, null, ActivityKind.Producer, true, true)] // Parent trace state is injected too: 8 + traceparent + tracestate = 10
+    [InlineData(false, 8, null, ActivityKind.Producer, true, true)]
+    [InlineData(true, 9, null, ActivityKind.Client, false, true)] // 9 + traceparent + tracestate = 11
+    [InlineData(false, 9, null, ActivityKind.Client, false, true)]
+#if NETFRAMEWORK
+    public void TestMessageSendKindDependsOnWhetherContextIsInjected(bool isSqs, int applicationAttributes, string? traceParent, ActivityKind expectedKind, bool expectedInjected, bool parentHasTraceState)
+#else
+    public async Task TestMessageSendKindDependsOnWhetherContextIsInjected(bool isSqs, int applicationAttributes, string? traceParent, ActivityKind expectedKind, bool expectedInjected, bool parentHasTraceState)
+#endif
+    {
+        const string RequestId = "fakerequ-esti-dfak-ereq-uestidfakere";
+        var exportedItems = new List<Activity>();
+        Dictionary<string, string?> sentAttributes;
+
+        using var parent = parentHasTraceState ? new Activity("parent") { TraceStateString = "key=value" } : null;
+        parent?.Start();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation(o => o.SemanticConventionVersion = SemanticConventionVersion.V1_45_0)
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            if (isSqs)
+            {
+                using var sqs = new AmazonSQSClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+                CustomResponses.SetResponse(sqs, """{ "MessageId": "567910cd-659e-55d4-bc19-f29d9g3b2378" }""", RequestId, "extended-request-id", true);
+                var request = new SendMessageRequest
+                {
+                    QueueUrl = "https://sqs.us-east-1.amazonaws.com/123456789/MyTestQueue",
+                    MessageBody = "Hello from OT",
+                    MessageAttributes = [],
+                };
+
+                for (var i = 0; i < applicationAttributes; i++)
+                {
+                    request.MessageAttributes[$"application-{i}"] = new() { DataType = "String", StringValue = "value" };
+                }
+
+                if (traceParent is not null)
+                {
+                    request.MessageAttributes["traceparent"] = new() { DataType = "String", StringValue = traceParent };
+                }
+
+#if NETFRAMEWORK
+                sqs.SendMessage(request);
+#else
+                await sqs.SendMessageAsync(request, TestContext.Current.CancellationToken);
+#endif
+                sentAttributes = request.MessageAttributes.ToDictionary(a => a.Key, a => (string?)a.Value.StringValue);
+            }
+            else
+            {
+                using var sns = new AmazonSimpleNotificationServiceClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+                CustomResponses.SetResponse(
+                    sns,
+                    """
+                    <PublishResponse xmlns="https://sns.amazonaws.com/doc/2010-03-31/">
+                      <PublishResult><MessageId>567910cd-659e-55d4-bc19-f29d9g3b2378</MessageId></PublishResult>
+                      <ResponseMetadata><RequestId>fakerequ-esti-dfak-ereq-uestidfakere</RequestId></ResponseMetadata>
+                    </PublishResponse>
+                    """,
+                    RequestId,
+                    "extended-request-id",
+                    true);
+                var request = new Amazon.SimpleNotificationService.Model.PublishRequest
+                {
+                    TopicArn = "arn:aws:sns:us-east-1:123456789:MyTestTopic",
+                    Message = "Hello from OT",
+                    MessageAttributes = [],
+                };
+
+                for (var i = 0; i < applicationAttributes; i++)
+                {
+                    request.MessageAttributes[$"application-{i}"] = new() { DataType = "String", StringValue = "value" };
+                }
+
+                if (traceParent is not null)
+                {
+                    request.MessageAttributes["traceparent"] = new() { DataType = "String", StringValue = traceParent };
+                }
+
+#if NETFRAMEWORK
+                sns.Publish(request);
+#else
+                await sns.PublishAsync(request, TestContext.Current.CancellationToken);
+#endif
+                sentAttributes = request.MessageAttributes.ToDictionary(a => a.Key, a => (string?)a.Value.StringValue);
+            }
+        }
+
+        var activity = Assert.Single(exportedItems, a => a.DisplayName == (isSqs ? "SQS.SendMessage" : "SNS.Publish"));
+
+        // A span is only a producer span if its context becomes the creation context of the message.
+        Assert.Equal(expectedKind, activity.Kind);
+        Assert.Empty(activity.Links);
+
+        if (expectedInjected)
+        {
+            Assert.Contains($"-{activity.SpanId.ToHexString()}-", sentAttributes["traceparent"], StringComparison.Ordinal);
+        }
+        else
+        {
+            Assert.True(sentAttributes.TryGetValue("traceparent", out var sentTraceParent) || traceParent is null);
+            Assert.Equal(traceParent, sentTraceParent);
+            Assert.Equal(applicationAttributes + (traceParent is null ? 0 : 1), sentAttributes.Count);
+        }
+    }
+
     [Fact]
 #if NETFRAMEWORK
     public void TestSQSSendMessageReusedRequestWithoutActivity_ContextNotResent()

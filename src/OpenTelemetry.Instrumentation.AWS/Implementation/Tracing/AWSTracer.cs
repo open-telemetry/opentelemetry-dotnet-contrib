@@ -19,7 +19,8 @@ internal sealed class AWSTracer : Tracer
     /// <param name="activitySource">The ActivitySource used for creating and tracking the activities.</param>
     /// <param name="useProducerKindForMessageSend">
     /// Whether spans for sending a single message to AWS SNS or AWS SQS are created with <see cref="ActivityKind.Producer"/>
-    /// when no message creation context already exists, as described by the semantic conventions for AWS SNS and AWS SQS since v1.44.0.
+    /// when their context is injected into the message as its creation context, as described by the semantic conventions
+    /// for AWS SNS and AWS SQS since v1.44.0.
     /// </param>
     public AWSTracer(ActivitySource activitySource, bool useProducerKindForMessageSend = false)
     {
@@ -44,14 +45,17 @@ internal sealed class AWSTracer : Tracer
 
         if (this.useProducerKindForMessageSend && activityKind == ActivityKind.Client && IsMessageSend(name))
         {
-            var creationContext = AWSMessageContextPipelineHandler.CreationContext;
-            if (creationContext != default)
+            var sendContext = AWSMessageContextPipelineHandler.SendContext;
+            if (sendContext.CreationContext != default)
             {
                 // A separate creation context is preserved in the message; this span describes only its transport.
-                links = [new ActivityLink(creationContext)];
+                links = [new ActivityLink(sendContext.CreationContext)];
             }
-            else
+            else if (sendContext.CanInjectContext)
             {
+                // The context of this span becomes the creation context of the message, which is what makes it a producer span.
+                // If it cannot be injected, such as when the message already has the maximum number of attributes, the span
+                // is not the creation context of the message so remains a client span.
                 activityKind = ActivityKind.Producer;
             }
         }

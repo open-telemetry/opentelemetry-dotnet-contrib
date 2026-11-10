@@ -16,6 +16,41 @@ internal class SqsRequestContextHelper
     internal static bool IsInjectedByInstrumentation(MessageAttributeValue value)
         => value is InjectedMessageAttributeValue { IsUnchanged: true };
 
+    internal static bool CanInjectContext(Dictionary<string, MessageAttributeValue>? existing, IReadOnlyDictionary<string, string> attributes)
+    {
+        // Gets whether AddAttributes would inject the specified propagation attributes into a request with the
+        // existing message attributes. This is the case when there are attributes to inject, none of them has
+        // the same name as an attribute supplied by the application, and the limit of message attributes is not exceeded.
+        // Values injected by an earlier send of the same request are not counted, as they are replaced.
+        if (attributes.Count == 0)
+        {
+            return false;
+        }
+
+        var retained = 0;
+
+        if (existing != null)
+        {
+            foreach (var attribute in existing.Values)
+            {
+                if (!IsInjectedByInstrumentation(attribute))
+                {
+                    retained++;
+                }
+            }
+
+            foreach (var key in attributes.Keys)
+            {
+                if (existing.TryGetValue(key, out var value) && !IsInjectedByInstrumentation(value))
+                {
+                    return false;
+                }
+            }
+        }
+
+        return retained + attributes.Count <= MaxMessageAttributes;
+    }
+
     // Adds the specified propagation attributes to the request, replacing any added by an earlier send
     // of the same request. An empty set of attributes only removes attributes added by an earlier send.
     internal static void AddAttributes(IRequestContext context, IReadOnlyDictionary<string, string> attributes)

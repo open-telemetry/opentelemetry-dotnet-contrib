@@ -14,10 +14,12 @@
   value `aws.sqs` instead of `aws_sqs`. Spans for sending a single message
   (`SQS.SendMessage` and `SNS.Publish`) now use `ActivityKind.Producer` when
   their context is injected into the message. Messages with an existing creation
-  context retain `ActivityKind.Client` and link to that context. Spans for
-  `SendMessageBatch` and `PublishBatch`
-  now set `messaging.batch.message_count`, as do spans for `ReceiveMessage` with
-  the number of messages received.
+  context retain `ActivityKind.Client` and link to that context. Messages that
+  the context cannot be injected into, such as those that already have the
+  maximum number of message attributes or an attribute with the same name as one
+  that would be injected, also use `ActivityKind.Client`, with no link. Spans for
+  `SendMessageBatch` and `PublishBatch` now set `messaging.batch.message_count`,
+  as do spans for `ReceiveMessage` with the number of messages received.
   ([#5832](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5832))
 
 ## 1.20.3
