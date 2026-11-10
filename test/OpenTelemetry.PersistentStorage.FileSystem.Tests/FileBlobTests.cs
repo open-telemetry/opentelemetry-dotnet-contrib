@@ -36,7 +36,7 @@ public class FileBlobTests
         blob.TryWrite(data.AsSpan());
         blob.TryLease(leasePeriodMilliseconds);
 
-        Assert.Contains(".lock", ((FileBlob)blob).FullPath);
+        Assert.Contains(".lock", ((FileBlob)blob).FullPath, StringComparison.Ordinal);
 
         Assert.True(blob.TryDelete());
         Assert.False(testFile.Exists);
@@ -118,8 +118,8 @@ public class FileBlobTests
     {
         var testDirectory = new DirectoryInfo(Path.Combine(Path.GetTempPath(), Path.GetRandomFileName()));
 
-        // set maintenance job interval to 2 secs
-        using var storage = new FileBlobProvider(testDirectory.FullName, 10, 2);
+        // set maintenance job interval to 2 ms, with enough space to store the blob
+        using var storage = new FileBlobProvider(testDirectory.FullName, maxSizeInBytes: 100, maintenancePeriodInMilliseconds: 2);
 
         var data = Encoding.UTF8.GetBytes("Hello, World!");
 

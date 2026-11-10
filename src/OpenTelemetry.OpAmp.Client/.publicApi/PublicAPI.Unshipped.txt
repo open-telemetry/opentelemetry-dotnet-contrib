@@ -110,6 +110,8 @@ OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.IdentificationSetting
 OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.IdentifyingResources.get -> System.Collections.Generic.Dictionary<string!, OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion>!
 OpenTelemetry.OpAmp.Client.Settings.IdentificationSettings.NonIdentifyingResources.get -> System.Collections.Generic.Dictionary<string!, OpenTelemetry.OpAmp.Client.Settings.AnyValueUnion>!
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings
+OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.AllowRedirects.get -> bool
+OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.AllowRedirects.set -> void
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.ConnectionType.get -> OpenTelemetry.OpAmp.Client.Settings.ConnectionType
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.ConnectionType.set -> void
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.EffectiveConfigurationReporting.get -> OpenTelemetry.OpAmp.Client.Settings.EffectiveConfigSettings!
@@ -124,10 +126,10 @@ OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.Identification.get -> Op
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.Identification.set -> void
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.InstanceUid.get -> System.Guid
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.InstanceUid.set -> void
-OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.MaxPendingCustomMessageBytes.get -> int
-OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.MaxPendingCustomMessageBytes.set -> void
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.MaxPendingCustomMessages.get -> int
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.MaxPendingCustomMessages.set -> void
+OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.MaxPendingMessageBytes.get -> int
+OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.MaxPendingMessageBytes.set -> void
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.OpAmpClientSettings() -> void
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.RemoteConfiguration.get -> OpenTelemetry.OpAmp.Client.Settings.RemoteConfigSettings!
 OpenTelemetry.OpAmp.Client.Settings.OpAmpClientSettings.RemoteConfiguration.set -> void

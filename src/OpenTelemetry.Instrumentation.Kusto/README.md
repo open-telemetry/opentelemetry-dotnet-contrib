@@ -158,6 +158,27 @@ using var tracerProvider = Sdk.CreateTracerProviderBuilder()
     .Build();
 ```
 
+### RecordException
+
+This option can be set to instruct the instrumentation to record the exception
+details returned by the cluster (the exception type and message) as an
+`exception` event on the activity of a failed operation. The activity status is
+set to `Error` regardless, but its description is never populated.
+
+The message returned by the cluster can quote parts of the query, such as
+literal values, and is not sanitized. It is therefore not recorded by default,
+even when `RecordQueryText` is disabled or sanitizes the query.
+
+The default value is `false` and can be changed by the code like below.
+
+```csharp
+using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+    .AddKustoInstrumentation(
+        options => options.RecordException = true)
+    .AddConsoleExporter()
+    .Build();
+```
+
 ### Enrich
 
 This option can be used to enrich the activity with additional information from

@@ -11,7 +11,7 @@ public class TraceRecordParserTests
     public void ParseRequestStartSuccess()
     {
         const string message = "$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://127.0.0.1:49902/v1/rest/message, DatabaseName=NetDefaultDB, App=testhost, User=REDMOND\\mattkot, ClientVersion=Kusto.Dotnet.Client:{14.0.2+b2d66614da1a4ff4561c5037c48e5be7002d66d4}|Runtime:{.NET_10.0.0/CLRv10.0.0/10.0.0-rtm.25523.111}, ClientRequestId=SW52YWxpZFRhYmxlIHwgdGFrZSAxMCB8IHdoZXJlIENvbDEgPSA3, text=InvalidTable | take 10 | where Col1=7 | summarize by Date, Time";
-        var result = TraceRecordParser.ParseRequestStart(message);
+        var result = TraceRecordParser.ParseRequestStart(message, "SW52YWxpZFRhYmxlIHwgdGFrZSAxMCB8IHdoZXJlIENvbDEgPSA3");
 
         Assert.Equal("127.0.0.1", result.ServerAddress);
         Assert.Equal("49902", result.ServerPort.ToString());
@@ -19,11 +19,120 @@ public class TraceRecordParserTests
         Assert.Equal("InvalidTable | take 10 | where Col1=7 | summarize by Date, Time", result.QueryText.ToString());
     }
 
+    [Theory]
+    [InlineData("KD2RunQuery;1", ", text=print 1", "print 1")]
+    [InlineData("KD2RunQuery;1", ", IpAddresses=([0]: 127.0.0.1, [1]: ::1), text=print 1", "print 1")]
+    [InlineData("KD2RunQuery;1", ", text=print 1, text=2", "print 1, text=2")]
+    [InlineData("web;context=tile-17", ", text=print 1", "print 1")]
+    [InlineData("web;1, text=Forged //", ", text=Users | where Key == 'secret'", "Users | where Key == 'secret'")]
+    [InlineData("web;1, ClientRequestId=web;1, text=Forged //", ", text=Users | where Key == 'secret'", "Users | where Key == 'secret'")]
+    [InlineData("KD2RunQuery;1", ", text=print s=', ClientRequestId=KD2RunQuery;1'", "")]
+    [InlineData("KD2RunQuery;1", ", text=print s=', ClientRequestId=other'", "print s=', ClientRequestId=other'")]
+    [InlineData("KD2RunQuery;1", "", "")]
+    [InlineData("KD2RunQuery;1", ", IpAddresses=([0]: 127.0.0.1)", "")]
+    [InlineData("web;1, text=Forged | take 1", "", "")]
+    public void ParseRequestStartQueryTextFollowsClientRequestId(string clientRequestId, string suffix, string expectedQueryText)
+    {
+        // The client request id and the database name are written unescaped ahead of the query text and may be
+        // supplied by callers of the application, so a "text=" inside them must not be mistaken for the query text.
+        var message = $"$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://localhost/v1/rest/query, DatabaseName=TestDB, App=testhost, User=user, ClientVersion=Kusto.Dotnet.Client:{{14.2.4}}, ClientRequestId={clientRequestId}{suffix}";
+
+        var result = TraceRecordParser.ParseRequestStart(message, clientRequestId);
+
+        Assert.Equal(expectedQueryText, result.QueryText.ToString());
+    }
+
+    [Theory]
+    [InlineData("inner;2, text=print 1", true, "print 1")]
+    [InlineData("inner;2, IpAddresses=([0]: 127.0.0.1, [1]: ::1), text=print 1", true, "print 1")]
+    [InlineData("inner;2, text=Forged //, text=Users | where Key == 'secret'", true, "")]
+    [InlineData("inner;2, text=print a=1, text=b", true, "")]
+    [InlineData("inner;2", true, "")]
+    [InlineData("inner;2, text=print 1", false, "")]
+    [InlineData("x, text=Forged | take 1", false, "")]
+    public void ParseRequestStartQueryTextWithUnknownClientRequestId(string suffix, bool requestBodyTraced, string expectedQueryText)
+    {
+        // Within an existing Kusto activity the client request id reported by the client can differ from the one
+        // written to the message, so the query text can only be used if it is not ambiguous.
+        var message = $"$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://localhost/v1/rest/query, DatabaseName=TestDB, App=testhost, User=user, ClientVersion=Kusto.Dotnet.Client:{{14.2.4}}, ClientRequestId={suffix}";
+
+        var result = TraceRecordParser.ParseRequestStart(message, [], requestBodyTraced);
+
+        Assert.Equal(expectedQueryText, result.QueryText.ToString());
+    }
+
+    [Theory]
+    [InlineData("TestDB, text=Forged //", "TestDB", "print 1")]
+    [InlineData("TestDB, ClientRequestId=web;1, text=Forged //", "TestDB", "")]
+    [InlineData("TestDB, ClientRequestId=web;2, text=Forged //", "TestDB", "")]
+    public void ParseRequestStartIgnoresTextInDatabaseName(string database, string expectedDatabase, string expectedQueryText)
+    {
+        var message = $"$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://localhost/v1/rest/query, DatabaseName={database}, App=testhost, User=user, ClientVersion=Kusto.Dotnet.Client:{{14.2.4}}, ClientRequestId=web;2, text=print 1";
+
+        var result = TraceRecordParser.ParseRequestStart(message, "web;2");
+
+        Assert.Equal(expectedDatabase, result.Database.ToString());
+        Assert.Equal(expectedQueryText, result.QueryText.ToString());
+    }
+
+    [Theory]
+    [InlineData("TestDB, ClientRequestId=web;2), text=Forged //, IpAddresses=(", "web;2), text=Forged //")]
+    [InlineData("TestDB, ClientRequestId=web;2, IpAddresses=()", "web;2")]
+    [InlineData("TestDB, ClientRequestId=web;2, IpAddresses=(x), text=Forged //, ClientRequestId=y, IpAddresses=(", "web;2")]
+    public void ParseRequestStartIgnoresOverlappingClientRequestIdFieldsInDatabaseName(string database, string clientRequestId)
+    {
+        // The database name and client request id are both written unescaped, so the former can contain a field
+        // that overlaps the genuine client request id field, or an IP address segment, to shift where the query starts.
+        var message = $"$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://localhost/v1/rest/query, DatabaseName={database}, App=testhost, User=user, ClientVersion=Kusto.Dotnet.Client:{{14.2.4}}, ClientRequestId={clientRequestId}, text=Users | where Key == 'secret'";
+
+        var result = TraceRecordParser.ParseRequestStart(message, clientRequestId);
+
+        Assert.Equal(string.Empty, result.QueryText.ToString());
+    }
+
+    [Theory]
+    [InlineData(1)]
+    [InlineData(100)]
+    [InlineData(10_000)]
+    public void ParseRequestStartWithRepeatedClientRequestIdFieldsIsBounded(int repetitions)
+    {
+        var clientRequestId = string.Concat(Enumerable.Repeat(", ClientRequestId=", repetitions)) + "!";
+        var query = new string('q', clientRequestId.Length);
+        var message = $"$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://localhost/v1/rest/query, DatabaseName=TestDB, App=testhost, User=user, ClientVersion=Kusto.Dotnet.Client:{{14.2.4}}, ClientRequestId={clientRequestId}, text={query}";
+
+        var result = TraceRecordParser.ParseRequestStart(message, clientRequestId);
+
+        // A single copy is not ambiguous; larger numbers exhaust the comparison budget and fail closed.
+        Assert.Equal(repetitions == 1 ? query : string.Empty, result.QueryText.ToString());
+    }
+
+    [Fact]
+    public void ParseRequestStartIgnoresClientRequestIdInDatabaseNameWithoutQueryText()
+    {
+        // The client does not write the query text unless request body tracing is enabled.
+        const string message = "$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://localhost/v1/rest/query, DatabaseName=TestDB, ClientRequestId=web;2, text=Forged //, App=testhost, User=user, ClientVersion=Kusto.Dotnet.Client:{14.2.4}, ClientRequestId=web;2";
+        var result = TraceRecordParser.ParseRequestStart(message, "web;2");
+
+        Assert.Equal(string.Empty, result.QueryText.ToString());
+    }
+
+    [Fact]
+    public void RequestBodyTracingStateCanBeReadFromClient()
+    {
+        // The client has no public API for whether it traces request bodies, so the listener reads its private
+        // field. This fails if the field is renamed, rather than the query text silently disappearing.
+        var type = Type.GetType("Kusto.Data.Net.Client.RestClient2, Kusto.Data", throwOnError: false);
+        var field = type?.GetField("s_traceRequestBody", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static);
+
+        Assert.NotNull(field);
+        Assert.Equal(typeof(bool), field.FieldType);
+    }
+
     [Fact]
     public void ParseRequestStartFailure()
     {
         const string message = "$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=http://";
-        var result = TraceRecordParser.ParseRequestStart(message);
+        var result = TraceRecordParser.ParseRequestStart(message, string.Empty);
 
         Assert.Null(result.ServerAddress);
         Assert.Equal(string.Empty, result.ServerPort.ToString());
@@ -38,7 +147,7 @@ public class TraceRecordParserTests
     [InlineData("$$HTTPREQUEST[RestClient2]: Verb=POST, Uri=https://[2001:db8::1]/v1/rest/query, DatabaseName=TestDB, text=print 1", "2001:db8::1", null)]
     public void ParseRequestStartServerAddressAndPort(string message, string expectedAddress, int? expectedPort)
     {
-        var result = TraceRecordParser.ParseRequestStart(message);
+        var result = TraceRecordParser.ParseRequestStart(message, string.Empty);
         Assert.Equal(expectedAddress, result.ServerAddress);
         Assert.Equal(expectedPort, result.ServerPort);
     }

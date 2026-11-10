@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+## 1.20.3
+
+Released 2026-Nov-05
+
+* Fixed baggage and an unstopped `Activity` being left behind when an
+  `EndRequest` handler that runs after `TelemetryHttpModule` throws.
+  ([#5868](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5868))
+
 ## 1.20.2
 
 Released 2026-Oct-30

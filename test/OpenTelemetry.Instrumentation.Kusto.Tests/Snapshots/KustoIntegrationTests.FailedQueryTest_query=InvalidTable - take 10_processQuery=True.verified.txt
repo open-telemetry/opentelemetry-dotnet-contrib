@@ -4,7 +4,6 @@
       ActivitySourceName: OpenTelemetry.Instrumentation.Kusto,
       DisplayName: InvalidTable | take,
       Status: Error,
-      StatusDescription: 'take' operator: Failed to resolve table or column expression named 'InvalidTable',
       TagObjects: [
         {
           azure.kusto.client_request_id: SW52YWxpZFRhYmxlIHwgdGFrZSAxMA==

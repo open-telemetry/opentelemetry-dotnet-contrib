@@ -259,6 +259,49 @@ public class TestAWSXRaySamplerClient : IDisposable
         Assert.Null(rules);
     }
 
+    [Theory]
+    [InlineData(302)]
+    [InlineData(307)]
+    [InlineData(308)]
+    public async Task TestRequestsDoNotFollowRedirects(int statusCode)
+    {
+        var targetRequests = 0;
+
+        using var targetServer = TestHttpServer.RunServer(
+            context =>
+            {
+                Interlocked.Increment(ref targetRequests);
+                context.Response.StatusCode = 200;
+                context.Response.ContentType = "application/json";
+                using var writer = new StreamWriter(context.Response.OutputStream, new System.Text.UTF8Encoding(false), 4096, leaveOpen: true);
+                writer.Write("{}");
+            },
+            out var targetEndpoint);
+
+        using var redirectingServer = TestHttpServer.RunServer(
+            context =>
+            {
+                context.Response.StatusCode = statusCode;
+                context.Response.Headers.Add("Location", new Uri(targetEndpoint, "/admin/drain?nodes=all").ToString());
+                context.Response.Headers.Add("Set-Cookie", "session=abc");
+            },
+            out var redirectingEndpoint);
+
+        using var redirectedClient = new AWSXRaySamplerClient(redirectingEndpoint.ToString().TrimEnd('/'));
+
+        var rules = await redirectedClient.GetSamplingRules(TestContext.Current.CancellationToken);
+
+        var clock = new TestClock();
+        var targets = await redirectedClient.GetSamplingTargets(
+            new GetSamplingTargetsRequest([new("clientId", "rule1", 100, 50, 10, clock.ToDouble(clock.Now()))]),
+            TestContext.Current.CancellationToken);
+
+        // A redirect is a failed poll, and the redirect target must never be contacted.
+        Assert.Null(rules);
+        Assert.Null(targets);
+        Assert.Equal(0, Volatile.Read(ref targetRequests));
+    }
+
     private void CreateResponse(string endpoint, string filePath)
     {
         var mockResponse = File.ReadAllText(filePath);

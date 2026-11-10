@@ -58,6 +58,29 @@ internal static class TelemetryPropagationWriter
     }
 
     /// <summary>
+    /// Ensures that any <c>HttpRequestMessageProperty</c> on the outgoing message is owned by that message before
+    /// <see cref="Default"/> writes trace context HTTP headers into it. An application may attach the same
+    /// property instance to more than one message (and WCF does not copy it), so writing into it directly
+    /// would leave the headers of one call behind for the next. If the message has no such property,
+    /// nothing is done as <see cref="HttpRequestHeaders"/> creates a new one.
+    /// </summary>
+    /// <param name="request">The outgoing request <see cref="Message"/> about to have trace context written to it.</param>
+    public static void PrepareHttpRequestProperty(Message request)
+    {
+        Guard.ThrowIfNull(request);
+
+        if (!(WcfInstrumentationActivitySource.Options?.SuppressDownstreamInstrumentation ?? false) ||
+            !HttpRequestMessagePropertyWrapper.IsHttpFunctionalityEnabled ||
+            !request.Properties.TryGetValue(HttpRequestMessagePropertyWrapper.Name, out var prop) ||
+            prop == null)
+        {
+            return;
+        }
+
+        request.Properties[HttpRequestMessagePropertyWrapper.Name] = HttpRequestMessagePropertyWrapper.CreateCopy(prop);
+    }
+
+    /// <summary>
     /// Writes values to both SOAP message headers and outgoing HTTP request headers when suppressing downstream instrumentation.
     /// When not suppressing downstream instrumentation it is assumed the transport will be propagating the context itself, so
     /// only SOAP message headers are written.
