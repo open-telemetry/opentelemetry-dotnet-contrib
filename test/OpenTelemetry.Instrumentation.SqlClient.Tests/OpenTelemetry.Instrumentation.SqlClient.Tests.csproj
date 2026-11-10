@@ -33,7 +33,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="System.Security.Cryptography.Pkcs" VersionOverride="9.0.22" />
+    <PackageReference Include="System.Security.Cryptography.Pkcs" VersionOverride="9.0.23" />
   </ItemGroup>
 
   <ItemGroup>

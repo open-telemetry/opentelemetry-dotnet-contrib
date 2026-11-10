@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.8
+
+Released 2026-Nov-09
+
 * Updated Semantic Conventions version to `1.45.0`.
   ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
 
@@ -26,6 +30,16 @@
   the span status description. The message is now only recorded as an exception
   event when the new `RecordException` option is enabled.
   ([#5911](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5911))
+
+* Fixed a client request id or database name containing `text=` being able to
+  bypass `db.query.text` sanitization and set `db.query.summary`.
+  ([#5913](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5913))
+
+* Fixed `db.query.summary` generation consuming excessive CPU and memory for
+  some queries. Table names are now identified from the query syntax, so
+  `db.query.summary` may differ for some queries (for example, column names
+  are no longer included).
+  ([#5912](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5912))
 
 ## 0.1.0-alpha.7
 

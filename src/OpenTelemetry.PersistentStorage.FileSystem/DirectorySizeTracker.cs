@@ -19,6 +19,8 @@ internal sealed class DirectorySizeTracker
         this.directoryCurrentSizeInBytes = CalculateFolderSize(path);
     }
 
+    public long MaxSizeInBytes => this.maxSizeInBytes;
+
     public void FileAdded(long fileSizeInBytes) => Interlocked.Add(ref this.directoryCurrentSizeInBytes, fileSizeInBytes);
 
     public void FileRemoved(long fileSizeInBytes) => Interlocked.Add(ref this.directoryCurrentSizeInBytes, fileSizeInBytes * -1);
@@ -32,12 +34,16 @@ internal sealed class DirectorySizeTracker
     /// False negative is ok as the file write can be retried if needed.
     /// This is done in order to avoid acquiring lock while writing/deleting the blobs.
     /// </remarks>
-    /// <param name="currentSizeInBytes">Size of blob to be written.</param>
+    /// <param name="additionalSizeInBytes">Size of blob to be written.</param>
+    /// <param name="currentSizeInBytes">Current tracked directory size.</param>
     /// <returns>True if space is available else false.</returns>
-    public bool IsSpaceAvailable(out long currentSizeInBytes)
+    public bool IsSpaceAvailable(long additionalSizeInBytes, out long currentSizeInBytes)
     {
         currentSizeInBytes = Interlocked.Read(ref this.directoryCurrentSizeInBytes);
-        return currentSizeInBytes < this.maxSizeInBytes;
+        return additionalSizeInBytes >= 0
+            && currentSizeInBytes >= 0
+            && currentSizeInBytes <= this.maxSizeInBytes
+            && additionalSizeInBytes <= this.maxSizeInBytes - currentSizeInBytes;
     }
 
     public void RecountCurrentSize()
