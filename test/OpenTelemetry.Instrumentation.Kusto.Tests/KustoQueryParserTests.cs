@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Diagnostics;
 using OpenTelemetry.Instrumentation.Kusto.Implementation;
 
 namespace OpenTelemetry.Instrumentation.Kusto.Tests;
@@ -145,6 +146,32 @@ public class KustoQueryParserTests
             ".ingest inline into table T <| ?"
         },
 
+        // A literal token held directly by a command node (not wrapped in a literal expression) must be
+        // redacted too.
+        {
+            ".alter table T policy restricted_view_access true",
+            ".alter",
+            ".alter table T policy restricted_view_access ?"
+        },
+
+        // Control commands the grammar does not know parse, without a syntax error, to a flat token list.
+        // Nothing in them can be told apart from a value, so they are redacted like a skipped region.
+        {
+            ".list blobs (h'https://account.blob.core.windows.net/container;SECRET') MaxFiles=10",
+            string.Empty,
+            ".? ? (?) ?=?"
+        },
+        {
+            ".purge table T records in database D with (verificationtoken=h'SECRET') <| where Id == 'SECRET'",
+            string.Empty,
+            ".? ? ? ? in database ? with (?=?) <| where ? == ?"
+        },
+        {
+            ".dup-next-ingest into T to h@'https://a.blob.core.windows.net/c;SECRET'",
+            string.Empty,
+            ".?-?-? ? ? to ?"
+        },
+
         // Nested queries
         {
             "StormEvents | union OtherEvents",
@@ -251,6 +278,12 @@ public class KustoQueryParserTests
             "StormEvents | where Value == -2.5e+8",
             "StormEvents | where",
             "StormEvents | where Value == ?"
+        },
+        {
+            // A signed literal is redacted as a whole, whether or not whitespace separates the sign from the value.
+            "StormEvents | where Offset in (-1, - 2, +3, -4.5, -6d)",
+            "StormEvents | where",
+            "StormEvents | where Offset in (?, ?, ?, ?, ?)"
         },
         {
             // A unary operator on a non-literal operand must be preserved: only literals are redacted, so
@@ -408,12 +441,162 @@ public class KustoQueryParserTests
         },
 
         // Materialized view
-        // NOTE: Ideally the summarizer would strip "Condition", but in this context it is ambiguous with a table reference. Given the prevalence of this type of query,
-        // codifying the behavior for now. If this becomes a problem we can revisit.
         {
             "database('*').materialized_view('ViewName') | where Condition == 'Value'",
-            "materialized_view('ViewName') | where Condition",
+            "materialized_view('ViewName') | where",
             "database(?).materialized_view(?) | where Condition == ?"
+        },
+
+        // Tabular let statements and 'as' aliases: the declared names are not table references. The summary
+        // must not depend on the result schema either, which doubles at every step of these self-join chains.
+        {
+            "let v0 = datatable(a:long)[]; let v1 = v0 | join v0 on a; let v2 = v1 | join v1 on a; v2 | join (StormEvents) on a",
+            "datatable | join | join | join StormEvents",
+            "let v0 = datatable(a:long)[]; let v1 = v0 | join v0 on a; let v2 = v1 | join v1 on a; v2 | join (StormEvents) on a"
+        },
+        {
+            "StormEvents | project a = 1 | as t0 | join t0 on a | as t1 | join t1 on a",
+            "StormEvents | project | as | join | as | join",
+            "StormEvents | project a = ? | as t0 | join t0 on a | as t1 | join t1 on a"
+        },
+        {
+            "let x = StormEvents; x | take 5",
+            "StormEvents | take",
+            "let x = StormEvents; x | take ?"
+        },
+
+        // Only let statements, function parameters and 'as' aliases shadow a table: a column that happens to
+        // share its name with a table does not.
+        {
+            "StormEvents | extend OtherEvents = 1 | union OtherEvents",
+            "StormEvents | extend | union OtherEvents",
+            "StormEvents | extend OtherEvents = ? | union OtherEvents"
+        },
+        {
+            "StormEvents | union withsource=Source OtherEvents",
+            "StormEvents | union OtherEvents",
+            "StormEvents | union withsource=Source OtherEvents"
+        },
+
+        // Bindings are scoped: a let or 'as' alias in a function body is not visible after it, an 'as' alias in
+        // the query is visible to later statements, and a qualified name never refers to a binding.
+        {
+            "let f = () { let inner = Source; inner | take 1 }; f() | join (inner) on k",
+            "Source | take | join inner",
+            "let f = () { let inner = Source; inner | take ? }; f() | join (inner) on k"
+        },
+        {
+            "StormEvents | as z | count; z | count",
+            "StormEvents | as | count | count",
+            "StormEvents | as z | count; z | count"
+        },
+        {
+            "StormEvents | join (OtherEvents | as z) on a | count; z | count",
+            "StormEvents | join OtherEvents | as | count | count",
+            "StormEvents | join (OtherEvents | as z) on a | count; z | count"
+        },
+        {
+            "StormEvents | partition by State { OtherEvents | as z }; z | count",
+            "StormEvents | partition OtherEvents | as z | count",
+            "StormEvents | partition by State { OtherEvents | as z }; z | count"
+        },
+        {
+            "StormEvents | partition by State (take 1 | as z); z | count",
+            "StormEvents | partition take | as z | count",
+            "StormEvents | partition by State (take ? | as z); z | count"
+        },
+        {
+            "let f = () { StormEvents | as z | count }; f(); z | count",
+            "StormEvents | as | count z | count",
+            "let f = () { StormEvents | as z | count }; f(); z | count"
+        },
+        {
+            "let x = 1; database('db').x | count",
+            "x | count",
+            "let x = ?; database(?).x | count"
+        },
+
+        // Member access on a scalar is not a qualified table name, so the property name is not summarized.
+        {
+            "let d = dynamic({\"customer_123\": 1}); let x = d.customer_123; print x",
+            "print",
+            "let d = ?; let x = d.customer_123; print x"
+        },
+        {
+            "let d = dynamic({\"a\": {\"b\": 1}}); d.a.b | count",
+            "| count",
+            "let d = ?; d.a.b | count"
+        },
+        {
+            "cluster('c').database('db').StormEvents | count",
+            "StormEvents | count",
+            "cluster(?).database(?).StormEvents | count"
+        },
+        {
+            "StormEvents | join (database('db').OtherEvents) on a",
+            "StormEvents | join OtherEvents",
+            "StormEvents | join (database(?).OtherEvents) on a"
+        },
+
+        // The columns a scan declares extend its input schema, they are not bindings that can shadow a table.
+        {
+            "StormEvents | scan declare (OtherEvents:long = 0) with (step s: true;) | union OtherEvents",
+            "StormEvents | scan | union OtherEvents",
+            "StormEvents | scan declare (OtherEvents:long = ?) with (step s: ?;) | union OtherEvents"
+        },
+        {
+            "declare query_parameters (OtherEvents:long = 0); StormEvents | union OtherEvents",
+            "StormEvents | union",
+            "declare query_parameters (OtherEvents:long = 0); StormEvents | union OtherEvents"
+        },
+
+        // Bindings made in a macro-expand body or a pattern body are not visible after it.
+        {
+            "macro-expand entity_group [StormEvents, OtherEvents] as X (let z = X; z | count); z | count",
+            "macro-expand StormEvents OtherEvents X | count z | count",
+            "macro-expand entity_group [StormEvents, OtherEvents] as X (let z = X; z | count); z | count"
+        },
+        {
+            "declare pattern P = (arg:string) { ('x') = { let z = StormEvents; z | count }; }; z | count",
+            "StormEvents | count z | count",
+            "declare pattern P = (arg:string) { (?) = { let z = StormEvents; z | count }; }; z | count"
+        },
+        {
+            "let z = StormEvents; macro-expand entity_group [OtherEvents] as X (z | count); z | count",
+            "StormEvents macro-expand OtherEvents | count | count",
+            "let z = StormEvents; macro-expand entity_group [OtherEvents] as X (z | count); z | count"
+        },
+        {
+            "let StormEvents = StormEvents | take 1; StormEvents | count",
+            "StormEvents | take | count",
+            "let StormEvents = StormEvents | take ?; StormEvents | count"
+        },
+
+        // Table sources inside other tabular constructs.
+        {
+            "let t = materialize(StormEvents); t",
+            "StormEvents",
+            "let t = materialize(StormEvents); t"
+        },
+        {
+            "let f = () { StormEvents }; f()",
+            "StormEvents",
+            "let f = () { StormEvents }; f()"
+        },
+        {
+            "let v = view() { StormEvents | take 1 }; v",
+            "StormEvents | take",
+            "let v = view() { StormEvents | take ? }; v"
+        },
+        {
+            "let g = entity_group [StormEvents, OtherEvents]; union g",
+            "StormEvents OtherEvents union",
+            "let g = entity_group [StormEvents, OtherEvents]; union g"
+        },
+        {
+            "StormEvents | partition by State { OtherEvents }",
+            "StormEvents | partition OtherEvents",
+            "StormEvents | partition by State { OtherEvents }"
         },
 
         // Long query - tests 255 character truncation
@@ -424,6 +607,55 @@ public class KustoQueryParserTests
         },
     };
 
+    [Fact]
+    public void Process_SelfJoinChain_DoesNotPerformSemanticAnalysis()
+    {
+        // Each step of the chain doubles the schema semantic analysis computes, so doing that analysis here
+        // would take exponentially more time and memory with every step. The chain is kept short enough that,
+        // even if analysis were reintroduced, the test still completes (allocating tens of MB) and fails the
+        // allocation guard, instead of exhausting the memory of the test process. With only the syntax tree
+        // processed the query allocates about 50 KB.
+        const int Steps = 16;
+
+        var query = new System.Text.StringBuilder("let v0 = datatable(a:long)[];");
+        for (var i = 1; i <= Steps; i++)
+        {
+            query.Append("let v").Append(i).Append(" = v").Append(i - 1).Append(" | join v").Append(i - 1).Append(" on a;");
+        }
+
+        query.Append('v').Append(Steps);
+
+#if NET
+        const long MaxAllocatedBytes = 4 * 1024 * 1024;
+
+        // Warm up so that one-off initialization (JIT, caches) is not counted.
+        _ = KustoProcessor.Process(shouldSummarize: true, shouldSanitize: true, query.ToString());
+
+        var before = GC.GetAllocatedBytesForCurrentThread();
+#endif
+
+        var info = KustoProcessor.Process(shouldSummarize: true, shouldSanitize: true, query.ToString());
+
+        Assert.StartsWith("datatable | join", info.Summarized, StringComparison.Ordinal);
+        Assert.NotNull(info.Sanitized);
+
+#if NET
+        // Allocations of the thread are not available on .NET Framework, where the shorter chain only bounds
+        // the damage if analysis is reintroduced.
+        var allocated = GC.GetAllocatedBytesForCurrentThread() - before;
+        Assert.True(allocated < MaxAllocatedBytes, $"Processing allocated {allocated:N0} bytes.");
+#endif
+    }
+
+    [Fact]
+    public void Process_NeitherSummaryNorSanitizationRequested_ReturnsNothing()
+    {
+        var info = KustoProcessor.Process(shouldSummarize: false, shouldSanitize: false, "StormEvents | where State == 'TEXAS'");
+
+        Assert.Null(info.Summarized);
+        Assert.Null(info.Sanitized);
+    }
+
     [Theory]
     [MemberData(nameof(QuerySummaryTestCases))]
     public void GenerateQuerySummary_ReturnsExpectedSummary(string query, string? expectedSummary, string? expectedSanitizedQuery)
@@ -432,5 +664,24 @@ public class KustoQueryParserTests
 
         Assert.Equal(expectedSummary, info.Summarized);
         Assert.Equal(expectedSanitizedQuery, info.Sanitized);
+    }
+
+    [Fact]
+    public void GenerateQuerySummary_ManyMaterializedViewCallsAfterTruncation_CompletesInReasonableTime()
+    {
+        // A long list followed by many materialized_view() calls: the summary is full after a handful of calls,
+        // so the remaining calls must not be rendered, as rendering each one is proportional to its position.
+        const int Length = 800_000;
+        var query = "Events | where Id in (1" + string.Concat(Enumerable.Repeat(",1", Length / 4)) + string.Concat(Enumerable.Repeat(",materialized_view()", Length / 40)) + ")";
+
+        var stopwatch = Stopwatch.StartNew();
+        var info = KustoProcessor.Process(shouldSummarize: true, shouldSanitize: false, query);
+        stopwatch.Stop();
+
+        // The summary holds as many whole calls as fit within the 255 character limit.
+        Assert.Equal("Events | where " + string.Concat(Enumerable.Repeat("materialized_view() ", 12)).TrimEnd(), info.Summarized);
+
+        // Without the fix this takes at least tens of seconds, with it the cost is dominated by parsing (~1 second).
+        Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(15), $"Summarizing took {stopwatch.Elapsed}.");
     }
 }

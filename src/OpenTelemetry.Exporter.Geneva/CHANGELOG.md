@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+* Fixed an issue where, with `EnableOtlpProtobufEncoding=true`, a metric
+  attribute of type `ulong` with a value greater than `long.MaxValue` was
+  serialized incorrectly, causing the dimension to be dropped or the data point
+  to be malformed. Such values are now exported as their decimal string
+  representation, and an attribute that fails to serialize is now dropped
+  cleanly and reported through the exporter's `EventSource`.
+  ([#5915](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5915))
+
 ## 1.20.1
 
 Released 2026-Oct-21
