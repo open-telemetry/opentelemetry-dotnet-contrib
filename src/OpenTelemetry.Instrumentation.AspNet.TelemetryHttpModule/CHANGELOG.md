@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Preserve baggage updates between request steps when the execution context is
+  lost, including with OpenTelemetry API versions that isolate baggage writes.
+  ([#TODO](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TODO))
+
 ## 1.20.3
 
 Released 2026-Nov-05

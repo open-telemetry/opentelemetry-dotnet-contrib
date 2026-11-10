@@ -74,7 +74,7 @@ internal static class ActivityHelper
         {
             if (textMapPropagator is not TraceContextPropagator)
             {
-                context.Items[ContextKey] = new ContextHolder(activity, RuntimeContext.GetValue(BaggageSlotName));
+                context.Items[ContextKey] = new ContextHolder(activity, Baggage.Current);
             }
             else
             {
@@ -184,12 +184,28 @@ internal static class ActivityHelper
         if (context.Items[ContextKey] is ContextHolder contextHolder && Activity.Current != contextHolder.Activity)
         {
             Activity.Current = contextHolder.Activity;
-            if (contextHolder.Baggage != null)
+            if (contextHolder.Baggage is { } baggage)
             {
-                RuntimeContext.SetValue(BaggageSlotName, contextHolder.Baggage);
+                // Older API versions mutate the current holder. Detach it first so
+                // restoring this request cannot change another operation's baggage.
+                RuntimeContext.SetValue(BaggageSlotName, null);
+                Baggage.Current = baggage;
             }
 
             AspNetTelemetryEventSource.Log.ActivityRestored(contextHolder.Activity);
+        }
+    }
+
+    /// <summary>
+    /// Saves baggage after a request step so it can be restored if the execution context is lost.
+    /// </summary>
+    /// <param name="context"><see cref="HttpContextBase"/>.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    internal static void SaveBaggage(HttpContextBase context)
+    {
+        if (context.Items[ContextKey] is ContextHolder contextHolder && contextHolder.Baggage.HasValue)
+        {
+            contextHolder.Baggage = Baggage.Current;
         }
     }
 
@@ -221,9 +237,9 @@ internal static class ActivityHelper
     internal sealed class ContextHolder
     {
         public Activity Activity;
-        public object? Baggage;
+        public Baggage? Baggage;
 
-        public ContextHolder(Activity activity, object? baggage = null)
+        public ContextHolder(Activity activity, Baggage? baggage = null)
         {
             this.Activity = activity;
             this.Baggage = baggage;
