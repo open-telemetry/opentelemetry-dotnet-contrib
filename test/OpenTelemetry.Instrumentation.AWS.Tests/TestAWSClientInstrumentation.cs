@@ -190,6 +190,7 @@ public class TestAWSClientInstrumentation : IDisposable
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
         Assert.Equal(ActivityStatusCode.Error, awssdk_activity.Status);
         Assert.Null(awssdk_activity.StatusDescription);
+        Assert.Equal(typeof(AmazonServiceException).FullName, Utils.GetTagValue(awssdk_activity, "error.type"));
 
         if (recordException)
         {

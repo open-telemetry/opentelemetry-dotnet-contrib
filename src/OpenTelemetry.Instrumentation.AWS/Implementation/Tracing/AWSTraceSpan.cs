@@ -9,6 +9,8 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation.Tracing;
 
 internal sealed class AWSTraceSpan : TraceSpan
 {
+    private const string ErrorTypeAttributeName = "error.type";
+
     private readonly Activity? activity;
     private readonly bool recordException;
 
@@ -77,6 +79,7 @@ internal sealed class AWSTraceSpan : TraceSpan
         }
 
         this.activity.SetStatus(ActivityStatusCode.Error);
+        this.activity.SetTag(ErrorTypeAttributeName, exception.GetType().FullName);
     }
 
     public override void End()
