@@ -23,7 +23,10 @@
     links are also no longer read.
   * Fixed a blob write being accepted when it would cause the storage to exceed
     its maximum size.
-  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+  * Writing content that is larger than the maximum size of the storage to a
+    `FileBlob` is now rejected, instead of replacing its existing content with
+    content that cannot be read.
+  ([#5949](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5949))
 
 ## 1.1.3
 
