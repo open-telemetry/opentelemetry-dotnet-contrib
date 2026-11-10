@@ -3,7 +3,7 @@
 ## Unreleased
 
 * Preserve baggage updates between request steps when the execution context is
-  lost, including with OpenTelemetry API versions that isolate baggage writes.
+  lost.
   ([#5948](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5948))
 
 ## 1.20.3

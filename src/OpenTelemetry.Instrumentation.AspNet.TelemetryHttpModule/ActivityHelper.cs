@@ -186,7 +186,8 @@ internal static class ActivityHelper
             Activity.Current = contextHolder.Activity;
             if (contextHolder.Baggage is { } baggage)
             {
-                // Older API versions mutate the current holder. Detach it first so
+                // OpenTelemetry.Api versions prior to 1.22.0 and the unsafe legacy
+                // compatibility mode mutate the current holder. Detach it first so
                 // restoring this request cannot change another operation's baggage.
                 RuntimeContext.SetValue(BaggageSlotName, null);
                 Baggage.Current = baggage;
