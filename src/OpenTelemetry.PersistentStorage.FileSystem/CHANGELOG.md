@@ -2,6 +2,29 @@
 
 ## Unreleased
 
+* Hardened `FileBlobProvider`.
+  * **Breaking:** When running on .NET on non-Windows platforms, creating a
+    `FileBlobProvider` now throws an `UnauthorizedAccessException` if its
+    storage directory could be changed by another user. The directory must be
+    owned by the current user and must not be writable by its group or by
+    other users. Each directory and symbolic link in its path must be owned by
+    the current user or by root, and those directories must not be writable
+    by their group or by other users unless they have the sticky bit set (such
+    as `/tmp`). The directory is verified again before blobs are listed,
+    created or removed, and no blobs are returned or read from it if it can
+    no longer be trusted. These checks can be disabled by using the new
+    `FileBlobProvider(string path, bool checkPermissions)` constructor with
+    `checkPermissions` set to `false`.
+  * A relative storage path is now resolved when the `FileBlobProvider` is
+    created, so that the directory that is verified is always the directory
+    that is used, even if the current directory of the process is changed.
+  * Blobs that are empty or that are larger than the maximum size of the
+    storage are no longer read. When running on .NET, blobs that are symbolic
+    links are also no longer read.
+  * Fixed a blob write being accepted when it would cause the storage to exceed
+    its maximum size.
+  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+
 ## 1.1.3
 
 Released 2026-Oct-21

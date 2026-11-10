@@ -37,6 +37,15 @@ accepts to control its configuration:
 
 Sets directory location where blobs are stored. `Required`.
 
+##### checkPermissions
+
+When running on .NET on non-Windows platforms, whether to verify that the
+directory is private to the current user. `Optional`. Default if not specified:
+`true`. Only available using the `FileBlobProvider(string path, bool
+checkPermissions)` constructor, which uses the defaults for all other
+parameters.
+See [Directory permissions](#directory-permissions) for more information.
+
 ##### maxSizeInBytes
 
 Maximum allowed folder size. `Optional`. Default if not specified: `52428800`
@@ -198,6 +207,40 @@ data. If specific security requirements need to be met, application owners
 SHOULD configure the [directory](#path) to restrict access (ensuring that the
 process running your application has write access to this directory), thus
 preventing unauthorized users from reading its contents.
+
+### Directory permissions
+
+Stored blobs are replayed using the credentials of the application, and cannot
+authenticate themselves, so the [directory](#path) is the security boundary.
+When running on .NET on non-Windows platforms, the `FileBlobProvider`
+constructor throws an `UnauthorizedAccessException` if the directory could be
+changed by another user:
+
+* The directory must be owned by the current user, and must not be writable by
+  its group or by other users.
+* Each directory and symbolic link in the path of the directory must be owned
+  by the current user or by root. Each of those directories must not be
+  writable by its group or by other users, unless it has the sticky bit set
+  (such as `/tmp`).
+
+The directory is verified again before blobs are listed, created or removed, and
+no blobs are returned or read from it if it can no longer be trusted. A
+directory that does not exist is created so that it can only be accessed by the
+current user. A relative path is resolved when the `FileBlobProvider` is
+created.
+
+The verification can be disabled by passing `checkPermissions: false` to the
+`FileBlobProvider(string path, bool checkPermissions)` constructor. This may be
+needed where the directory is on a volume whose permissions cannot satisfy the
+requirements, such as a volume that is shared with other users or that does not
+support Unix permissions. Only disable the verification if the directory is
+otherwise protected from other users, as a warning is logged and any user that
+can change the directory could cause data of their choosing to be sent using the
+application's credentials.
+
+```csharp
+using var persistentBlobProvider = new FileBlobProvider("/data/otel", checkPermissions: false);
+```
 
 ### Data retention
 
