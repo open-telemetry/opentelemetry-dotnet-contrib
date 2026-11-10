@@ -1181,20 +1181,26 @@ public class TestAWSClientInstrumentation : IDisposable
     }
 
     [Theory]
-    [InlineData(true, 9, null, ActivityKind.Producer, true, false)] // Fits: 9 + traceparent = 10
-    [InlineData(false, 9, null, ActivityKind.Producer, true, false)]
-    [InlineData(true, 10, null, ActivityKind.Client, false, false)] // Full: the limit would be exceeded
-    [InlineData(false, 10, null, ActivityKind.Client, false, false)]
-    [InlineData(true, 0, "not-a-traceparent", ActivityKind.Client, false, false)] // Application supplied, but not a valid context
-    [InlineData(false, 0, "not-a-traceparent", ActivityKind.Client, false, false)]
-    [InlineData(true, 8, null, ActivityKind.Producer, true, true)] // Parent trace state is injected too: 8 + traceparent + tracestate = 10
-    [InlineData(false, 8, null, ActivityKind.Producer, true, true)]
-    [InlineData(true, 9, null, ActivityKind.Client, false, true)] // 9 + traceparent + tracestate = 11
-    [InlineData(false, 9, null, ActivityKind.Client, false, true)]
+    [InlineData(true, 8, null, ActivityKind.Producer, true, false, false)] // Fits: 8 + traceparent + room for tracestate = 10
+    [InlineData(false, 8, null, ActivityKind.Producer, true, false, false)]
+    [InlineData(true, 9, null, ActivityKind.Client, true, false, false)] // Room for a tracestate that a sampler might add is kept, so injected but not a producer
+    [InlineData(false, 9, null, ActivityKind.Client, true, false, false)]
+    [InlineData(true, 10, null, ActivityKind.Client, false, false, false)] // Full: the limit would be exceeded
+    [InlineData(false, 10, null, ActivityKind.Client, false, false, false)]
+    [InlineData(true, 0, "not-a-traceparent", ActivityKind.Client, false, false, false)] // Application supplied, but not a valid context
+    [InlineData(false, 0, "not-a-traceparent", ActivityKind.Client, false, false, false)]
+    [InlineData(true, 8, null, ActivityKind.Producer, true, true, false)] // Parent trace state is injected too: 8 + traceparent + tracestate = 10
+    [InlineData(false, 8, null, ActivityKind.Producer, true, true, false)]
+    [InlineData(true, 9, null, ActivityKind.Client, false, true, false)] // 9 + traceparent + tracestate = 11
+    [InlineData(false, 9, null, ActivityKind.Client, false, true, false)]
+    [InlineData(true, 8, null, ActivityKind.Producer, true, false, true)] // A sampler adds trace state: 8 + traceparent + tracestate = 10
+    [InlineData(false, 8, null, ActivityKind.Producer, true, false, true)]
+    [InlineData(true, 9, null, ActivityKind.Client, false, false, true)] // 9 + traceparent + tracestate = 11, so nothing is injected
+    [InlineData(false, 9, null, ActivityKind.Client, false, false, true)]
 #if NETFRAMEWORK
-    public void TestMessageSendKindDependsOnWhetherContextIsInjected(bool isSqs, int applicationAttributes, string? traceParent, ActivityKind expectedKind, bool expectedInjected, bool parentHasTraceState)
+    public void TestMessageSendKindDependsOnWhetherContextIsInjected(bool isSqs, int applicationAttributes, string? traceParent, ActivityKind expectedKind, bool expectedInjected, bool parentHasTraceState, bool samplerAddsTraceState)
 #else
-    public async Task TestMessageSendKindDependsOnWhetherContextIsInjected(bool isSqs, int applicationAttributes, string? traceParent, ActivityKind expectedKind, bool expectedInjected, bool parentHasTraceState)
+    public async Task TestMessageSendKindDependsOnWhetherContextIsInjected(bool isSqs, int applicationAttributes, string? traceParent, ActivityKind expectedKind, bool expectedInjected, bool parentHasTraceState, bool samplerAddsTraceState)
 #endif
     {
         const string RequestId = "fakerequ-esti-dfak-ereq-uestidfakere";
@@ -1205,7 +1211,7 @@ public class TestAWSClientInstrumentation : IDisposable
         parent?.Start();
 
         using (Sdk.CreateTracerProviderBuilder()
-                   .SetSampler(new AlwaysOnSampler())
+                   .SetSampler(samplerAddsTraceState ? new TraceStateSampler() : new AlwaysOnSampler())
                    .AddAWSInstrumentation(o => o.SemanticConventionVersion = SemanticConventionVersion.V1_45_0)
                    .AddInMemoryExporter(exportedItems)
                    .Build())
@@ -1578,5 +1584,12 @@ public class TestAWSClientInstrumentation : IDisposable
             Assert.True(Sdk.SuppressInstrumentation);
             return Task.FromResult(default(T)!);
         }
+    }
+
+    // Mimics samplers, such as consistent probability samplers, that add to the trace state of the span.
+    private sealed class TraceStateSampler : Sampler
+    {
+        public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
+            => new(SamplingDecision.RecordAndSample, attributes: null, traceStateString: "ot=th:0");
     }
 }

@@ -15,6 +15,9 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 /// </summary>
 internal sealed class AWSMessageContextPipelineHandler : PipelineHandler
 {
+    private const string TraceParentKey = "traceparent";
+    private const string TraceStateKey = "tracestate";
+
     // The context of the span is not available until the span is created, so valid identifiers are used
     // to find the attributes that the propagator would inject into the message.
     private static readonly ActivityTraceId RepresentativeTraceId = ActivityTraceId.CreateFromString("00000000000000000000000000000001".AsSpan());
@@ -117,7 +120,7 @@ internal sealed class AWSMessageContextPipelineHandler : PipelineHandler
         return new(creationContext, canInjectContext);
     }
 
-    private static IReadOnlyDictionary<string, string> GetAttributesToInject()
+    private static Dictionary<string, string> GetAttributesToInject()
     {
         // Gets the attributes that would be injected into the message for the span that is about to be created.
         // The span inherits the trace state of the current activity, which the propagator injects as a further
@@ -129,7 +132,31 @@ internal sealed class AWSMessageContextPipelineHandler : PipelineHandler
             ActivityTraceFlags.Recorded,
             Activity.Current?.TraceStateString);
 
-        return AWSMessagingUtils.InjectIntoDictionary(new PropagationContext(context, Baggage.Current));
+        var attributes = AWSMessagingUtils.InjectIntoDictionary(new PropagationContext(context, Baggage.Current));
+
+        // A span is only the creation context of a message if the propagator injects the context of the span,
+        // as opposed to only injecting other information, such as baggage, which is the case if the context
+        // of the span can be extracted from what was injected.
+        var injected = Propagators.DefaultTextMapPropagator.Extract(
+            default,
+            attributes,
+            static (carrier, key) => carrier.TryGetValue(key, out var value) ? [value] : []).ActivityContext;
+
+        if (injected.SpanId != RepresentativeSpanId)
+        {
+            attributes.Clear();
+            return attributes;
+        }
+
+        // With W3C trace context, a sampler can add to the trace state of the span after this prediction, which would
+        // then need to be injected too, so room is kept for it. Without it, a message that is nearly full could not
+        // take the injected context after all, which would be wrong for a producer span.
+        if (attributes.ContainsKey(TraceParentKey) && !attributes.ContainsKey(TraceStateKey))
+        {
+            attributes[TraceStateKey] = string.Empty;
+        }
+
+        return attributes;
     }
 
     private async Task<T> InvokeWithSendContextAsync<T>(IExecutionContext executionContext, MessageSendContext sendContext)

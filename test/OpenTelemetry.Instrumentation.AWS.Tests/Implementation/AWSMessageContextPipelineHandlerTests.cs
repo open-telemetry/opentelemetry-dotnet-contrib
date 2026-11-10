@@ -3,12 +3,15 @@
 
 using System.Diagnostics;
 using Amazon.Runtime;
+using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Instrumentation.AWS.Implementation;
 using SNS = Amazon.SimpleNotificationService.Model;
 using SQS = Amazon.SQS.Model;
 
 namespace OpenTelemetry.Instrumentation.AWS.Tests.Implementation;
 
+[Collection(nameof(AWSMessageContextPipelineHandlerTests))]
+[CollectionDefinition(nameof(AWSMessageContextPipelineHandlerTests), DisableParallelization = true)]
 public class AWSMessageContextPipelineHandlerTests
 {
     private const string TraceParent = "00-5759e988bd862e3fe1be46a994272793-53995c3f42cd8ad8-01";
@@ -103,14 +106,16 @@ public class AWSMessageContextPipelineHandlerTests
     [Theory]
     [InlineData(true, 0, false, true)]
     [InlineData(false, 0, false, true)]
-    [InlineData(true, 9, false, true)] // 9 + traceparent = 10
-    [InlineData(false, 9, false, true)]
-    [InlineData(true, 10, false, false)] // 10 + traceparent = 11
+    [InlineData(true, 8, false, true)] // 8 + traceparent + room for tracestate = 10
+    [InlineData(false, 8, false, true)]
+    [InlineData(true, 9, false, false)] // 9 + traceparent + room for tracestate = 11
+    [InlineData(false, 9, false, false)]
+    [InlineData(true, 10, false, false)]
     [InlineData(false, 10, false, false)]
-    [InlineData(true, 8, true, true)] // 8 + traceparent + baggage = 10
-    [InlineData(false, 8, true, true)]
-    [InlineData(true, 9, true, false)] // 9 + traceparent + baggage = 11
-    [InlineData(false, 9, true, false)]
+    [InlineData(true, 7, true, true)] // 7 + traceparent + baggage + room for tracestate = 10
+    [InlineData(false, 7, true, true)]
+    [InlineData(true, 8, true, false)] // 8 + traceparent + baggage + room for tracestate = 11
+    [InlineData(false, 8, true, false)]
     public void TryGetSendContext_NoApplicationContext_CanInjectDependsOnAttributes(bool isSqs, int attributes, bool hasBaggage, bool expected)
     {
         var previousBaggage = Baggage.Current;
@@ -263,6 +268,80 @@ public class AWSMessageContextPipelineHandlerTests
         Assert.False(sendContext.CanInjectContext);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void TryGetSendContext_PropagatorInjectsOnlyBaggage_CannotInjectContext(bool isSqs)
+    {
+        var previousPropagator = Propagators.DefaultTextMapPropagator;
+        var previousBaggage = Baggage.Current;
+
+        try
+        {
+            Sdk.SetDefaultTextMapPropagator(new BaggagePropagator());
+            Baggage.Current = Baggage.Create(new Dictionary<string, string> { ["key"] = "value" });
+
+            AmazonWebServiceRequest request = isSqs ? new SQS.SendMessageRequest() : new SNS.PublishRequest();
+
+            // The span would not be the creation context of the message as only its baggage is propagated.
+            Assert.True(AWSMessageContextPipelineHandler.TryGetSendContext(request, out var sendContext));
+            Assert.Equal(default, sendContext.CreationContext);
+            Assert.False(sendContext.CanInjectContext);
+        }
+        finally
+        {
+            Baggage.Current = previousBaggage;
+            Sdk.SetDefaultTextMapPropagator(previousPropagator);
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void TryGetSendContext_PropagatorInjectsNothing_CannotInjectContext(bool isSqs)
+    {
+        var previousPropagator = Propagators.DefaultTextMapPropagator;
+
+        try
+        {
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([]));
+
+            AmazonWebServiceRequest request = isSqs ? new SQS.SendMessageRequest() : new SNS.PublishRequest();
+
+            Assert.True(AWSMessageContextPipelineHandler.TryGetSendContext(request, out var sendContext));
+            Assert.False(sendContext.CanInjectContext);
+        }
+        finally
+        {
+            Sdk.SetDefaultTextMapPropagator(previousPropagator);
+        }
+    }
+
+    [Theory]
+    [InlineData(true, 9, true)] // 9 + the one attribute injected for the span, as no trace state is added by a sampler
+    [InlineData(false, 9, true)]
+    [InlineData(true, 10, false)]
+    [InlineData(false, 10, false)]
+    public void TryGetSendContext_PropagatorWithoutTraceState_DoesNotReserveRoomForIt(bool isSqs, int attributes, bool expected)
+    {
+        var previousPropagator = Propagators.DefaultTextMapPropagator;
+
+        try
+        {
+            Sdk.SetDefaultTextMapPropagator(new SingleHeaderPropagator());
+
+            var request = CreateRequest(isSqs, Enumerable.Range(0, attributes).ToDictionary(i => $"application-{i}", _ => "value"));
+
+            Assert.True(AWSMessageContextPipelineHandler.TryGetSendContext(request, out var sendContext));
+            Assert.Equal(default, sendContext.CreationContext);
+            Assert.Equal(expected, sendContext.CanInjectContext);
+        }
+        finally
+        {
+            Sdk.SetDefaultTextMapPropagator(previousPropagator);
+        }
+    }
+
     [Fact]
     public void TryGetSendContext_OtherRequests_ReturnsFalse()
     {
@@ -298,5 +377,26 @@ public class AWSMessageContextPipelineHandlerTests
             => this.Fail ? ThrowFailure<int>() : StringComparer.Ordinal.GetHashCode(obj);
 
         private static T ThrowFailure<T>() => throw new InvalidOperationException("Failed.");
+    }
+
+    // Injects the span context as a single value and never any trace state, similar to B3 or X-Ray.
+    private sealed class SingleHeaderPropagator : TextMapPropagator
+    {
+        public override ISet<string>? Fields => null;
+
+        public override PropagationContext Extract<T>(PropagationContext context, T carrier, Func<T, string, IEnumerable<string>?> getter)
+        {
+            var value = getter(carrier, "x-trace-context")?.FirstOrDefault();
+            var parts = value?.Split('-');
+
+            return parts is { Length: 2 }
+                ? new PropagationContext(
+                    new ActivityContext(ActivityTraceId.CreateFromString(parts[0].AsSpan()), ActivitySpanId.CreateFromString(parts[1].AsSpan()), ActivityTraceFlags.Recorded, isRemote: true),
+                    context.Baggage)
+                : context;
+        }
+
+        public override void Inject<T>(PropagationContext context, T carrier, Action<T, string, string> setter)
+            => setter(carrier, "x-trace-context", $"{context.ActivityContext.TraceId}-{context.ActivityContext.SpanId}");
     }
 }
