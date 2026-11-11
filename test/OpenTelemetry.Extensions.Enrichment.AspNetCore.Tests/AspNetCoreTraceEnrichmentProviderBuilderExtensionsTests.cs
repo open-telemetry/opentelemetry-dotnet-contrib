@@ -22,8 +22,8 @@ public sealed class AspNetCoreTraceEnrichmentProviderBuilderExtensionsTests
         using var sp = services.BuildServiceProvider();
 
         var enrichers = sp.GetServices<AspNetCoreTraceEnricher>().ToArray();
-        Assert.Single(enrichers);
-        Assert.IsType<MyAspNetCoreTraceEnricher>(enrichers[0]);
+        var enricher = Assert.Single(enrichers);
+        Assert.IsType<MyAspNetCoreTraceEnricher>(enricher);
     }
 
     [Fact]

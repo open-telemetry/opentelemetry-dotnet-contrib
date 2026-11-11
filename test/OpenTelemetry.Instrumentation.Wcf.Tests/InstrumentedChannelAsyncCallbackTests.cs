@@ -417,8 +417,8 @@ public class InstrumentedChannelAsyncCallbackTests
                 await Task.Delay(100, TestContext.Current.CancellationToken);
             }
 
-            Assert.Single(stoppedActivities);
-            Assert.Equal(ActivityStatusCode.Error, stoppedActivities[0].Status);
+            var stoppedActivity = Assert.Single(stoppedActivities);
+            Assert.Equal(ActivityStatusCode.Error, stoppedActivity.Status);
 
             inner.ReceiveMessage = CreateReply(request.Headers.MessageId!);
             using var reply = channel.Receive();

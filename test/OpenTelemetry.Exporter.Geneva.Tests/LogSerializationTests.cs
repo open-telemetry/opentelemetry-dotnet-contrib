@@ -106,8 +106,8 @@ public class LogSerializationTests
             var logger = loggerFactory.CreateLogger<LogSerializationTests>();
             doLog(logger);
 
-            Assert.Single(exportedData);
-            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData[0], MessagePack.Resolvers.ContractlessStandardResolver.Options);
+            var exportedDataItem = Assert.Single(exportedData);
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedDataItem, MessagePack.Resolvers.ContractlessStandardResolver.Options);
 
             return GetFields(fluentdData);
         }

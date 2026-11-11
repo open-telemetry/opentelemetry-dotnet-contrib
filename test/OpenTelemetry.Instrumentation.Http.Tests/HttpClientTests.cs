@@ -22,41 +22,41 @@ public partial class HttpClientTests
 
     [Theory]
     [MemberData(nameof(HttpTestData.TestData), MemberType = typeof(HttpTestData))]
-    public async Task HttpOutCallsAreCollectedSuccessfullyTracesAndMetricsSemanticConventionsAsync(HttpOutTestCase tc) =>
+    public async Task HttpOutCallsAreCollectedSuccessfullyTracesAndMetricsSemanticConventionsAsync(string testCaseName) =>
         await HttpOutCallsAreCollectedSuccessfullyBodyAsync(
             this.uri.Host,
             this.uri.Port,
-            tc,
+            HttpTestData.GetTestCase(testCaseName),
             enableTracing: true,
             enableMetrics: true);
 
     [Theory]
     [MemberData(nameof(HttpTestData.TestData), MemberType = typeof(HttpTestData))]
-    public async Task HttpOutCallsAreCollectedSuccessfullyMetricsOnlyAsync(HttpOutTestCase tc) =>
+    public async Task HttpOutCallsAreCollectedSuccessfullyMetricsOnlyAsync(string testCaseName) =>
         await HttpOutCallsAreCollectedSuccessfullyBodyAsync(
             this.uri.Host,
             this.uri.Port,
-            tc,
+            HttpTestData.GetTestCase(testCaseName),
             enableTracing: false,
             enableMetrics: true);
 
     [Theory]
     [MemberData(nameof(HttpTestData.TestData), MemberType = typeof(HttpTestData))]
-    public async Task HttpOutCallsAreCollectedSuccessfullyTracesOnlyAsync(HttpOutTestCase tc) =>
+    public async Task HttpOutCallsAreCollectedSuccessfullyTracesOnlyAsync(string testCaseName) =>
         await HttpOutCallsAreCollectedSuccessfullyBodyAsync(
             this.uri.Host,
             this.uri.Port,
-            tc,
+            HttpTestData.GetTestCase(testCaseName),
             enableTracing: true,
             enableMetrics: false);
 
     [Theory]
     [MemberData(nameof(HttpTestData.TestData), MemberType = typeof(HttpTestData))]
-    public async Task HttpOutCallsAreCollectedSuccessfullyNoSignalsAsync(HttpOutTestCase tc) =>
+    public async Task HttpOutCallsAreCollectedSuccessfullyNoSignalsAsync(string testCaseName) =>
         await HttpOutCallsAreCollectedSuccessfullyBodyAsync(
             this.uri.Host,
             this.uri.Port,
-            tc,
+            HttpTestData.GetTestCase(testCaseName),
             enableTracing: false,
             enableMetrics: false);
 
@@ -90,7 +90,7 @@ public partial class HttpClientTests
                 ",
             JsonSerializerOptions);
 
-        await this.HttpOutCallsAreCollectedSuccessfullyTracesAndMetricsSemanticConventionsAsync(input![0]);
+        await HttpOutCallsAreCollectedSuccessfullyBodyAsync(this.uri.Host, this.uri.Port, input![0], enableTracing: true, enableMetrics: true);
     }
 #endif
 
@@ -104,8 +104,10 @@ public partial class HttpClientTests
 #if NET
     [Theory]
     [MemberData(nameof(HttpTestData.TestData), MemberType = typeof(HttpTestData))]
-    public async Task ValidateNetMetricsAsync(HttpOutTestCase tc)
+    public async Task ValidateNetMetricsAsync(string testCaseName)
     {
+        var tc = HttpTestData.GetTestCase(testCaseName);
+
         var metrics = new List<Metric>();
         var meterProvider = Sdk.CreateMeterProviderBuilder()
             .AddHttpClientInstrumentation()

@@ -437,9 +437,8 @@ public class PolicyStoreTests
 
         // Revision must not exceed the number of attempts (many will be rejected as stale).
         Assert.InRange(final.Revision, 1, attemptCount);
-        Assert.Single(final.Providers);
 
-        var providerSnapshot = final.Providers[0];
+        var providerSnapshot = Assert.Single(final.Providers);
         Assert.Equal(meta.RegistrationId, providerSnapshot.RegistrationId);
 
         // The highest sequence must win: Interlocked assigns 1..attemptCount, so when

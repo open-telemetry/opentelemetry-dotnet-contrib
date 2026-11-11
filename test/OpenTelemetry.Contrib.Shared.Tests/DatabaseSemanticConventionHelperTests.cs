@@ -8,28 +8,28 @@ namespace OpenTelemetry.Internal.Tests;
 
 public class DatabaseSemanticConventionHelperTests
 {
-    public static IEnumerable<object[]> TestCases =>
-    [
-        [null!, DatabaseSemanticConvention.Old],
-        [string.Empty, DatabaseSemanticConvention.Old],
-        [" ", DatabaseSemanticConvention.Old],
-        ["junk", DatabaseSemanticConvention.Old],
-        ["none", DatabaseSemanticConvention.Old],
-        ["NONE", DatabaseSemanticConvention.Old],
-        ["database", DatabaseSemanticConvention.New],
-        ["DATABASE", DatabaseSemanticConvention.New],
-        ["database/dup", DatabaseSemanticConvention.Dupe],
-        ["DATABASE/DUP", DatabaseSemanticConvention.Dupe],
-        ["junk,,junk", DatabaseSemanticConvention.Old],
-        ["junk,JUNK", DatabaseSemanticConvention.Old],
-        ["junk1,junk2", DatabaseSemanticConvention.Old],
-        ["junk,database", DatabaseSemanticConvention.New],
-        ["junk,database , database ,junk", DatabaseSemanticConvention.New],
-        ["junk,database/dup", DatabaseSemanticConvention.Dupe],
-        ["junk, database/dup ", DatabaseSemanticConvention.Dupe],
-        ["database/dup,database", DatabaseSemanticConvention.Dupe],
-        ["database,database/dup", DatabaseSemanticConvention.Dupe],
-    ];
+    public static TheoryData<string, string> TestCases => new()
+    {
+        { null!, nameof(DatabaseSemanticConvention.Old) },
+        { string.Empty, nameof(DatabaseSemanticConvention.Old) },
+        { " ", nameof(DatabaseSemanticConvention.Old) },
+        { "junk", nameof(DatabaseSemanticConvention.Old) },
+        { "none", nameof(DatabaseSemanticConvention.Old) },
+        { "NONE", nameof(DatabaseSemanticConvention.Old) },
+        { "database", nameof(DatabaseSemanticConvention.New) },
+        { "DATABASE", nameof(DatabaseSemanticConvention.New) },
+        { "database/dup", nameof(DatabaseSemanticConvention.Dupe) },
+        { "DATABASE/DUP", nameof(DatabaseSemanticConvention.Dupe) },
+        { "junk,,junk", nameof(DatabaseSemanticConvention.Old) },
+        { "junk,JUNK", nameof(DatabaseSemanticConvention.Old) },
+        { "junk1,junk2", nameof(DatabaseSemanticConvention.Old) },
+        { "junk,database", nameof(DatabaseSemanticConvention.New) },
+        { "junk,database , database ,junk", nameof(DatabaseSemanticConvention.New) },
+        { "junk,database/dup", nameof(DatabaseSemanticConvention.Dupe) },
+        { "junk, database/dup ", nameof(DatabaseSemanticConvention.Dupe) },
+        { "database/dup,database", nameof(DatabaseSemanticConvention.Dupe) },
+        { "database,database/dup", nameof(DatabaseSemanticConvention.Dupe) },
+    };
 
     [Fact]
     public void VerifyFlags()

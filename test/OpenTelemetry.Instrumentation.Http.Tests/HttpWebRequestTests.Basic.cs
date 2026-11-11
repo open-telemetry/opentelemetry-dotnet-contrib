@@ -167,8 +167,7 @@ public partial class HttpWebRequestTests : IDisposable
 
         using var response = await request.GetResponseAsync();
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         Assert.Equal(parent.TraceId, activity.Context.TraceId);
         Assert.Equal(parent.SpanId, activity.ParentSpanId);

@@ -66,9 +66,7 @@ public class AWSLambdaWrapperTests : IDisposable
             this.AssertResourceAttributes(resource);
         }
 
-        Assert.Single(exportedItems);
-
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
         this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         this.AssertSpanAttributes(activity);
     }
@@ -120,9 +118,7 @@ public class AWSLambdaWrapperTests : IDisposable
             this.AssertResourceAttributes(resource);
         }
 
-        Assert.Single(exportedItems);
-
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
         this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         this.AssertSpanAttributes(activity);
     }
@@ -148,9 +144,7 @@ public class AWSLambdaWrapperTests : IDisposable
             this.AssertResourceAttributes(resource);
         }
 
-        Assert.Single(exportedItems);
-
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
         this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         this.AssertSpanAttributes(activity);
     }
@@ -176,9 +170,7 @@ public class AWSLambdaWrapperTests : IDisposable
             this.AssertResourceAttributes(resource);
         }
 
-        Assert.Single(exportedItems);
-
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
         this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         this.AssertSpanAttributes(activity);
     }
@@ -210,9 +202,7 @@ public class AWSLambdaWrapperTests : IDisposable
             }
         }
 
-        Assert.Single(exportedItems);
-
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
         this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         this.AssertSpanAttributes(activity);
         this.AssertSpanException(activity);
