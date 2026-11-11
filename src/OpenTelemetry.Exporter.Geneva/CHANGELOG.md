@@ -14,6 +14,9 @@
   directly into the UTF-8 output buffer.
   ([#5941](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5941))
 
+* Updated OpenTelemetry core component version(s) to `1.21.0`.
+  ([#5969](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5969))
+
 ## 1.20.1
 
 Released 2026-Oct-21

@@ -21,6 +21,9 @@
   event name, or to records whose original name differed only by case.
   ([#5916](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5916))
 
+* Updated OpenTelemetry core component version(s) to `1.21.0`.
+  ([#5969](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5969))
+
 ## 1.20.1
 
 Released 2026-Oct-21
