@@ -20,7 +20,44 @@ public partial class HttpWebRequestTests
 
     [Theory]
     [MemberData(nameof(HttpTestData.TestData), MemberType = typeof(HttpTestData))]
-    public void HttpOutCallsAreCollectedSuccessfully(HttpOutTestCase tc)
+    public void HttpOutCallsAreCollectedSuccessfully(string testCaseName)
+        => this.VerifyHttpOutCall(HttpTestData.GetTestCase(testCaseName));
+
+    [Fact]
+    public void DebugIndividualTest()
+    {
+        var input = JsonSerializer.Deserialize<HttpOutTestCase>(
+        @"
+             {
+                ""name"": ""Http version attribute populated"",
+                ""method"": ""GET"",
+                ""url"": ""http://{host}:{port}/"",
+                ""responseCode"": 200,
+                ""spanName"": ""GET"",
+                ""spanStatus"": ""UNSET"",
+                ""spanKind"": ""Client"",
+                ""setHttpFlavor"": true,
+                ""spanAttributes"": {
+                  ""url.scheme"": ""http"",
+                  ""http.request.method"": ""GET"",
+                  ""server.address"": ""{host}"",
+                  ""server.port"": ""{port}"",
+                  ""network.protocol.version"": ""1.1"",
+                  ""http.response.status_code"": ""200"",
+                  ""url.full"": ""http://{host}:{port}/""
+                }
+              }
+            ",
+        JsonSerializerOptions);
+
+        Assert.NotNull(input);
+        this.VerifyHttpOutCall(input);
+    }
+
+    private static void ValidateHttpWebRequestActivity(Activity activityToValidate) =>
+        Assert.Equal(ActivityKind.Client, activityToValidate.Kind);
+
+    private void VerifyHttpOutCall(HttpOutTestCase tc)
     {
         using var serverLifeTime = TestHttpServer.RunServer(
             ctx =>
@@ -158,38 +195,4 @@ public partial class HttpWebRequestTests
         Assert.StartsWith("https://opentelemetry.io/schemas/", activity.Source.TelemetrySchemaUrl);
 #endif
     }
-
-    [Fact]
-    public void DebugIndividualTest()
-    {
-        var input = JsonSerializer.Deserialize<HttpOutTestCase>(
-        @"
-             {
-                ""name"": ""Http version attribute populated"",
-                ""method"": ""GET"",
-                ""url"": ""http://{host}:{port}/"",
-                ""responseCode"": 200,
-                ""spanName"": ""GET"",
-                ""spanStatus"": ""UNSET"",
-                ""spanKind"": ""Client"",
-                ""setHttpFlavor"": true,
-                ""spanAttributes"": {
-                  ""url.scheme"": ""http"",
-                  ""http.request.method"": ""GET"",
-                  ""server.address"": ""{host}"",
-                  ""server.port"": ""{port}"",
-                  ""network.protocol.version"": ""1.1"",
-                  ""http.response.status_code"": ""200"",
-                  ""url.full"": ""http://{host}:{port}/""
-                }
-              }
-            ",
-        JsonSerializerOptions);
-
-        Assert.NotNull(input);
-        this.HttpOutCallsAreCollectedSuccessfully(input);
-    }
-
-    private static void ValidateHttpWebRequestActivity(Activity activityToValidate) =>
-        Assert.Equal(ActivityKind.Client, activityToValidate.Kind);
 }

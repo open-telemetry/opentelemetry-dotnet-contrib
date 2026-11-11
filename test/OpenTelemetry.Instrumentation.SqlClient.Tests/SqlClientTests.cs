@@ -50,7 +50,7 @@ public class SqlClientTests
         MetricsOnly,
     }
 
-    public static IEnumerable<object[]> TestData => SqlClientTestCases.GetTestCases();
+    public static TheoryData<string> TestData => SqlClientTestCases.GetTestCaseNames();
 
     [Fact]
     public void SqlClient_BadArgs()
@@ -61,13 +61,13 @@ public class SqlClientTests
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public void TestMicrosoftDataSqlClient(SqlClientTestCase testCase)
-        => this.RunSqlClientTestCase(testCase, SqlClientLibrary.MicrosoftDataSqlClient);
+    public void TestMicrosoftDataSqlClient(string testCaseName)
+        => this.RunSqlClientTestCase(SqlClientTestCases.GetTestCase(testCaseName), SqlClientLibrary.MicrosoftDataSqlClient);
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public void TestSystemDataSqlClient(SqlClientTestCase testCase)
-        => this.RunSqlClientTestCase(testCase, SqlClientLibrary.SystemDataSqlClient);
+    public void TestSystemDataSqlClient(string testCaseName)
+        => this.RunSqlClientTestCase(SqlClientTestCases.GetTestCase(testCaseName), SqlClientLibrary.SystemDataSqlClient);
 
     [Theory]
     [InlineData("localhost", "localhost", null, null)]

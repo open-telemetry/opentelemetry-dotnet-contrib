@@ -171,9 +171,7 @@ public class GenevaMetricExporterTests
             // exportedItems list should have a single entry after the MetricReader.Collect call
             inMemoryReader.Collect();
 
-            Assert.Single(exportedItems);
-
-            var metric = exportedItems[0];
+            var metric = Assert.Single(exportedItems);
             var metricPointsEnumerator = metric.GetMetricPoints().GetEnumerator();
             metricPointsEnumerator.MoveNext();
             var metricPoint = metricPointsEnumerator.Current;
