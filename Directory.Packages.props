@@ -11,7 +11,7 @@
     <OpenTelemetryCoreLatestPrereleaseVersion>1.21.0-rc.2</OpenTelemetryCoreLatestPrereleaseVersion>
     <OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>1.21.0</OpenTelemetryInstrumentationAspNetCoreLatestStableVersion>
     <OpenTelemetryInstrumentationHttpLatestStableVersion>1.20.2</OpenTelemetryInstrumentationHttpLatestStableVersion>
-    <OpenTelemetryInstrumentationRuntimeLatestStableVersion>1.20.1</OpenTelemetryInstrumentationRuntimeLatestStableVersion>
+    <OpenTelemetryInstrumentationRuntimeLatestStableVersion>1.21.0</OpenTelemetryInstrumentationRuntimeLatestStableVersion>
     <OpenTelemetryExtensionsEnrichmentUnstableLatestVersion>1.21.0-beta.1</OpenTelemetryExtensionsEnrichmentUnstableLatestVersion>
   </PropertyGroup>
 
