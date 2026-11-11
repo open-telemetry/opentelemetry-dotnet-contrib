@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.21.0
+
+Released 2026-Nov-11
+
 * Fixed an issue where validating a logger category name (event namespace)
   that is not a valid OneCollector event namespace could take an extremely long
   time (growing exponentially with the length of the name), blocking log export.
