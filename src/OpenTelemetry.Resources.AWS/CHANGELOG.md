@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Add `SemanticConventionVersion.V1_45_0`, which
+  `SemanticConventionVersion.Latest` now maps to. There are no changes to the
+  attributes emitted by the resource detectors.
+  ([#5832](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5832))
+
 ## 1.20.2
 
 Released 2026-Nov-05
