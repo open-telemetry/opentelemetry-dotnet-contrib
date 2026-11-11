@@ -43,12 +43,26 @@ Released 2026-Oct-21
 * Updated OpenTelemetry core component version(s) to `1.20.1`.
   ([#5651](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5651))
 
+* Moved native producer statistics processing off the Kafka poll thread using
+  bounded channels adapted from Aspire, with overflow diagnostics and
+  per-producer disposal cleanup.
+  ([#5508](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5508))
+
 ## 0.3.0-alpha.3
 
 Released 2026-Oct-15
 
 * Updated OpenTelemetry core component version(s) to `1.20.0`.
   ([#5541](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5541))
+
+* Added opt-in, process-aggregated producer metrics from librdkafka statistics,
+  including transmitted records and bytes, buffer capacity, in-flight requests,
+  queue latency, and throttling.
+  ([#5508](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5508))
+
+* Fixed producer construction with enumerable configuration and preserved
+  per-producer statistics callbacks when client metrics are enabled.
+  ([#5508](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5508))
 
 ## 0.3.0-alpha.2
 
