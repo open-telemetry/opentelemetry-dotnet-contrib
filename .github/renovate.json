@@ -17,9 +17,7 @@
       ]
     }
   ],
-  "dependencyDashboard": {
-    "enabled": false
-  },
+  "dependencyDashboard": false,
   "extends": [
     "config:best-practices",
     "customManagers:dockerfileVersions",
