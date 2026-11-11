@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.21.0
+
+Released 2026-Nov-11
+
 * Fixed an issue where, with `EnableOtlpProtobufEncoding=true`, a metric
   attribute of type `ulong` with a value greater than `long.MaxValue` was
   serialized incorrectly, causing the dimension to be dropped or the data point
