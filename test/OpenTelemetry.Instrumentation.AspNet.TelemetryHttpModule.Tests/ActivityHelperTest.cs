@@ -161,6 +161,7 @@ public class ActivityHelperTest : IDisposable
                     Assert.NotNull(rootActivity);
 
                     Baggage.SetBaggage("tenant", "request-tenant");
+                    ActivityHelper.SaveBaggage(context);
 
                     Task restoreTask;
                     using (ExecutionContext.SuppressFlow())

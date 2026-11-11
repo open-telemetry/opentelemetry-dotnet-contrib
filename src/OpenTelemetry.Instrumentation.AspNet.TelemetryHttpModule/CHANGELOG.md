@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Preserve baggage updates between request steps when the execution context is
+  lost.
+  ([#5948](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5948))
+
 ## 1.20.3
 
 Released 2026-Nov-05
