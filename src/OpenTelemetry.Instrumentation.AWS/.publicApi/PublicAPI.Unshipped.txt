@@ -1,3 +1,2 @@
 OpenTelemetry.Instrumentation.AWS.AWSClientInstrumentationOptions.RecordException.get -> bool
 OpenTelemetry.Instrumentation.AWS.AWSClientInstrumentationOptions.RecordException.set -> void
-OpenTelemetry.Instrumentation.AWS.SemanticConventionVersion.V1_45_0 = 4 -> OpenTelemetry.Instrumentation.AWS.SemanticConventionVersion

@@ -135,9 +135,7 @@ internal sealed class HostDetector : IResourceDetector
             // The following architectures do not have a mapping in OTel spec: https://github.com/open-telemetry/semantic-conventions/blob/v1.39.0/docs/resource/host.md
             Architecture.Wasm => null,
             Architecture.LoongArch64 => null,
-#if NET10_0_OR_GREATER
             Architecture.RiscV64 => null,
-#endif
 #endif
             _ => null,
         };
@@ -636,6 +634,26 @@ internal sealed class HostDetector : IResourceDetector
             startInfo.ArgumentList.Add(MacOsCacheSizeKey);
 #endif
 
+#if NET11_0_OR_GREATER
+            try
+            {
+                // A key the machine does not have is reported on stderr while the keys it does have
+                // are still written to stdout, so stderr and the exit code are not read as a failure here.
+                var result = Process.RunAndCaptureText(startInfo, TimeSpan.FromMilliseconds(timeoutMilliseconds));
+
+                if (result.ExitStatus.Canceled)
+                {
+                    HostResourceEventSource.Log.ProcessTimeout($"Process did not exit within {timeoutMilliseconds} ms");
+                    return null;
+                }
+
+                return result.StandardOutput;
+            }
+            catch (Exception ex)
+            {
+                HostResourceEventSource.Log.ResourceAttributesExtractException(nameof(HostDetector), ex);
+            }
+#else
             using var process = Process.Start(startInfo);
             if (process != null)
             {
@@ -660,6 +678,7 @@ internal sealed class HostDetector : IResourceDetector
                 // have are still written to stdout, so stderr is not read as a failure here.
                 return process.StandardOutput.ReadToEnd();
             }
+#endif
         }
         catch (Exception ex)
         {
@@ -702,6 +721,17 @@ internal sealed class HostDetector : IResourceDetector
                 RedirectStandardError = true,
             };
 
+#if NET11_0_OR_GREATER
+            var result = Process.RunAndCaptureText(startInfo, TimeSpan.FromMilliseconds(timeoutMilliseconds));
+
+            if (!string.IsNullOrEmpty(result.StandardError) || result.ExitStatus.Canceled || result.ExitStatus.ExitCode != 0)
+            {
+                HostResourceEventSource.Log.FailedToExtractResourceAttributes(nameof(HostDetector), result.StandardError);
+                return null;
+            }
+
+            return result.StandardOutput;
+#else
             using var process = Process.Start(startInfo);
             if (process != null)
             {
@@ -727,6 +757,7 @@ internal sealed class HostDetector : IResourceDetector
             }
 
             return null;
+#endif
         }
         catch (Exception ex)
         {
@@ -784,6 +815,17 @@ internal sealed class HostDetector : IResourceDetector
             startInfo.ArgumentList.Add("smbios.system.uuid");
 #endif
 
+#if NET11_0_OR_GREATER
+            var result = Process.RunAndCaptureText(startInfo, TimeSpan.FromMilliseconds(timeoutMilliseconds));
+
+            if (result.ExitStatus.Canceled || result.ExitStatus.ExitCode != 0)
+            {
+                HostResourceEventSource.Log.FailedToExtractResourceAttributes(nameof(HostDetector), result.StandardError);
+                return null;
+            }
+
+            return result.StandardOutput;
+#else
             using var process = Process.Start(startInfo);
             if (process != null)
             {
@@ -805,6 +847,7 @@ internal sealed class HostDetector : IResourceDetector
 
                 return process.StandardOutput.ReadToEnd();
             }
+#endif
         }
         catch (Exception ex)
         {

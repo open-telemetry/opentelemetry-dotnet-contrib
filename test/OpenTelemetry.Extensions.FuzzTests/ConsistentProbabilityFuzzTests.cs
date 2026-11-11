@@ -102,9 +102,7 @@ public static class ConsistentProbabilityFuzzTests
         var flags = ActivityTraceFlags.None;
         if (mode == 1)
         {
-            // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867
-            // will change this code to use ActivityTraceFlags.RandomTraceId.
-            flags |= (ActivityTraceFlags)0x2;
+            flags |= ActivityTraceFlags.RandomTraceId;
         }
 
         if (recorded)
@@ -155,9 +153,7 @@ public static class ConsistentProbabilityFuzzTests
 
         if (randomFlag)
         {
-            // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867
-            // will change this code to use ActivityTraceFlags.RandomTraceId.
-            flags |= (ActivityTraceFlags)0x2;
+            flags |= ActivityTraceFlags.RandomTraceId;
         }
 
         if (recorded)

@@ -4,6 +4,7 @@ OpenTelemetry.PersistentStorage.FileSystem.FileBlob.FileBlob(string! fullPath) -
 OpenTelemetry.PersistentStorage.FileSystem.FileBlob.FullPath.get -> string!
 OpenTelemetry.PersistentStorage.FileSystem.FileBlobProvider
 OpenTelemetry.PersistentStorage.FileSystem.FileBlobProvider.Dispose() -> void
+OpenTelemetry.PersistentStorage.FileSystem.FileBlobProvider.FileBlobProvider(string! path, bool checkPermissions) -> void
 OpenTelemetry.PersistentStorage.FileSystem.FileBlobProvider.FileBlobProvider(string! path, long maxSizeInBytes = 52428800, int maintenancePeriodInMilliseconds = 120000, long retentionPeriodInMilliseconds = 172800000, int writeTimeoutInMilliseconds = 60000) -> void
 override OpenTelemetry.PersistentStorage.FileSystem.FileBlob.OnTryDelete() -> bool
 override OpenTelemetry.PersistentStorage.FileSystem.FileBlob.OnTryLease(int leasePeriodMilliseconds) -> bool

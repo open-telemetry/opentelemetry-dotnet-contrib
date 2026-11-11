@@ -2,6 +2,19 @@
 
 ## Unreleased
 
+* **Breaking Change**: Failed AWS SDK calls no longer export the exception
+  message as the span status description, nor record the exception as an
+  `exception` event or the `exception.message` and `exception.stacktrace`
+  span attributes by default, as the message returned by an AWS service may
+  quote sensitive values from the request. The event and attributes are now
+  only recorded when the new `AWSClientInstrumentationOptions.RecordException`
+  option is set to `true`.
+  ([#5862](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5862))
+
+## 1.21.0
+
+Released 2026-Nov-11
+
 * Fixed SQS and SNS `MessageAttributes` that are reused across sends carrying
   the trace context and baggage of the first send. The instrumentation no longer
   modifies the application's `MessageAttributes` dictionary, and the request's
@@ -22,14 +35,11 @@
   as do spans for `ReceiveMessage` with the number of messages received.
   ([#5832](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5832))
 
-* **Breaking Change**: Failed AWS SDK calls no longer export the exception
-  message as the span status description, nor record the exception as an
-  `exception` event or the `exception.message` and `exception.stacktrace`
-  span attributes by default, as the message returned by an AWS service may
-  quote sensitive values from the request. The event and attributes are now
-  only recorded when the new `AWSClientInstrumentationOptions.RecordException`
-  option is set to `true`.
-  ([#5862](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5862))
+* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+* Add support for .NET 11.0.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
 
 ## 1.20.3
 

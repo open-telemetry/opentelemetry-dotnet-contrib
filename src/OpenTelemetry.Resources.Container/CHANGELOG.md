@@ -2,8 +2,28 @@
 
 ## Unreleased
 
+## 1.21.0-beta.1
+
+Released 2026-Nov-11
+
 * Updated Semantic Conventions version to `1.45.0`.
   ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
+
+* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+* Add support for .NET 11.0.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+* Updated OpenTelemetry core component version(s) to `1.21.0`.
+  ([#5969](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5969))
+
+* Fixed `container.id` being reported as the id of the pod sandbox rather than
+  the id of the container when running in Kubernetes with containerd and
+  cgroup v2. The id of the pod sandbox is shared by all containers in the pod,
+  so it is no longer used. The id is now only reported when it can be
+  determined reliably, which includes CRI-O and containerd cgroup paths.
+  ([#5947](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5947))
 
 ## 1.20.1-beta.1
 

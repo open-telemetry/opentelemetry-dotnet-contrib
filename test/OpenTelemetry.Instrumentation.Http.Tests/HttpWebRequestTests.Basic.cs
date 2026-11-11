@@ -167,8 +167,7 @@ public partial class HttpWebRequestTests : IDisposable
 
         using var response = await request.GetResponseAsync();
 
-        Assert.Single(exportedItems);
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
 
         Assert.Equal(parent.TraceId, activity.Context.TraceId);
         Assert.Equal(parent.SpanId, activity.ParentSpanId);
@@ -318,8 +317,8 @@ public partial class HttpWebRequestTests : IDisposable
         // Exception is thrown and collected as event
         Assert.True(exceptionThrown);
 
-#if NET10_0_OR_GREATER
-        // .NET 10 reports its own activity, but does not set the status description
+#if NET
+        // .NET reports its own activity, but does not set the status description
         Assert.Contains(exportedItems[0].Events, evt => evt.Name.Equals("exception"));
 #else
         Assert.Single(exportedItems[0].Events, evt => evt.Name.Equals("exception"));
