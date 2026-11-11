@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.8
+
+Released 2026-Nov-11
+
 * **Breaking Change** Dropped support for `net8.0` and `net9.0`.
   ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
 
