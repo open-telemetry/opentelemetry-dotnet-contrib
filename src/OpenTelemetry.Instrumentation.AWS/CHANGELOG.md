@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.21.0
+
+Released 2026-Nov-11
+
 * Fixed SQS and SNS `MessageAttributes` that are reused across sends carrying
   the trace context and baggage of the first send. The instrumentation no longer
   modifies the application's `MessageAttributes` dictionary, and the request's

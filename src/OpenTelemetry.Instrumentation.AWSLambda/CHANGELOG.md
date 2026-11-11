@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.21.0
+
+Released 2026-Nov-11
+
 * **Breaking Change**: Update latest AWS Semantic Conventions to 1.45.0
   (`SemanticConventionVersion.V1_45_0`). Spans now use `faas.invocation.id`
   instead of `faas.invocation_id`.
