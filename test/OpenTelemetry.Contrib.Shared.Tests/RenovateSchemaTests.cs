@@ -29,7 +29,7 @@ public class RenovateSchemaTests(ITestOutputHelper outputHelper)
         using var client = new HttpClient();
         var schemaJson = await client.GetStringAsync(schemaUri, cancellationToken);
         var schema = JSchema.Parse(
-            schemaJson,
+            PatchSchema(schemaJson),
             new JSchemaReaderSettings() { ValidateVersion = true });
 
         var configuration = JToken.Parse(configurationJson);
@@ -72,6 +72,22 @@ public class RenovateSchemaTests(ITestOutputHelper outputHelper)
                 }
             }
         }
+    }
+
+    private static string PatchSchema(string schemaJson)
+    {
+        // The published schema describes "dependencyDashboard" as an object, but Renovate's
+        // own configuration validation requires a boolean and rejects an object value
+        // (see https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/5971).
+        // Treat the property as a boolean so the test agrees with what Renovate actually accepts.
+        var schema = JObject.Parse(schemaJson);
+
+        if (schema["properties"] is JObject properties && properties["dependencyDashboard"] is not null)
+        {
+            properties["dependencyDashboard"] = new JObject { ["type"] = "boolean" };
+        }
+
+        return schema.ToString();
     }
 
     private static void AssertJson(string json)

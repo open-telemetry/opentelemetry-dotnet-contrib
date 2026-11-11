@@ -2,11 +2,6 @@
 
 ## Unreleased
 
-* **Breaking Change**: Update latest AWS Semantic Conventions to 1.45.0
-  (`SemanticConventionVersion.V1_45_0`). Spans now use `faas.invocation.id`
-  instead of `faas.invocation_id`.
-  ([#5832](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5832))
-
 * **Breaking Change** Exception messages are no longer exported as the span
   status description, and `exception` events are no longer recorded by default,
   as they can contain data from the function input. Set the new
@@ -14,6 +9,21 @@
   `exception` events. The exception type is now recorded in the `error.type`
   attribute.
   ([#5877](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5877))
+
+## 1.21.0
+
+Released 2026-Nov-11
+
+* **Breaking Change**: Update latest AWS Semantic Conventions to 1.45.0
+  (`SemanticConventionVersion.V1_45_0`). Spans now use `faas.invocation.id`
+  instead of `faas.invocation_id`.
+  ([#5832](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5832))
+
+* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+* Add support for .NET 11.0.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
 
 ## 1.20.3
 

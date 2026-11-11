@@ -75,10 +75,14 @@ internal sealed class TruncatingStringBuilder : IDisposable
             return;
         }
 
+#if NET11_0_OR_GREATER
+        this.position = this.buffer.AsSpan(0, this.position).LastIndexOfAnyExceptWhiteSpace() + 1;
+#else
         while (this.position > 0 && char.IsWhiteSpace(this.buffer[this.position - 1]))
         {
             this.position--;
         }
+#endif
     }
 
     public override string ToString()

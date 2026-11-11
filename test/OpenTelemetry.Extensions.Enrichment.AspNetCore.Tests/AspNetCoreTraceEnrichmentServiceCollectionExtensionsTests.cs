@@ -32,8 +32,8 @@ public sealed class AspNetCoreTraceEnrichmentServiceCollectionExtensionsTests
 
         using var sp = services.BuildServiceProvider();
         var enrichers = sp.GetServices<AspNetCoreTraceEnricher>().ToArray();
-        Assert.Single(enrichers);
-        Assert.Same(instance, enrichers[0]);
+        var enricher = Assert.Single(enrichers);
+        Assert.Same(instance, enricher);
     }
 
     [Fact]

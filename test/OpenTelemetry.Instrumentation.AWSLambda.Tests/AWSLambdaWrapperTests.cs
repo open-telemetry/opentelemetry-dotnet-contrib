@@ -66,9 +66,7 @@ public class AWSLambdaWrapperTests : IDisposable
             this.AssertResourceAttributes(resource);
         }
 
-        Assert.Single(exportedItems);
-
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
         this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         this.AssertSpanAttributes(activity);
     }
@@ -120,9 +118,7 @@ public class AWSLambdaWrapperTests : IDisposable
             this.AssertResourceAttributes(resource);
         }
 
-        Assert.Single(exportedItems);
-
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
         this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         this.AssertSpanAttributes(activity);
     }
@@ -148,9 +144,7 @@ public class AWSLambdaWrapperTests : IDisposable
             this.AssertResourceAttributes(resource);
         }
 
-        Assert.Single(exportedItems);
-
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
         this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         this.AssertSpanAttributes(activity);
     }
@@ -176,9 +170,7 @@ public class AWSLambdaWrapperTests : IDisposable
             this.AssertResourceAttributes(resource);
         }
 
-        Assert.Single(exportedItems);
-
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
         this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         this.AssertSpanAttributes(activity);
     }
@@ -213,9 +205,7 @@ public class AWSLambdaWrapperTests : IDisposable
             }
         }
 
-        Assert.Single(exportedItems);
-
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
         this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         this.AssertSpanAttributes(activity);
         this.AssertSpanException(activity, recordException);
@@ -916,7 +906,12 @@ public class AWSLambdaWrapperTests : IDisposable
     private void AssertResourceAttributes(Resource? resource)
     {
         Assert.NotNull(resource);
-        Assert.Null(resource.SchemaUrl);
+
+        // The merged schema URL depends on whether the SDK's semantic conventions version matches
+        // the one used by the detector: a mismatch yields null, a match retains it.
+        Assert.True(
+            resource.SchemaUrl is null ||
+            resource.SchemaUrl.StartsWith("https://opentelemetry.io/schemas/", StringComparison.Ordinal));
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
         Assert.Equal("aws", resourceAttributes[ExpectedSemanticConventions.AttributeCloudProvider]);

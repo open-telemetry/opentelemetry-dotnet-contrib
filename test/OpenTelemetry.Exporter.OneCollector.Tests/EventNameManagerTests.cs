@@ -487,7 +487,7 @@ public class EventNameManagerTests
         // pattern fails the test instead of hanging the test run.
         var task = Task.Run(func);
 
-        var completedTask = await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(10)));
+        var completedTask = await Task.WhenAny(task, Task.Delay(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken));
 
         Assert.True(ReferenceEquals(task, completedTask), "Operation did not complete within the timeout.");
 

@@ -107,9 +107,9 @@ public class MsgPackTraceExporterThreadSafetyTests
 
                             var innerArray = outerArray[1] as object[];
                             Assert.NotNull(innerArray);
-                            Assert.Single(innerArray);
+                            var innerArrayItem = Assert.Single(innerArray);
 
-                            var timestampAndMapping = innerArray[0] as object[];
+                            var timestampAndMapping = innerArrayItem as object[];
                             Assert.NotNull(timestampAndMapping);
                             Assert.Equal(2, timestampAndMapping.Length);
 
