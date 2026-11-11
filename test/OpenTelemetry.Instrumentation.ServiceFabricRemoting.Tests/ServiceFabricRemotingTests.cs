@@ -31,6 +31,12 @@ public class ServiceFabricRemotingTests
     private static readonly Lock TransportSettingsLock = new();
 
     [Fact]
+    public void ActivitySource_HasSemanticConventionsSchemaUrl()
+    {
+        Assert.Equal("https://opentelemetry.io/schemas/1.45.0", ServiceFabricRemotingActivitySource.ActivitySource.SchemaUrl);
+    }
+
+    [Fact]
     public async Task TestStatefulServiceContextPropagation_ShouldExtractActivityContextAndBaggage()
     {
         // Arrange

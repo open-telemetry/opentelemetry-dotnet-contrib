@@ -3,6 +3,7 @@
 
 using System.Diagnostics;
 using System.Reflection;
+using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.ServiceFabricRemoting;
 
@@ -17,8 +18,9 @@ internal class ServiceFabricRemotingActivitySource
     internal static readonly string IncomingRequestActivityName = ActivitySourceName + ".IncomingRequest";
     internal static readonly string OutgoingRequestActivityName = ActivitySourceName + ".OutgoingRequest";
 
-    // TODO https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/4064 add the appropriate SemConv version
-    public static ActivitySource ActivitySource { get; } = Trace.ActivitySourceFactory.Create<ServiceFabricRemotingActivitySource>(null);
+    internal static readonly Version SemanticConventionsVersion = new(1, 45, 0);
+
+    public static ActivitySource ActivitySource { get; } = ActivitySourceFactory.Create<ServiceFabricRemotingActivitySource>(SemanticConventionsVersion);
 
     public static ServiceFabricRemotingInstrumentationOptions? Options { get; set; }
 }
