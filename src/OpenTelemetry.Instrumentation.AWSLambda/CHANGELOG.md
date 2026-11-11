@@ -7,6 +7,12 @@
   instead of `faas.invocation_id`.
   ([#5832](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5832))
 
+* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+* Add support for .NET 11.0.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
 ## 1.20.3
 
 Released 2026-Nov-03
