@@ -1,3 +1,4 @@
 #nullable enable
 OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.RecordException.get -> bool
 OpenTelemetry.Instrumentation.AWSLambda.AWSLambdaInstrumentationOptions.RecordException.set -> void
+OpenTelemetry.Instrumentation.AWSLambda.SemanticConventionVersion.V1_45_0 = 4 -> OpenTelemetry.Instrumentation.AWSLambda.SemanticConventionVersion

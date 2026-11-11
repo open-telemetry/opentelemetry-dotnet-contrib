@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* **Breaking Change**: Update latest AWS Semantic Conventions to 1.45.0
+  (`SemanticConventionVersion.V1_45_0`). Spans now use `faas.invocation.id`
+  instead of `faas.invocation_id`.
+  ([#5832](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5832))
+
 * **Breaking Change** Exception messages are no longer exported as the span
   status description, and `exception` events are no longer recorded by default,
   as they can contain data from the function input. Set the new
