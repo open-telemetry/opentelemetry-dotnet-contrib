@@ -14,6 +14,13 @@
 * Updated OpenTelemetry core component version(s) to `1.21.0`.
   ([#5969](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5969))
 
+* Fixed `container.id` being reported as the id of the pod sandbox rather than
+  the id of the container when running in Kubernetes with containerd and
+  cgroup v2. The id of the pod sandbox is shared by all containers in the pod,
+  so it is no longer used. The id is now only reported when it can be
+  determined reliably, which includes CRI-O and containerd cgroup paths.
+  ([#5947](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5947))
+
 ## 1.20.1-beta.1
 
 Released 2026-Oct-21
