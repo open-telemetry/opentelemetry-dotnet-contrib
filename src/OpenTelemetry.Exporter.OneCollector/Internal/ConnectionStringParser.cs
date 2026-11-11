@@ -26,10 +26,18 @@ internal sealed class ConnectionStringParser
 #else
             var index = token.IndexOf(EqualSign);
 #endif
+
+#if NET11_0_OR_GREATER
+            if (index == -1 || index != token.LastIndexOf(EqualSign, StringComparison.Ordinal))
+            {
+                continue;
+            }
+#else
             if (index == -1 || index != token.LastIndexOf(EqualSign))
             {
                 continue;
             }
+#endif
 
             var pair = token.Trim().Split(EqualSign);
 
