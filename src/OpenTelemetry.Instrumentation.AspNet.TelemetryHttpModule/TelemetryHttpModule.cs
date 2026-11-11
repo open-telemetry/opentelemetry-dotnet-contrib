@@ -66,7 +66,14 @@ public class TelemetryHttpModule : IHttpModule
     {
         // Called only on 4.7.1+ runtimes
         ActivityHelper.RestoreContextIfNeeded(context);
-        step();
+        try
+        {
+            step();
+        }
+        finally
+        {
+            ActivityHelper.SaveBaggage(context);
+        }
     }
 
     private void Application_EndRequest(object sender, EventArgs e)

@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.21.0
+
+Released 2026-Nov-11
+
 * Fixed an issue where, with `EnableOtlpProtobufEncoding=true`, a metric
   attribute of type `ulong` with a value greater than `long.MaxValue` was
   serialized incorrectly, causing the dimension to be dropped or the data point
@@ -13,6 +17,15 @@
 * Improved JSON numeric serialization throughput on .NET 10 and later by formatting
   directly into the UTF-8 output buffer.
   ([#5941](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5941))
+
+* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+* Add support for .NET 11.0.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+* Updated OpenTelemetry core component version(s) to `1.21.0`.
+  ([#5969](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5969))
 
 ## 1.20.1
 

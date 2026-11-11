@@ -225,7 +225,12 @@ internal class AWSLambdaHttpUtils
         var searchStart = 0;
         if (hostHeader.Length > 0 && hostHeader[0] == '[')
         {
+#if NET11_0_OR_GREATER
+            var closingBracketIndex = hostHeader.IndexOf(']', 1, StringComparison.Ordinal);
+#else
             var closingBracketIndex = hostHeader.IndexOf(']', 1);
+#endif
+
             if (closingBracketIndex < 0)
             {
                 // The IPv6 address is malformed, so do not try to find a port
@@ -236,7 +241,12 @@ internal class AWSLambdaHttpUtils
         }
 
         // Find the delimiter rather than splitting the header to avoid allocating an array
+#if NET11_0_OR_GREATER
+        var delimiterIndex = hostHeader.IndexOf(':', searchStart, StringComparison.Ordinal);
+#else
         var delimiterIndex = hostHeader.IndexOf(':', searchStart);
+#endif
+
         if (delimiterIndex < 0)
         {
             return (hostHeader, GetDefaultPort(httpScheme));

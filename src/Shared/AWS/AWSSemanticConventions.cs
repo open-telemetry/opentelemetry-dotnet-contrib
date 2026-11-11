@@ -185,7 +185,7 @@ internal partial class AWSSemanticConventions
 
         // Set the initial capacity to prevent array resizing on the hot path: the function and the HTTP
         // attributes built for every AWS Lambda invocation are at most 8 each.
-        private readonly List<KeyValuePair<string, object>> state = new(capacity: 8);
+        private readonly List<KeyValuePair<string, object>> state = [with(capacity: 8)];
 
         public AttributeBuilderImpl(AWSSemanticConventions semanticConventions)
         {
