@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.21.0
+
+Released 2026-Nov-11
+
 * Add `SemanticConventionVersion.V1_45_0`, which
   `SemanticConventionVersion.Latest` now maps to. There are no changes to the
   attributes emitted by the resource detectors.
