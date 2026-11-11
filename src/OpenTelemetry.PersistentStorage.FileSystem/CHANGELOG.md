@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.2.0
+
+Released 2026-Nov-11
+
 * Hardened `FileBlobProvider`.
   * **Breaking:** When running on .NET on non-Windows platforms, creating a
     `FileBlobProvider` now throws an `UnauthorizedAccessException` if its
