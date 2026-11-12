@@ -66,11 +66,35 @@ public class AWSLambdaWrapperTests : IDisposable
             this.AssertResourceAttributes(resource);
         }
 
-        Assert.Single(exportedItems);
-
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
         this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         this.AssertSpanAttributes(activity);
+    }
+
+    [Theory]
+    [InlineData(SemanticConventionVersion.V1_28_0, "faas.invocation_id")]
+    [InlineData(SemanticConventionVersion.V1_29_0, "faas.invocation_id")]
+    [InlineData(SemanticConventionVersion.V1_40_0, "faas.invocation_id")]
+    [InlineData(SemanticConventionVersion.V1_45_0, "faas.invocation.id")]
+    [InlineData(SemanticConventionVersion.Latest, "faas.invocation.id")]
+    public void TraceSetsInvocationIdAttributeForSemanticConventionVersion(SemanticConventionVersion version, string expectedName)
+    {
+        var exportedItems = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations(opt => opt.SemanticConventionVersion = version)
+                   .AddInMemoryExporter(exportedItems)
+                   .Build()!)
+        {
+            AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncInputAndReturn, "TestStream", this.sampleLambdaContext, default);
+        }
+
+        var activity = Assert.Single(exportedItems);
+
+        Assert.Equal(this.sampleLambdaContext.AwsRequestId, activity.GetTagValue(expectedName));
+
+        var unexpectedName = expectedName == "faas.invocation.id" ? "faas.invocation_id" : "faas.invocation.id";
+        Assert.Null(activity.GetTagValue(unexpectedName));
     }
 
     [Theory]
@@ -94,9 +118,7 @@ public class AWSLambdaWrapperTests : IDisposable
             this.AssertResourceAttributes(resource);
         }
 
-        Assert.Single(exportedItems);
-
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
         this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         this.AssertSpanAttributes(activity);
     }
@@ -122,9 +144,7 @@ public class AWSLambdaWrapperTests : IDisposable
             this.AssertResourceAttributes(resource);
         }
 
-        Assert.Single(exportedItems);
-
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
         this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         this.AssertSpanAttributes(activity);
     }
@@ -150,9 +170,7 @@ public class AWSLambdaWrapperTests : IDisposable
             this.AssertResourceAttributes(resource);
         }
 
-        Assert.Single(exportedItems);
-
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
         this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         this.AssertSpanAttributes(activity);
     }
@@ -184,9 +202,7 @@ public class AWSLambdaWrapperTests : IDisposable
             }
         }
 
-        Assert.Single(exportedItems);
-
-        var activity = exportedItems[0];
+        var activity = Assert.Single(exportedItems);
         this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         this.AssertSpanAttributes(activity);
         this.AssertSpanException(activity);
@@ -845,7 +861,12 @@ public class AWSLambdaWrapperTests : IDisposable
     private void AssertResourceAttributes(Resource? resource)
     {
         Assert.NotNull(resource);
-        Assert.Null(resource.SchemaUrl);
+
+        // The merged schema URL depends on whether the SDK's semantic conventions version matches
+        // the one used by the detector: a mismatch yields null, a match retains it.
+        Assert.True(
+            resource.SchemaUrl is null ||
+            resource.SchemaUrl.StartsWith("https://opentelemetry.io/schemas/", StringComparison.Ordinal));
 
         var resourceAttributes = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
         Assert.Equal("aws", resourceAttributes[ExpectedSemanticConventions.AttributeCloudProvider]);
@@ -883,7 +904,7 @@ public class AWSLambdaWrapperTests : IDisposable
         public const string AttributeCloudRegion = "cloud.region";
         public const string AttributeFaasColdStart = "faas.coldstart";
         public const string AttributeFaasName = "faas.name";
-        public const string AttributeFaasExecution = "faas.invocation_id";
+        public const string AttributeFaasExecution = "faas.invocation.id";
         public const string AttributeFaasID = "cloud.resource_id";
         public const string AttributeFaasTrigger = "faas.trigger";
         public const string AttributeFaasVersion = "faas.version";

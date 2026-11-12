@@ -1,11 +1,14 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if !NETFRAMEWORK
+#if NET
 using System.Collections;
 #endif
 using System.Data;
 using System.Diagnostics;
+#if NET
+using System.Runtime.CompilerServices;
+#endif
 using OpenTelemetry.Instrumentation.SqlClient.Implementation;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Tests;
@@ -47,7 +50,7 @@ public class SqlClientTests
         MetricsOnly,
     }
 
-    public static IEnumerable<object[]> TestData => SqlClientTestCases.GetTestCases();
+    public static TheoryData<string> TestData => SqlClientTestCases.GetTestCaseNames();
 
     [Fact]
     public void SqlClient_BadArgs()
@@ -58,13 +61,13 @@ public class SqlClientTests
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public void TestMicrosoftDataSqlClient(SqlClientTestCase testCase)
-        => this.RunSqlClientTestCase(testCase, SqlClientLibrary.MicrosoftDataSqlClient);
+    public void TestMicrosoftDataSqlClient(string testCaseName)
+        => this.RunSqlClientTestCase(SqlClientTestCases.GetTestCase(testCaseName), SqlClientLibrary.MicrosoftDataSqlClient);
 
     [Theory]
     [MemberData(nameof(TestData))]
-    public void TestSystemDataSqlClient(SqlClientTestCase testCase)
-        => this.RunSqlClientTestCase(testCase, SqlClientLibrary.SystemDataSqlClient);
+    public void TestSystemDataSqlClient(string testCaseName)
+        => this.RunSqlClientTestCase(SqlClientTestCases.GetTestCase(testCaseName), SqlClientLibrary.SystemDataSqlClient);
 
     [Theory]
     [InlineData("localhost", "localhost", null, null)]
@@ -300,6 +303,125 @@ public class SqlClientTests
 
         Assert.Equal(0, listener.PendingCommandCount);
     }
+
+#if NET
+    [Fact]
+    public void PendingStartTimestampIsNotRetainedForCommandWhichNeverCompletes()
+    {
+        var listener = new SqlClientDiagnosticListener(SqlClientInstrumentation.SqlClientDiagnosticListenerName);
+
+        using (Sdk.CreateMeterProviderBuilder().AddSqlClientInstrumentation().Build())
+        {
+            Assert.False(SqlTelemetryHelper.ActivitySource.HasListeners());
+
+            // SqlClient writes the before event but no completion event if
+            // the cancellation token is already cancelled when the command starts.
+            var reference = WriteBeforeEventWithoutCompletion(listener);
+
+            for (var i = 0; i < 10 && reference.IsAlive; i++)
+            {
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+
+            Assert.False(reference.IsAlive);
+            Assert.Equal(0, listener.PendingCommandCount);
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        static WeakReference WriteBeforeEventWithoutCompletion(SqlClientDiagnosticListener listener)
+        {
+            var command = new FakeDbCommand
+            {
+                CommandType = CommandType.StoredProcedure,
+                CommandText = "SP_GetOrders",
+                Connection = new FakeDbConnection(),
+            };
+
+            listener.OnEventWritten(
+                SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand,
+                new
+                {
+                    OperationId = Guid.NewGuid(),
+                    Command = command,
+                    Timestamp = (long?)1000000L,
+                });
+
+            // The command is only kept alive by this method, so the entry cannot be collected before this check
+            Assert.Equal(1, listener.PendingCommandCount);
+
+            var reference = new WeakReference(command);
+            GC.KeepAlive(command);
+            return reference;
+        }
+    }
+
+    [Fact]
+    public void PendingStartTimestampOfCommandWhichNeverCompletedIsReplacedWhenCommandIsExecutedAgain()
+    {
+        var metrics = new List<Metric>();
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddSqlClientInstrumentation()
+            .AddInMemoryExporter(metrics)
+            .Build();
+
+        Assert.False(SqlTelemetryHelper.ActivitySource.HasListeners());
+
+        var listener = new SqlClientDiagnosticListener(SqlClientInstrumentation.SqlClientDiagnosticListenerName);
+
+        var command = new FakeDbCommand
+        {
+            CommandType = CommandType.StoredProcedure,
+            CommandText = "SP_GetOrders",
+            Connection = new FakeDbConnection(),
+        };
+
+        // The first execution never completes
+        listener.OnEventWritten(
+            SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand,
+            new { OperationId = Guid.NewGuid(), Command = command, Timestamp = (long?)1000000L });
+
+        Assert.Equal(1, listener.PendingCommandCount);
+
+        // The delay is long enough that the duration of the second execution
+        // is distinguishable from one measured from the start of the first.
+        var delay = TimeSpan.FromMilliseconds(500);
+        Thread.Sleep(delay);
+
+        var operationId = Guid.NewGuid();
+
+        listener.OnEventWritten(
+            SqlClientDiagnosticListener.SqlMicrosoftBeforeExecuteCommand,
+            new { OperationId = operationId, Command = command, Timestamp = (long?)2000000L });
+
+        Assert.Equal(1, listener.PendingCommandCount);
+
+        listener.OnEventWritten(
+            SqlClientDiagnosticListener.SqlMicrosoftAfterExecuteCommand,
+            new { OperationId = operationId, Command = command, Statistics = (IDictionary?)null, Timestamp = 3000000L });
+
+        Assert.Equal(0, listener.PendingCommandCount);
+
+        meterProvider.ForceFlush();
+
+        var metric = Assert.Single(metrics);
+
+        var metricPoints = new List<MetricPoint>();
+        foreach (var p in metric.GetMetricPoints())
+        {
+            metricPoints.Add(p);
+        }
+
+        var metricPoint = Assert.Single(metricPoints);
+
+        Assert.Equal(1, metricPoint.GetHistogramCount());
+
+        // Half the delay is used as the threshold to keep the assertion robust on slow machines.
+        var duration = metricPoint.GetHistogramSum();
+        Assert.True(duration < delay.TotalSeconds / 2, $"Duration {duration}s should not include the {delay.TotalSeconds}s that elapsed before the second execution started.");
+    }
+#endif
 
     [Fact]
     public void MetricDurationNotRecordedWhenCommandHasNoStartTimestamp()

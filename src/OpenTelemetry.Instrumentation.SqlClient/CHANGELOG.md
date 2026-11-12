@@ -2,6 +2,23 @@
 
 ## Unreleased
 
+## 1.21.0
+
+Released 2026-Nov-11
+
+* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+* Add support for .NET 11.0.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+* Updated OpenTelemetry core component version(s) to `1.21.0`.
+  ([#5969](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5969))
+
+## 1.20.2
+
+Released 2026-Nov-06
+
 * Fixed `db.query.summary` so that a delimited identifier, such as `[Orders]` or
   `[dbo].[Orders]`, is captured wherever an undelimited identifier would be
   (for example after `INSERT INTO`, `EXEC`, `CREATE TABLE` or a `JOIN` which
@@ -61,6 +78,31 @@
   `Filter` and `EnrichWithSqlCommand` run, so use the `activity` argument of
   `EnrichWithSqlCommand` instead.
   ([#5866](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5866))
+
+* Fixed a memory leak on .NET when a command executed asynchronously is
+  started with a `CancellationToken` that is already cancelled and has no
+  activity.
+  ([#5924](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5924))
+
+* Fixed redaction of login and user names in additional `CREATE`, `ALTER` and
+  `DROP` statement positions, including references after `FOR LOGIN` and
+  `WITH NAME =`, and names containing combining marks.
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
+
+* Fixed `db.query.summary` for identifiers beginning with SQL keywords and
+  login or user statements in multi-statement commands.
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
+
+* Fixed query sanitization after bracketed identifiers containing apostrophes
+  and after dollar signs in identifiers, temporary table names and variables.
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
+
+* Fixed query sanitization of hexadecimal literals preceded by a unary plus.
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
+
+* Fixed literals being left unsanitized in malformed SQL Server queries when
+  escaped brackets extend an identifier beyond its 128-character limit.
+  ([#5905](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5905))
 
 ## 1.20.1
 

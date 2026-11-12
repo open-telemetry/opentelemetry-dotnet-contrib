@@ -2,12 +2,25 @@
 
 ## Unreleased
 
+## 1.0.0-alpha.10
+
+Released 2026-Nov-11
+
 * Updated Semantic Conventions version to `1.45.0`.
   ([#5833](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5833))
 
 * Add the `gcp.gce.instance.name` resource attribute when running on Google
   Compute Engine.
   ([#5838](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5838))
+
+* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+* Add support for .NET 11.0.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+* Updated OpenTelemetry core component version(s) to `1.21.0`.
+  ([#5969](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5969))
 
 ## 1.0.0-alpha.9
 

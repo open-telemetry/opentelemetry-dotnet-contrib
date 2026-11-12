@@ -6,7 +6,11 @@ using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Http;
+using System.Net.Security;
+using System.Net.Sockets;
 using System.Reflection;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using OpenTelemetry.Instrumentation.Http.Implementation;
 using OpenTelemetry.Metrics;
@@ -561,7 +565,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
             {
             }
 
-            var expectedTraceParent = $"00-{parent.TraceId}-{parent.SpanId}-00";
+            var expectedTraceParent = $"00-{parent.TraceId}-{parent.SpanId}-02";
             var requests = this.traceparentHeaders.ToArray();
             Assert.Equal(2, requests.Length);
             Assert.All(requests, values =>
@@ -668,20 +672,58 @@ public class HttpWebRequestActivitySourceTests : IDisposable
     [InlineData("POST")]
     public async Task TestSecureTransportFailureRequest(string method)
     {
-        var url = "https://expired.badssl.com/";
+        // Use a local TLS server with an untrusted self-signed certificate so that
+        // certificate validation fails without depending on an external host.
+        using var certificate = CreateUntrustedCertificate();
+        var listener = new TcpListener(IPAddress.Loopback, 0);
+        listener.Start();
+
+        var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+        var url = $"https://localhost:{port}/";
+
+        using var serverCts = new CancellationTokenSource();
+        var serverTask = Task.Run(AcceptConnectionsAsync, TestContext.Current.CancellationToken);
+
+        async Task AcceptConnectionsAsync()
+        {
+            while (!serverCts.IsCancellationRequested)
+            {
+                try
+                {
+                    using var tcpClient = await listener.AcceptTcpClientAsync().ConfigureAwait(false);
+                    using var sslStream = new SslStream(tcpClient.GetStream(), leaveInnerStreamOpen: false);
+                    await sslStream.AuthenticateAsServerAsync(certificate).ConfigureAwait(false);
+                }
+                catch (Exception)
+                {
+                    // The client is expected to abort the handshake, or the listener to be stopped.
+                }
+            }
+        }
 
         using var eventRecords = new ActivitySourceRecorder();
 
-        using (var client = new HttpClient())
+        try
         {
-            var ex = await Assert.ThrowsAnyAsync<Exception>(() =>
+            using var timeout = CancellationTokenSource.CreateLinkedTokenSource(TestContext.Current.CancellationToken);
+            timeout.CancelAfter(TimeSpan.FromSeconds(30));
+
+            using (var client = new HttpClient())
             {
-                // https://expired.badssl.com/ has an expired certificate.
-                return method == "GET"
-                    ? client.GetAsync(new Uri(url), TestContext.Current.CancellationToken)
-                    : client.PostAsync(new Uri(url), new StringContent("hello world"), TestContext.Current.CancellationToken);
-            });
-            Assert.True(ex is HttpRequestException);
+                var ex = await Assert.ThrowsAnyAsync<Exception>(() =>
+                {
+                    return method == "GET"
+                        ? client.GetAsync(new Uri(url), timeout.Token)
+                        : client.PostAsync(new Uri(url), new StringContent("hello world"), timeout.Token);
+                });
+                Assert.IsType<HttpRequestException>(ex);
+            }
+        }
+        finally
+        {
+            serverCts.Cancel();
+            listener.Stop();
+            await serverTask;
         }
 
         // We should have one Start event and one Stop event with an exception.
@@ -690,7 +732,7 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         Assert.Equal(1, eventRecords.Records.Count(rec => rec.Key == "Stop"));
 
         var activity = AssertFirstEventWasStart(eventRecords);
-        VerifyActivityStartTags("expired.badssl.com", null, method, url, activity);
+        VerifyActivityStartTags("localhost", port, method, url, activity);
 
         Assert.True(eventRecords.Records.TryDequeue(out var exceptionEvent));
         Assert.Equal("Stop", exceptionEvent.Key);
@@ -1018,6 +1060,16 @@ public class HttpWebRequestActivitySourceTests : IDisposable
         var traceparent = startRequest.Headers["traceparent"];
         Assert.NotNull(traceparent);
         Assert.Matches("^[0-9a-f]{2}-[0-9a-f]{32}-[0-9a-f]{16}-[0-9a-f]{2}$", traceparent);
+    }
+
+    private static X509Certificate2 CreateUntrustedCertificate()
+    {
+        using var rsa = RSA.Create(2048);
+        var request = new CertificateRequest("CN=localhost", rsa, HashAlgorithmName.SHA256, RSASignaturePadding.Pkcs1);
+        using var ephemeral = request.CreateSelfSigned(DateTimeOffset.UtcNow.AddDays(-1), DateTimeOffset.UtcNow.AddDays(1));
+
+        // SChannel cannot use ephemeral keys for server authentication, so round-trip via PFX.
+        return new X509Certificate2(ephemeral.Export(X509ContentType.Pfx), string.Empty, X509KeyStorageFlags.UserKeySet);
     }
 
     private static void VerifyActivityStartTags(string netPeerName, int? netPeerPort, string method, string url, Activity activity)

@@ -26,11 +26,7 @@ public class RequestDataHelperTests
     [InlineData("PATCH", "PATCH")]
     [InlineData("POST", "POST")]
     [InlineData("PUT", "PUT")]
-#if NET9_0
-    [InlineData("QUERY", "_OTHER")]
-#else
     [InlineData("QUERY", "QUERY")]
-#endif
     [InlineData("TRACE", "TRACE")]
     [InlineData("get", "GET")]
     [InlineData("invalid", "_OTHER")]
@@ -95,11 +91,7 @@ public class RequestDataHelperTests
     [InlineData("TRACE", "/orders/{id}", "TRACE /orders/{id}")]
     [InlineData("PATCH", "/orders/{id}", "PATCH /orders/{id}")]
     [InlineData("CONNECT", "/orders/{id}", "CONNECT /orders/{id}")]
-#if NET9_0
-    [InlineData("QUERY", "/orders/{id}", "HTTP /orders/{id}")]
-#else
     [InlineData("QUERY", "/orders/{id}", "QUERY /orders/{id}")]
-#endif
     [InlineData("CUSTOM", "/orders/{id}", "HTTP /orders/{id}")]
     [InlineData("_OTHER", "/orders/{id}", "HTTP /orders/{id}")]
     [InlineData("HTTP", "/orders/{id}", "HTTP /orders/{id}")]
@@ -226,6 +218,32 @@ public class RequestDataHelperTests
         var second = requestHelper.GetActivityDisplayName("GET", "/orders/{id}");
 
         Assert.Same(first, second);
+    }
+
+    [Fact]
+    public void GetActivityDisplayNameDoesNotCacheDisplayNamesForLongRoutes()
+    {
+        var requestHelper = new RequestDataHelper(configureByHttpKnownMethodsEnvironmentalVariable: false);
+
+        var atLimit = new string('a', RequestDataHelper.MaxCachedRouteLength);
+        var overLimit = new string('a', RequestDataHelper.MaxCachedRouteLength + 1);
+
+        Assert.Same(requestHelper.GetActivityDisplayName("GET", atLimit), requestHelper.GetActivityDisplayName("GET", atLimit));
+        Assert.Equal(1, requestHelper.CachedDisplayNameCount);
+
+        for (var i = 0; i < 10; i++)
+        {
+            var route = new string((char)('a' + i), RequestDataHelper.MaxCachedRouteLength + 1);
+            Assert.Equal($"GET {route}", requestHelper.GetActivityDisplayName("GET", route));
+        }
+
+        var first = requestHelper.GetActivityDisplayName("GET", overLimit);
+        var second = requestHelper.GetActivityDisplayName("GET", overLimit);
+
+        Assert.Equal($"GET {overLimit}", first);
+        Assert.Equal(first, second);
+        Assert.NotSame(first, second);
+        Assert.Equal(1, requestHelper.CachedDisplayNameCount);
     }
 
     [Fact]

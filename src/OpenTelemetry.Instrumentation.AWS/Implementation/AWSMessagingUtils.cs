@@ -7,7 +7,7 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 
 internal static class AWSMessagingUtils
 {
-    internal static IReadOnlyDictionary<string, string> InjectIntoDictionary(PropagationContext propagationContext)
+    internal static Dictionary<string, string> InjectIntoDictionary(PropagationContext propagationContext)
     {
         var carrier = new Dictionary<string, string>();
         Propagators.DefaultTextMapPropagator.Inject(propagationContext, carrier, (c, k, v) => c[k] = v);

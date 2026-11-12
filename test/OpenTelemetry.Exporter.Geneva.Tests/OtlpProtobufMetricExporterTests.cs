@@ -5,12 +5,15 @@
 
 using System.Diagnostics;
 using System.Diagnostics.Metrics;
+using System.Diagnostics.Tracing;
+using System.Globalization;
 using Google.Protobuf;
 using Google.Protobuf.Collections;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OtlpCollector = OpenTelemetry.Proto.Collector.Metrics.V1;
 using OtlpCommon = OpenTelemetry.Proto.Common.V1;
+using OtlpMetrics = OpenTelemetry.Proto.Metrics.V1;
 
 namespace OpenTelemetry.Exporter.Geneva.Tests;
 
@@ -249,26 +252,22 @@ public abstract class OtlpProtobufMetricExporterTests
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>([.. exportedItems], exportedItems.Count));
 
-        Assert.Single(testTransport.ExportedItems);
+        var exportedItem = Assert.Single(testTransport.ExportedItems);
 
         var request = this.AssertAndConvertExportedBlobToRequest(
-            testTransport.ExportedItems[0]);
+            exportedItem);
 
-        Assert.Single(request.ResourceMetrics);
+        var resourceMetric = Assert.Single(request.ResourceMetrics);
 
-        Assert.NotNull(request.ResourceMetrics[0].Resource);
+        Assert.NotNull(resourceMetric.Resource);
 
-        AssertOtlpAttributes(addAccountAndNamespace ? resourceAttributes.Concat(accountAndNamespace) : resourceAttributes, request.ResourceMetrics[0].Resource.Attributes);
+        AssertOtlpAttributes(addAccountAndNamespace ? resourceAttributes.Concat(accountAndNamespace) : resourceAttributes, resourceMetric.Resource.Attributes);
 
-        Assert.Single(request.ResourceMetrics[0].ScopeMetrics);
-
-        var scope = request.ResourceMetrics[0].ScopeMetrics[0];
+        var scope = Assert.Single(resourceMetric.ScopeMetrics);
 
         Assert.Equal(meter.Name, scope.Scope.Name);
 
-        Assert.Single(request.ResourceMetrics[0].ScopeMetrics[0].Metrics);
-
-        var metric = request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0];
+        var metric = Assert.Single(resourceMetric.ScopeMetrics[0].Metrics);
 
         Assert.Equal(instrumentName, metric.Name);
 
@@ -278,9 +277,7 @@ public abstract class OtlpProtobufMetricExporterTests
 
         Assert.True(metric.Sum.IsMonotonic);
 
-        Assert.Single(metric.Sum.DataPoints);
-
-        var dataPoint = metric.Sum.DataPoints[0];
+        var dataPoint = Assert.Single(metric.Sum.DataPoints);
 
         if (longValue != null)
         {
@@ -302,9 +299,7 @@ public abstract class OtlpProtobufMetricExporterTests
 
         if (isExemplarsEnabled)
         {
-            Assert.Single(dataPoint.Exemplars);
-
-            var exemplar = dataPoint.Exemplars[0];
+            var exemplar = Assert.Single(dataPoint.Exemplars);
 
             metricPoint.TryGetExemplars(out var exemplars);
 
@@ -434,17 +429,13 @@ public abstract class OtlpProtobufMetricExporterTests
             var request = this.AssertAndConvertExportedBlobToRequest(
                 testTransport.ExportedItems[i]);
 
-            Assert.Single(request.ResourceMetrics);
+            var resourceMetric = Assert.Single(request.ResourceMetrics);
 
-            Assert.Single(request.ResourceMetrics[0].ScopeMetrics);
-
-            var scope = request.ResourceMetrics[0].ScopeMetrics[0];
+            var scope = Assert.Single(resourceMetric.ScopeMetrics);
 
             Assert.Equal(meter.Name, scope.Scope.Name);
 
-            Assert.Single(request.ResourceMetrics[0].ScopeMetrics[0].Metrics);
-
-            var metric = request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0];
+            var metric = Assert.Single(resourceMetric.ScopeMetrics[0].Metrics);
 
             Assert.Equal(instrumentName, metric.Name);
 
@@ -454,9 +445,7 @@ public abstract class OtlpProtobufMetricExporterTests
 
             Assert.True(metric.Sum.IsMonotonic);
 
-            Assert.Single(metric.Sum.DataPoints);
-
-            var dataPoint = metric.Sum.DataPoints[0];
+            var dataPoint = Assert.Single(metric.Sum.DataPoints);
 
             if (longValues != null)
             {
@@ -476,6 +465,133 @@ public abstract class OtlpProtobufMetricExporterTests
 
             AssertOtlpAttributes(tags[i], dataPoint.Attributes);
         }
+    }
+
+    [Theory]
+    [InlineData(0UL)]
+    [InlineData(1234UL)]
+    [InlineData((ulong)long.MaxValue)]
+    [InlineData((ulong)long.MaxValue + 1)]
+    [InlineData(ulong.MaxValue)]
+    public void CounterSerializationWithUlongAttribute(ulong ulongValue)
+    {
+        using var meter = new Meter(nameof(this.CounterSerializationWithUlongAttribute), "0.0.1");
+        var exportedItems = new List<Metric>();
+        using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+        {
+            TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+        };
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter(nameof(this.CounterSerializationWithUlongAttribute))
+            .AddReader(inMemoryReader)
+            .Build();
+
+        // The first metric point has a longer leading attribute so that the second metric point,
+        // which is serialized into the same buffer, is written over non-zero bytes.
+        var tags = new TagList[2];
+        tags[0].Add(new("a.before", new string('x', 64)));
+        tags[0].Add(new("b.ulong", 1UL));
+        tags[0].Add(new("c.after", "after-first"));
+        tags[1].Add(new("a.before", "before"));
+        tags[1].Add(new("b.ulong", ulongValue));
+        tags[1].Add(new("c.after", "after-second"));
+
+        var counter = meter.CreateCounter<long>("ulongcounter");
+        counter.Add(1, tags[0]);
+        counter.Add(2, tags[1]);
+
+        meterProvider.ForceFlush();
+
+        var buffer = new byte[65360];
+
+        var testTransport = new TestTransport();
+
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(
+            testTransport,
+            metricsAccount: null,
+            metricsNamespace: null,
+            prepopulatedMetricDimensions: null,
+            prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength);
+
+        var result = otlpProtobufSerializer.SerializeAndSendMetrics(buffer, Resource.Empty, new Batch<Metric>([.. exportedItems], exportedItems.Count));
+
+        Assert.Equal(ExportResult.Success, result);
+        Assert.Equal(2, testTransport.ExportedItems.Count);
+
+        long[] expectedValues = [1, 2];
+
+        for (var i = 0; i < expectedValues.Length; i++)
+        {
+            var request = this.AssertAndConvertExportedBlobToRequest(testTransport.ExportedItems[i]);
+
+            var dataPoint = Assert.Single(request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0].Sum.DataPoints);
+
+            Assert.Equal(expectedValues[i], dataPoint.AsInt);
+
+            AssertOtlpAttributes(tags[i], dataPoint.Attributes);
+        }
+
+        var ulongAttribute = this.AssertAndConvertExportedBlobToRequest(testTransport.ExportedItems[1])
+            .ResourceMetrics[0].ScopeMetrics[0].Metrics[0].Sum.DataPoints[0].Attributes[1];
+
+        if (ulongValue <= long.MaxValue)
+        {
+            Assert.Equal(OtlpCommon.AnyValue.ValueOneofCase.IntValue, ulongAttribute.Value.ValueCase);
+            Assert.Equal((long)ulongValue, ulongAttribute.Value.IntValue);
+        }
+        else
+        {
+            Assert.Equal(OtlpCommon.AnyValue.ValueOneofCase.StringValue, ulongAttribute.Value.ValueCase);
+            Assert.Equal(ulongValue.ToString(CultureInfo.InvariantCulture), ulongAttribute.Value.StringValue);
+        }
+    }
+
+    [Fact]
+    public void CounterSerializationWithUlongPrepopulatedDimension()
+    {
+        using var meter = new Meter(nameof(this.CounterSerializationWithUlongPrepopulatedDimension), "0.0.1");
+        var exportedItems = new List<Metric>();
+        using var inMemoryReader = new BaseExportingMetricReader(new InMemoryExporter<Metric>(exportedItems))
+        {
+            TemporalityPreference = MetricReaderTemporalityPreference.Delta,
+        };
+
+        using var meterProvider = Sdk.CreateMeterProviderBuilder()
+            .AddMeter(nameof(this.CounterSerializationWithUlongPrepopulatedDimension))
+            .AddReader(inMemoryReader)
+            .Build();
+
+        var counter = meter.CreateCounter<long>("ulongcounter");
+        counter.Add(5, new KeyValuePair<string, object>("tag", "value"));
+
+        meterProvider.ForceFlush();
+
+        var prepopulatedDimensions = new Dictionary<string, object>
+        {
+            { "Dim1", "before" },
+            { "Dim2", ulong.MaxValue },
+            { "Dim3", "after" },
+        };
+
+        var testTransport = new TestTransport();
+
+        var otlpProtobufSerializer = new OtlpProtobufSerializer(
+            testTransport,
+            metricsAccount: null,
+            metricsNamespace: null,
+            prepopulatedDimensions,
+            prefixBufferWithUInt32LittleEndianLength: this.PrefixBufferWithUInt32LittleEndianLength);
+
+        otlpProtobufSerializer.SerializeAndSendMetrics(new byte[65360], Resource.Empty, new Batch<Metric>([.. exportedItems], exportedItems.Count));
+
+        var request = this.AssertAndConvertExportedBlobToRequest(Assert.Single(testTransport.ExportedItems));
+
+        var dataPoint = Assert.Single(request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0].Sum.DataPoints);
+
+        Assert.Equal(5, dataPoint.AsInt);
+
+        AssertOtlpAttributes(new[] { new KeyValuePair<string, object>("tag", "value") }.Concat(prepopulatedDimensions), dataPoint.Attributes);
     }
 
     [Theory]
@@ -554,26 +670,22 @@ public abstract class OtlpProtobufMetricExporterTests
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>([.. exportedItems], exportedItems.Count));
 
-        Assert.Single(testTransport.ExportedItems);
+        var exportedItem = Assert.Single(testTransport.ExportedItems);
 
         var request = this.AssertAndConvertExportedBlobToRequest(
-            testTransport.ExportedItems[0]);
+            exportedItem);
 
-        Assert.Single(request.ResourceMetrics);
+        var resourceMetric = Assert.Single(request.ResourceMetrics);
 
-        Assert.NotNull(request.ResourceMetrics[0].Resource);
+        Assert.NotNull(resourceMetric.Resource);
 
-        AssertOtlpAttributes(addAccountAndNamespace ? resourceAttributes.Concat(accountAndNamespace) : resourceAttributes, request.ResourceMetrics[0].Resource.Attributes);
+        AssertOtlpAttributes(addAccountAndNamespace ? resourceAttributes.Concat(accountAndNamespace) : resourceAttributes, resourceMetric.Resource.Attributes);
 
-        Assert.Single(request.ResourceMetrics[0].ScopeMetrics);
-
-        var scope = request.ResourceMetrics[0].ScopeMetrics[0];
+        var scope = Assert.Single(resourceMetric.ScopeMetrics);
 
         Assert.Equal(meter.Name, scope.Scope.Name);
 
-        Assert.Single(request.ResourceMetrics[0].ScopeMetrics[0].Metrics);
-
-        var metric = request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0];
+        var metric = Assert.Single(resourceMetric.ScopeMetrics[0].Metrics);
 
         Assert.Equal(instrumentName, metric.Name);
 
@@ -583,9 +695,7 @@ public abstract class OtlpProtobufMetricExporterTests
 
         Assert.False(metric.Sum.IsMonotonic);
 
-        Assert.Single(metric.Sum.DataPoints);
-
-        var dataPoint = metric.Sum.DataPoints[0];
+        var dataPoint = Assert.Single(metric.Sum.DataPoints);
 
         if (longValue != null)
         {
@@ -689,17 +799,13 @@ public abstract class OtlpProtobufMetricExporterTests
             var request = this.AssertAndConvertExportedBlobToRequest(
                 testTransport.ExportedItems[i]);
 
-            Assert.Single(request.ResourceMetrics);
+            var resourceMetric = Assert.Single(request.ResourceMetrics);
 
-            Assert.Single(request.ResourceMetrics[0].ScopeMetrics);
-
-            var scope = request.ResourceMetrics[0].ScopeMetrics[0];
+            var scope = Assert.Single(resourceMetric.ScopeMetrics);
 
             Assert.Equal(meter.Name, scope.Scope.Name);
 
-            Assert.Single(request.ResourceMetrics[0].ScopeMetrics[0].Metrics);
-
-            var metric = request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0];
+            var metric = Assert.Single(resourceMetric.ScopeMetrics[0].Metrics);
 
             Assert.Equal(instrumentName, metric.Name);
 
@@ -709,9 +815,7 @@ public abstract class OtlpProtobufMetricExporterTests
 
             Assert.False(metric.Sum.IsMonotonic);
 
-            Assert.Single(metric.Sum.DataPoints);
-
-            var dataPoint = metric.Sum.DataPoints[0];
+            var dataPoint = Assert.Single(metric.Sum.DataPoints);
 
             if (longValues != null)
             {
@@ -839,26 +943,22 @@ public abstract class OtlpProtobufMetricExporterTests
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>([.. exportedItems], exportedItems.Count));
 
-        Assert.Single(testTransport.ExportedItems);
+        var exportedItem = Assert.Single(testTransport.ExportedItems);
 
         var request = this.AssertAndConvertExportedBlobToRequest(
-            testTransport.ExportedItems[0]);
+            exportedItem);
 
-        Assert.Single(request.ResourceMetrics);
+        var resourceMetric = Assert.Single(request.ResourceMetrics);
 
-        Assert.NotNull(request.ResourceMetrics[0].Resource);
+        Assert.NotNull(resourceMetric.Resource);
 
-        AssertOtlpAttributes(addAccountAndNamespace ? resourceAttributes.Concat(accountAndNamespace) : resourceAttributes, request.ResourceMetrics[0].Resource.Attributes);
+        AssertOtlpAttributes(addAccountAndNamespace ? resourceAttributes.Concat(accountAndNamespace) : resourceAttributes, resourceMetric.Resource.Attributes);
 
-        Assert.Single(request.ResourceMetrics[0].ScopeMetrics);
-
-        var scope = request.ResourceMetrics[0].ScopeMetrics[0];
+        var scope = Assert.Single(resourceMetric.ScopeMetrics);
 
         Assert.Equal(meter.Name, scope.Scope.Name);
 
-        Assert.Single(request.ResourceMetrics[0].ScopeMetrics[0].Metrics);
-
-        var metric = request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0];
+        var metric = Assert.Single(resourceMetric.ScopeMetrics[0].Metrics);
 
         Assert.Equal("TestHistogram", metric.Name);
 
@@ -866,9 +966,7 @@ public abstract class OtlpProtobufMetricExporterTests
 
         Assert.Equal(1, (int)metric.Histogram.AggregationTemporality);
 
-        Assert.Single(metric.Histogram.DataPoints);
-
-        var dataPoint = metric.Histogram.DataPoints[0];
+        var dataPoint = Assert.Single(metric.Histogram.DataPoints);
 
         Assert.Equal(doubleValue, dataPoint.Sum);
 
@@ -918,9 +1016,7 @@ public abstract class OtlpProtobufMetricExporterTests
 
         if (isExemplarsEnabled)
         {
-            Assert.Single(dataPoint.Exemplars);
-
-            var exemplar = dataPoint.Exemplars[0];
+            var exemplar = Assert.Single(dataPoint.Exemplars);
 
             metricPoint.TryGetExemplars(out var exemplars);
 
@@ -1085,15 +1181,11 @@ public abstract class OtlpProtobufMetricExporterTests
 
             AssertOtlpAttributes([new KeyValuePair<string, object>("TestResourceKey", "TestResourceValue")], request.ResourceMetrics[0].Resource.Attributes);
 
-            Assert.Single(request.ResourceMetrics[0].ScopeMetrics);
-
-            var scope = request.ResourceMetrics[0].ScopeMetrics[0];
+            var scope = Assert.Single(request.ResourceMetrics[0].ScopeMetrics);
 
             Assert.Equal(meter.Name, scope.Scope.Name);
 
-            Assert.Single(request.ResourceMetrics[0].ScopeMetrics[0].Metrics);
-
-            var metric = request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0];
+            var metric = Assert.Single(request.ResourceMetrics[0].ScopeMetrics[0].Metrics);
 
             Assert.Equal("TestHistogram", metric.Name);
 
@@ -1101,9 +1193,7 @@ public abstract class OtlpProtobufMetricExporterTests
 
             Assert.Equal(1, (int)metric.Histogram.AggregationTemporality);
 
-            Assert.Single(metric.Histogram.DataPoints);
-
-            var dataPoint = metric.Histogram.DataPoints[0];
+            var dataPoint = Assert.Single(metric.Histogram.DataPoints);
 
             Assert.Equal(doubleValues[i], dataPoint.Sum);
 
@@ -1228,34 +1318,28 @@ public abstract class OtlpProtobufMetricExporterTests
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>([.. exportedItems], exportedItems.Count));
 
-        Assert.Single(testTransport.ExportedItems);
+        var exportedItem = Assert.Single(testTransport.ExportedItems);
 
         var request = this.AssertAndConvertExportedBlobToRequest(
-            testTransport.ExportedItems[0]);
+            exportedItem);
 
-        Assert.Single(request.ResourceMetrics);
+        var resourceMetric = Assert.Single(request.ResourceMetrics);
 
-        Assert.NotNull(request.ResourceMetrics[0].Resource);
+        Assert.NotNull(resourceMetric.Resource);
 
-        AssertOtlpAttributes(addAccountAndNamespace ? resourceAttributes.Concat(accountAndNamespace) : resourceAttributes, request.ResourceMetrics[0].Resource.Attributes);
+        AssertOtlpAttributes(addAccountAndNamespace ? resourceAttributes.Concat(accountAndNamespace) : resourceAttributes, resourceMetric.Resource.Attributes);
 
-        Assert.Single(request.ResourceMetrics[0].ScopeMetrics);
-
-        var scope = request.ResourceMetrics[0].ScopeMetrics[0];
+        var scope = Assert.Single(resourceMetric.ScopeMetrics);
 
         Assert.Equal(meter.Name, scope.Scope.Name);
 
-        Assert.Single(request.ResourceMetrics[0].ScopeMetrics[0].Metrics);
-
-        var metric = request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0];
+        var metric = Assert.Single(resourceMetric.ScopeMetrics[0].Metrics);
 
         Assert.Equal(instrumentName, metric.Name);
 
         Assert.NotNull(metric.Gauge);
 
-        Assert.Single(metric.Gauge.DataPoints);
-
-        var dataPoint = metric.Gauge.DataPoints[0];
+        var dataPoint = Assert.Single(metric.Gauge.DataPoints);
 
         if (longValue.HasValue)
         {
@@ -1373,25 +1457,19 @@ public abstract class OtlpProtobufMetricExporterTests
             var request = this.AssertAndConvertExportedBlobToRequest(
                 testTransport.ExportedItems[i]);
 
-            Assert.Single(request.ResourceMetrics);
+            var resourceMetric = Assert.Single(request.ResourceMetrics);
 
-            Assert.Single(request.ResourceMetrics[0].ScopeMetrics);
-
-            var scope = request.ResourceMetrics[0].ScopeMetrics[0];
+            var scope = Assert.Single(resourceMetric.ScopeMetrics);
 
             Assert.Equal(meter.Name, scope.Scope.Name);
 
-            Assert.Single(request.ResourceMetrics[0].ScopeMetrics[0].Metrics);
-
-            var metric = request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0];
+            var metric = Assert.Single(resourceMetric.ScopeMetrics[0].Metrics);
 
             Assert.Equal(instrumentName, metric.Name);
 
             Assert.NotNull(metric.Gauge);
 
-            Assert.Single(metric.Gauge.DataPoints);
-
-            var dataPoint = metric.Gauge.DataPoints[0];
+            var dataPoint = Assert.Single(metric.Gauge.DataPoints);
 
             if (longValues != null)
             {
@@ -1527,34 +1605,28 @@ public abstract class OtlpProtobufMetricExporterTests
 
         otlpProtobufSerializer.SerializeAndSendMetrics(buffer, meterProvider.GetResource(), new Batch<Metric>([.. exportedItems], exportedItems.Count));
 
-        Assert.Single(testTransport.ExportedItems);
+        var exportedItem = Assert.Single(testTransport.ExportedItems);
 
         var request = this.AssertAndConvertExportedBlobToRequest(
-            testTransport.ExportedItems[0]);
+            exportedItem);
 
-        Assert.Single(request.ResourceMetrics);
+        var resourceMetric = Assert.Single(request.ResourceMetrics);
 
-        Assert.NotNull(request.ResourceMetrics[0].Resource);
+        Assert.NotNull(resourceMetric.Resource);
 
-        AssertOtlpAttributes(addAccountAndNamespace ? resourceAttributes.Concat(accountAndNamespace) : resourceAttributes, request.ResourceMetrics[0].Resource.Attributes);
+        AssertOtlpAttributes(addAccountAndNamespace ? resourceAttributes.Concat(accountAndNamespace) : resourceAttributes, resourceMetric.Resource.Attributes);
 
-        Assert.Single(request.ResourceMetrics[0].ScopeMetrics);
-
-        var scope = request.ResourceMetrics[0].ScopeMetrics[0];
+        var scope = Assert.Single(resourceMetric.ScopeMetrics);
 
         Assert.Equal(meter.Name, scope.Scope.Name);
 
-        Assert.Single(request.ResourceMetrics[0].ScopeMetrics[0].Metrics);
-
-        var metric = request.ResourceMetrics[0].ScopeMetrics[0].Metrics[0];
+        var metric = Assert.Single(resourceMetric.ScopeMetrics[0].Metrics);
 
         Assert.Equal(instrumentName, metric.Name);
 
         Assert.NotNull(metric.ExponentialHistogram);
 
-        Assert.Single(metric.ExponentialHistogram.DataPoints);
-
-        var dataPoint = metric.ExponentialHistogram.DataPoints[0];
+        var dataPoint = Assert.Single(metric.ExponentialHistogram.DataPoints);
 
         // Assert time
         var metricPointsEnumerator = exportedItems[0].GetMetricPoints().GetEnumerator();
@@ -1582,8 +1654,8 @@ public abstract class OtlpProtobufMetricExporterTests
             Assert.Equal(doubleValue, dataPoint.Sum);
             Assert.Null(dataPoint.Negative);
             Assert.True(dataPoint.Positive.Offset > 0);
-            Assert.Single(dataPoint.Positive.BucketCounts);
-            Assert.Equal(1UL, dataPoint.Positive.BucketCounts[0]);
+            var bucketCount = Assert.Single(dataPoint.Positive.BucketCounts);
+            Assert.Equal(1UL, bucketCount);
         }
         else
         {
@@ -1663,6 +1735,41 @@ public abstract class OtlpProtobufMetricExporterTests
         }
     }
 
+    [Fact]
+    public void SerializeTagFailureIsRolledBackAndLogged()
+    {
+        var capturedEvents = new List<EventWrittenEventArgs>();
+
+        using var listener = new WarningEventListener(capturedEvents);
+
+        var buffer = new byte[1024];
+        var cursor = 0;
+
+        OtlpProtobufSerializer.SerializeTag(buffer, ref cursor, "a.before", "before", FieldNumberConstants.NumberDataPoint_attributes);
+
+        var cursorBeforeFailure = cursor;
+
+        // A null key fails while the attribute is partially written (after the tag/length slot was reserved).
+        OtlpProtobufSerializer.SerializeTag(buffer, ref cursor, null!, "dropped", FieldNumberConstants.NumberDataPoint_attributes);
+
+        Assert.Equal(cursorBeforeFailure, cursor);
+
+        OtlpProtobufSerializer.SerializeTag(buffer, ref cursor, "c.after", "after", FieldNumberConstants.NumberDataPoint_attributes);
+
+        var dataPoint = OtlpMetrics.NumberDataPoint.Parser.ParseFrom(buffer, 0, cursor);
+
+        AssertOtlpAttributes(
+            [
+                new KeyValuePair<string, object>("a.before", "before"),
+                new KeyValuePair<string, object>("c.after", "after"),
+            ],
+            dataPoint.Attributes);
+
+        var warning = Assert.Single(capturedEvents, e => e.EventId == 14);
+        Assert.Equal(EventLevel.Warning, warning.Level);
+        Assert.Contains(nameof(ArgumentNullException), warning.Payload?[1] as string, StringComparison.Ordinal);
+    }
+
     internal static void AssertOtlpAttributes(
         IEnumerable<KeyValuePair<string, object>> expected,
         RepeatedField<OtlpCommon.KeyValue> actual)
@@ -1707,6 +1814,9 @@ public abstract class OtlpProtobufMetricExporterTests
                 break;
             case short s:
                 Assert.Equal(s, actual.IntValue);
+                break;
+            case ulong ul when ul > long.MaxValue:
+                Assert.Equal(ul.ToString(CultureInfo.InvariantCulture), actual.StringValue);
                 break;
             case ulong ul:
                 Assert.Equal(ul, (ulong)actual.IntValue);
@@ -1757,6 +1867,36 @@ public abstract class OtlpProtobufMetricExporterTests
 
         public void Dispose()
         {
+        }
+    }
+
+    private sealed class WarningEventListener : EventListener
+    {
+        private readonly List<EventWrittenEventArgs> capturedEvents;
+        private readonly int creatingThreadId;
+
+        public WarningEventListener(List<EventWrittenEventArgs> capturedEvents)
+        {
+            this.capturedEvents = capturedEvents;
+            this.creatingThreadId = Environment.CurrentManagedThreadId;
+        }
+
+        protected override void OnEventSourceCreated(EventSource eventSource)
+        {
+            if (eventSource.Name == "OpenTelemetry-Exporter-Geneva")
+            {
+                this.EnableEvents(eventSource, EventLevel.Warning, EventKeywords.All);
+            }
+        }
+
+        protected override void OnEventWritten(EventWrittenEventArgs eventData)
+        {
+            // The EventSource is a process-wide singleton; only capture events written on the
+            // test's own thread so tests running in parallel do not interfere.
+            if (Environment.CurrentManagedThreadId == this.creatingThreadId)
+            {
+                this.capturedEvents.Add(eventData);
+            }
         }
     }
 }

@@ -23,11 +23,11 @@ public class AnyValueUnionTests
         var arrayValue = new AnyValueUnion(AnyValueType.Array, arrayValue: [
             new AnyValueUnion(AnyValueType.String, stringValue: "val1"),
             new AnyValueUnion(AnyValueType.String, stringValue: "val2"),
-            ]);
+        ]);
         var arrayValue2 = new AnyValueUnion(AnyValueType.Array, arrayValue: [
             new AnyValueUnion(AnyValueType.String, stringValue: "val1"),
             new AnyValueUnion(AnyValueType.String, stringValue: "val2"),
-            ]);
+        ]);
 
         Assert.Equal(intValue, intValue2);
         Assert.Equal(boolValue, boolValue2);
@@ -88,18 +88,18 @@ public class AnyValueUnionTests
         var stringValue = new AnyValueUnion(AnyValueType.String, stringValue: "test");
         var doubleValue = new AnyValueUnion(AnyValueType.Double, doubleValue: 3.14);
         var arrayValue = new AnyValueUnion(AnyValueType.Array, arrayValue: [
-                new AnyValueUnion(AnyValueType.String, stringValue: "val1"),
-                new AnyValueUnion(AnyValueType.String, stringValue: "val2"),
-            ]);
+            new AnyValueUnion(AnyValueType.String, stringValue: "val1"),
+            new AnyValueUnion(AnyValueType.String, stringValue: "val2"),
+        ]);
 
         Assert.Equal(intValue.GetHashCode(), new AnyValueUnion(AnyValueType.Integer, intValue: 42).GetHashCode());
         Assert.Equal(boolValue.GetHashCode(), new AnyValueUnion(AnyValueType.Boolean, boolValue: true).GetHashCode());
         Assert.Equal(stringValue.GetHashCode(), new AnyValueUnion(AnyValueType.String, stringValue: "test").GetHashCode());
         Assert.Equal(doubleValue.GetHashCode(), new AnyValueUnion(AnyValueType.Double, doubleValue: 3.14).GetHashCode());
         Assert.Equal(arrayValue.GetHashCode(), new AnyValueUnion(AnyValueType.Array, arrayValue: [
-                new AnyValueUnion(AnyValueType.String, stringValue: "val1"),
-                new AnyValueUnion(AnyValueType.String, stringValue: "val2"),
-            ]).GetHashCode());
+            new AnyValueUnion(AnyValueType.String, stringValue: "val1"),
+            new AnyValueUnion(AnyValueType.String, stringValue: "val2"),
+        ]).GetHashCode());
 
         Assert.NotEqual(intValue.GetHashCode(), boolValue.GetHashCode());
         Assert.NotEqual(intValue.GetHashCode(), stringValue.GetHashCode());

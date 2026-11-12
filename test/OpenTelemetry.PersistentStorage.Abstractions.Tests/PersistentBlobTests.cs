@@ -2,9 +2,12 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics.CodeAnalysis;
+using System.Diagnostics.Tracing;
+using OpenTelemetry.Tests;
 
 namespace OpenTelemetry.PersistentStorage.Abstractions.Tests;
 
+[Collection(EventSourceTests.CollectionName)]
 public class PersistentBlobTests
 {
     private static readonly byte[] Content = [1, 2, 3];
@@ -127,6 +130,24 @@ public class PersistentBlobTests
         var blob = new TestBlob { Throw = true };
 
         Assert.False(blob.TryDelete());
+    }
+
+    [Fact]
+    [Obsolete("Exercises the obsolete byte array overload.")]
+    public void ImplementationExceptionsAreLogged()
+    {
+        using var listener = new TestEventListener();
+        listener.EnableEvents(PersistentStorageAbstractionsEventSource.Log, EventLevel.Error, EventKeywords.All);
+
+        var blob = new TestBlob { Throw = true };
+
+        Assert.False(blob.TryRead(out _));
+        Assert.False(blob.TryWrite(new ReadOnlySpan<byte>(Content)));
+        Assert.False(blob.TryWrite(Content, 50));
+        Assert.False(blob.TryLease(100));
+        Assert.False(blob.TryDelete());
+
+        Assert.Equal(5, listener.Messages.ToList().Count);
     }
 
     private sealed class TestBlob : PersistentBlob

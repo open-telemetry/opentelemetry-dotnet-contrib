@@ -14,7 +14,7 @@ public class LogSerializationTests
 {
     /*
     Run from the current directory:
-    dotnet test -f net10.0 --filter FullyQualifiedName~LogSerializationTests -l "console;verbosity=detailed"
+    dotnet test -f net11.0 --filter FullyQualifiedName~LogSerializationTests -l "console;verbosity=detailed"
     */
     [Fact]
     public void SerializationTestForException()
@@ -106,8 +106,8 @@ public class LogSerializationTests
             var logger = loggerFactory.CreateLogger<LogSerializationTests>();
             doLog(logger);
 
-            Assert.Single(exportedData);
-            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedData[0], MessagePack.Resolvers.ContractlessStandardResolver.Options);
+            var exportedDataItem = Assert.Single(exportedData);
+            var fluentdData = MessagePack.MessagePackSerializer.Deserialize<object>(exportedDataItem, MessagePack.Resolvers.ContractlessStandardResolver.Options);
 
             return GetFields(fluentdData);
         }

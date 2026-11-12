@@ -46,9 +46,16 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     private readonly PropertyFetcher<Exception> exceptionFetcher = new("Exception");
     private readonly PropertyFetcher<int> exceptionNumberFetcher = new("Number");
     private readonly PropertyFetcher<IDictionary> statisticsFetcher = new("Statistics");
-    private readonly PropertyFetcher<Guid> operationIdFetcher = new("OperationId");
     private readonly PropertyFetcher<string> operationFetcher = new("Operation");
-    private readonly ConcurrentDictionary<Guid, PendingCommand> pendingCommands = new();
+
+    // The start timestamp and connection details of each command which has no activity, to compute the
+    // duration metric when it completes. Keyed weakly so that a command which never writes a completion
+    // event (for example if it was cancelled before it started) does not leave an entry which is never removed.
+#if NET
+    private readonly ConditionalWeakTable<IDbCommand, PendingCommand> pendingCommands = [];
+#else
+    private readonly ConditionalWeakTable<IDbCommand, PendingCommand> pendingCommands = new();
+#endif
 
     // The activity of each command which is executing. The completion events of an asynchronous command
     // are written on a copy of the execution context of the caller, so the activity cannot be found again
@@ -63,6 +70,9 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
     // Set once an activity has been tracked, so that nothing needs to be looked up before then.
     private volatile bool hasTrackedActivities;
 
+    // Likewise set once a pending command has been tracked.
+    private volatile bool hasTrackedPendingCommands;
+
     public SqlClientDiagnosticListener(string sourceName)
         : base(sourceName)
     {
@@ -70,7 +80,9 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
     public override bool SupportsNullActivity => true;
 
-    internal int PendingCommandCount => this.pendingCommands.Count;
+#if NET
+    internal int PendingCommandCount => this.pendingCommands.Count();
+#endif
 
     public override void OnEventWritten(string name, object? payload)
     {
@@ -79,10 +91,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         {
             // The instrumentation may have been disabled part way through a command's
             // execution, so make sure any timestamp entry is cleaned up.
-            if (!this.pendingCommands.IsEmpty)
-            {
-                _ = this.TakePendingCommand(payload);
-            }
+            _ = this.TakePendingCommand(payload);
 
             // Likewise release the activity of the command. One which is executing is stopped, and one left by
             // an execution which never completed is cleared so that a command which is executed again does not
@@ -130,11 +139,16 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 #endif
 
                     // An execution which never completed (for example one with a token which was already
-                    // cancelled) leaves its activity associated with the command, which a command that is
-                    // executed again must not pick up when it completes, so it is cleared first.
+                    // cancelled) leaves its activity and start timestamp associated with the command, which a
+                    // command that is executed again must not pick up when it completes, so they are cleared first.
                     if (this.hasTrackedActivities)
                     {
                         _ = this.activities.Remove(command);
+                    }
+
+                    if (this.hasTrackedPendingCommands)
+                    {
+                        _ = this.pendingCommands.Remove(command);
                     }
 
                     // Snapshot the connection details before the command executes. A connection which
@@ -152,7 +166,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     // and the connection details, for the matching WriteCommandAfter/WriteCommandError event.
                     if (!SqlTelemetryHelper.ActivitySource.HasListeners())
                     {
-                        this.RecordPendingCommand(payload, dataSource, databaseName);
+                        this.RecordPendingCommand(command, dataSource, databaseName);
                         return;
                     }
 
@@ -174,7 +188,8 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                             DatabaseSemanticConventionHelper.AddTagsForSamplingAndUpdateActivityNameForQueryText(
                                 ref startTags,
                                 commandText,
-                                ref activityName);
+                                ref activityName,
+                                dialect: SqlProcessor.SqlDialect.SqlServer);
                             break;
 
                         case CommandType.TableDirect:
@@ -193,7 +208,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                     if (activity == null)
                     {
                         // There is no listener or it decided not to sample the current request.
-                        this.RecordPendingCommand(payload, dataSource, databaseName);
+                        this.RecordPendingCommand(command, dataSource, databaseName);
                         return;
                     }
 
@@ -384,8 +399,6 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
     private static string FormatActivityTraceFlags(ActivityTraceFlags flags)
     {
-        // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867
-        // will change this code to use ActivityTraceFlags.RandomTraceId instead of 2.
         // If new enum values are added in the future the Fallback path will ensure
         // that the handling is functionally correct, but the switch should be updated
         // to include the new value(s) for better readability and performance where possible.
@@ -394,7 +407,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             ActivityTraceFlags.None => "00",
             ActivityTraceFlags.Recorded => "01",
             (ActivityTraceFlags)2 => "02",
-            ActivityTraceFlags.Recorded | (ActivityTraceFlags)2 => "03",
+            ActivityTraceFlags.Recorded | ActivityTraceFlags.RandomTraceId => "03",
             _ => Fallback((byte)flags),
         };
 
@@ -444,15 +457,6 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         Exception exception,
         out int number)
         => fetcher.TryFetch(exception, out number);
-
-#if NET
-    [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = IL2026Justification)]
-#endif
-    private static bool TryFetchOperationId(
-        PropertyFetcher<Guid> fetcher,
-        object? payload,
-        out Guid operationId)
-        => fetcher.TryFetch(payload, out operationId) && operationId != Guid.Empty;
 
 #if NET
     [UnconditionalSuppressMessage("Trimming", "IL2026", Justification = IL2026Justification)]
@@ -549,16 +553,24 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             ? activity
             : null;
 
-    private void RecordPendingCommand(object? payload, string? dataSource, string? databaseName)
+    private void RecordPendingCommand(IDbCommand command, string? dataSource, string? databaseName)
     {
-        if (TryFetchOperationId(this.operationIdFetcher, payload, out var operationId))
-        {
-            this.pendingCommands[operationId] = new(Stopwatch.GetTimestamp(), dataSource, databaseName);
-        }
+        // A command only executes one operation at a time, so any existing entry is stale
+        // (it was cleared before the command started, but never throw on a duplicate key).
+        var pendingCommand = new PendingCommand(Stopwatch.GetTimestamp(), dataSource, databaseName);
+#if NET
+        this.pendingCommands.AddOrUpdate(command, pendingCommand);
+#else
+        this.pendingCommands.Add(command, pendingCommand);
+#endif
+        this.hasTrackedPendingCommands = true;
     }
 
     private PendingCommand? TakePendingCommand(object? payload) =>
-        TryFetchOperationId(this.operationIdFetcher, payload, out var operationId) && this.pendingCommands.TryRemove(operationId, out var pendingCommand)
+        this.hasTrackedPendingCommands
+        && TryFetchCommand(this.commandFetcher, payload, out var command)
+        && this.pendingCommands.TryGetValue(command, out var pendingCommand)
+        && this.pendingCommands.Remove(command)
             ? pendingCommand
             : null;
 
@@ -641,7 +653,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
                 }
                 else if (command.CommandType is CommandType.Text)
                 {
-                    var querySummary = SqlProcessor.GetSanitizedSql(command.CommandText).DbQuerySummary;
+                    var querySummary = SqlProcessor.GetSanitizedSql(command.CommandText, SqlProcessor.SqlDialect.SqlServer).DbQuerySummary;
                     if (!string.IsNullOrEmpty(querySummary))
                     {
                         tags.Add(SemanticConventions.AttributeDbQuerySummary, querySummary);
@@ -666,7 +678,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
         SqlTelemetryHelper.DbClientOperationDuration.Record(duration, tags);
     }
 
-    private readonly struct PendingCommand(long beginTimestamp, string? dataSource, string? databaseName)
+    private sealed class PendingCommand(long beginTimestamp, string? dataSource, string? databaseName)
     {
         public long BeginTimestamp { get; } = beginTimestamp;
 

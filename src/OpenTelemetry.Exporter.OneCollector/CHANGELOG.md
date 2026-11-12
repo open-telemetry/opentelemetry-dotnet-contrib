@@ -2,6 +2,38 @@
 
 ## Unreleased
 
+## 1.21.0
+
+Released 2026-Nov-11
+
+* Fixed an issue where validating a logger category name (event namespace)
+  that is not a valid OneCollector event namespace could take an extremely long
+  time (growing exponentially with the length of the name), blocking log export.
+  For example, category names containing a `-`, `_`, `` ` ``, or `<` after a
+  long run of letters.
+  ([#5917](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5917))
+
+* Fixed an issue where event names and logger category names that are replaced
+  by a default or an `EventFullNameMappings` rule (and preserved in the
+  `namespace`/`name` data fields), or supplied via `{EventFullName}`, were
+  written to the JSON payload without encoding. Names containing quotes,
+  backslashes, control characters, or non-ASCII characters produced malformed
+  or invalid UTF-8 JSON, and names longer than 126 characters caused the whole
+  batch to fail to export. Event namespace and event name validation no longer
+  accepts a trailing newline. Also fixed an issue where an original event name
+  could be attached to unrelated log records which resolved to the default
+  event name, or to records whose original name differed only by case.
+  ([#5916](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5916))
+
+* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+* Add support for .NET 11.0.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+* Updated OpenTelemetry core component version(s) to `1.21.0`.
+  ([#5969](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5969))
+
 ## 1.20.1
 
 Released 2026-Oct-21
