@@ -678,17 +678,24 @@ public class KustoQueryParserTests
         var query = prefix + string.Concat(Enumerable.Repeat(repeated, 32_000));
 
         // Warm up so that one-off initialization (JIT, caches) is not counted.
-        _ = KustoProcessor.Process(shouldSummarize: true, shouldSanitize: false, prefix + string.Concat(Enumerable.Repeat(repeated, 200)));
+        _ = KustoProcessor.Process(shouldSummarize: true, shouldSanitize: true, prefix + string.Concat(Enumerable.Repeat(repeated, 200)));
 
+        // Sanitization only walks the syntax tree once the query is parsed, so it is the baseline for
+        // how long processing the query takes on this machine and runtime, which parsing dominates.
         var stopwatch = Stopwatch.StartNew();
+        _ = KustoProcessor.Process(shouldSummarize: false, shouldSanitize: true, query);
+        var baseline = stopwatch.Elapsed;
+
+        stopwatch.Restart();
         var info = KustoProcessor.Process(shouldSummarize: true, shouldSanitize: false, query);
-        stopwatch.Stop();
+        var elapsed = stopwatch.Elapsed;
 
         // The query has syntax errors, so there is no summary.
         Assert.Null(info.Summarized);
 
-        // Without the fix this takes well over 20 seconds, with it the cost is dominated by parsing (well under a second).
-        Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(5), $"Summarizing took {stopwatch.Elapsed}.");
+        // Summarizing costs about the same as the baseline, as both are dominated by parsing.
+        var limit = TimeSpan.FromTicks(3 * baseline.Ticks) + TimeSpan.FromSeconds(1);
+        Assert.True(elapsed < limit, $"Summarizing took {elapsed}, but sanitizing took {baseline}.");
     }
 
     [Fact]
