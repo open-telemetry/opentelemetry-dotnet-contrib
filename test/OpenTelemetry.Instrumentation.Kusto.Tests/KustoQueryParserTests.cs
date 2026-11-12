@@ -666,6 +666,31 @@ public class KustoQueryParserTests
         Assert.Equal(expectedSanitizedQuery, info.Sanitized);
     }
 
+    [Theory]
+    [InlineData("T | where ", "f(")]
+    [InlineData("T | where ", "(")]
+    [InlineData("T | where ", "not(")]
+    public void GenerateQuerySummary_DeeplyNestedUnterminatedQuery_CompletesInReasonableTime(string prefix, string repeated)
+    {
+        // An unterminated nest of calls or brackets produces a syntax diagnostic for every unclosed level.
+        // Materializing the diagnostics to check whether there are any costs time proportional to the nesting
+        // depth for each of them, so quadratic in the length of the query.
+        var query = prefix + string.Concat(Enumerable.Repeat(repeated, 32_000));
+
+        // Warm up so that one-off initialization (JIT, caches) is not counted.
+        _ = KustoProcessor.Process(shouldSummarize: true, shouldSanitize: false, prefix + string.Concat(Enumerable.Repeat(repeated, 200)));
+
+        var stopwatch = Stopwatch.StartNew();
+        var info = KustoProcessor.Process(shouldSummarize: true, shouldSanitize: false, query);
+        stopwatch.Stop();
+
+        // The query has syntax errors, so there is no summary.
+        Assert.Null(info.Summarized);
+
+        // Without the fix this takes well over 20 seconds, with it the cost is dominated by parsing (well under a second).
+        Assert.True(stopwatch.Elapsed < TimeSpan.FromSeconds(5), $"Summarizing took {stopwatch.Elapsed}.");
+    }
+
     [Fact]
     public void GenerateQuerySummary_ManyMaterializedViewCallsAfterTruncation_CompletesInReasonableTime()
     {
