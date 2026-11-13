@@ -10,6 +10,7 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation.Tracing;
 internal sealed class AWSTracer : Tracer
 {
     private readonly ActivitySource activitySource;
+    private readonly bool recordException;
     private readonly bool useProducerKindForMessageSend;
     private int disposed;
 
@@ -17,14 +18,16 @@ internal sealed class AWSTracer : Tracer
     /// Initializes a new instance of the <see cref="AWSTracer"/> class.
     /// </summary>
     /// <param name="activitySource">The ActivitySource used for creating and tracking the activities.</param>
+    /// <param name="recordException">Whether the exception of a failed call is recorded on the span.</param>
     /// <param name="useProducerKindForMessageSend">
     /// Whether spans for sending a single message to AWS SNS or AWS SQS are created with <see cref="ActivityKind.Producer"/>
     /// when their context is injected into the message as its creation context, as described by the semantic conventions
     /// for AWS SNS and AWS SQS since v1.44.0.
     /// </param>
-    public AWSTracer(ActivitySource activitySource, bool useProducerKindForMessageSend = false)
+    public AWSTracer(ActivitySource activitySource, bool recordException, bool useProducerKindForMessageSend = false)
     {
         this.activitySource = activitySource ?? throw new ArgumentNullException(nameof(activitySource));
+        this.recordException = recordException;
         this.useProducerKindForMessageSend = useProducerKindForMessageSend;
     }
 
@@ -63,7 +66,7 @@ internal sealed class AWSTracer : Tracer
         var parentActivityContext = ConvertToActivityContext(parentContext);
         var activity = this.activitySource.StartActivity(name, activityKind, parentActivityContext, tags, links);
 
-        return new AWSTraceSpan(activity);
+        return new AWSTraceSpan(activity, this.recordException);
     }
 
     protected override void Dispose(bool disposing)

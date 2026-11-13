@@ -34,6 +34,29 @@ public void ConfigureServices(IServiceCollection services)
 }
 ```
 
+## Exceptions
+
+By default, when an AWS SDK call fails the span status is set to `Error` without
+a description and the exception is not recorded on the span. The message of an
+exception thrown for a service error is composed by the AWS service and can
+quote values from the request, such as resource names or phone numbers.
+
+To record the exception as an `exception` event, and to keep the
+`exception.message` and `exception.stacktrace` attributes set by the AWS SDK,
+set `RecordException` to `true`:
+
+```csharp
+using OpenTelemetry.Trace;
+
+public void ConfigureServices(IServiceCollection services)
+{
+    services.AddControllers();
+    services.AddOpenTelemetry()
+        .WithTracing(builder => builder
+            .AddAWSInstrumentation(options => options.RecordException = true));
+}
+```
+
 ## Semantic Conventions
 
 _For an overview on Semantic Conventions, see
