@@ -65,8 +65,11 @@ internal static class KustoProcessor
         {
             // A query with syntax errors can't be confidently classified, and the summarizer would otherwise
             // echo unrecognized tokens verbatim, producing a high-cardinality summary of arbitrary (possibly
-            // sensitive) input. Omit the summary in that case.
-            if (code.GetSyntaxDiagnostics().Count == 0)
+            // sensitive) input. Omit the summary in that case. Only whether there are any diagnostics is needed:
+            // ContainsSyntaxDiagnostics is a constant-time check, whereas GetSyntaxDiagnostics() materializes every
+            // diagnostic, at a cost proportional to the nesting depth for each one, which is quadratic for an
+            // unterminated nest of calls or brackets.
+            if (!code.Syntax.ContainsSyntaxDiagnostics)
             {
                 summarized = Summarize(code);
             }
