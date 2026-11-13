@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.10
+
+Released 2026-Nov-13
+
 * Fix query summarization taking quadratic time relative to the nesting depth
   of queries with syntax errors, such as deeply nested unterminated calls.
   ([#6068](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6068))
