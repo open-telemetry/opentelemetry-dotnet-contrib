@@ -373,6 +373,13 @@ executed:
 As an example, if you need to override the default DisplayName or tags set by
 the library you can do so as follows:
 
+These callbacks enrich activities; they do not change metric tags. For metrics
+on .NET 8 or later, see [Enriching ASP.NET Core request duration
+metric](#enriching-aspnet-core-request-duration-metric). When overriding
+`http.route` on an activity, use the matched route template and keep its values
+low-cardinality rather than using the full request path, as described in the
+[HTTP semantic conventions](https://opentelemetry.io/docs/specs/semconv/registry/attributes/http/).
+
 ```csharp
 .AddAspNetCoreInstrumentation(o =>
 {
