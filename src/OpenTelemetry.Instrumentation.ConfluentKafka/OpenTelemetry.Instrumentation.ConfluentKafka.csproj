@@ -29,8 +29,8 @@
     <PackageReference Include="Confluent.Kafka" />
     <PackageReference Include="Microsoft.Extensions.Options" />
     <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions" />
-    <PackageReference Include="System.Text.Json" Condition="'$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == 'net462'" />
-    <PackageReference Include="System.Threading.Channels" Condition="'$(TargetFramework)' == 'netstandard2.0' Or '$(TargetFramework)' == 'net462'" />
+    <PackageReference Include="System.Text.Json" Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' != '.NETCoreApp'" />
+    <PackageReference Include="System.Threading.Channels" Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' != '.NETCoreApp'" />
   </ItemGroup>
 
 </Project>

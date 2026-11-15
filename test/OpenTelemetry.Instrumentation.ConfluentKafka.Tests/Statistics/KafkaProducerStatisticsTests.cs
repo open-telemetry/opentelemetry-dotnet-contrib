@@ -295,8 +295,14 @@ public class KafkaProducerStatisticsTests
         }
     }
 
-    internal static string ReadFixture(string state) => File.ReadAllText(
-        Path.Combine(AppContext.BaseDirectory, "Statistics", "Fixtures", $"librdkafka-2.4.0-producer-{state}.json"));
+    internal static string ReadFixture(string state)
+    {
+        using var stream = typeof(KafkaProducerStatisticsTests).Assembly.GetManifestResourceStream(
+            $"librdkafka-2.4.0-producer-{state}.json");
+        Assert.NotNull(stream);
+        using var reader = new StreamReader(stream);
+        return reader.ReadToEnd();
+    }
 
     private sealed class MetricsListener : IDisposable
     {
