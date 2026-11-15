@@ -122,9 +122,8 @@ public class WriteDirectlyToTransportSinkTests
 
         Assert.Equal(0, sink.Buffer.Length);
         Assert.Equal(2, numberOfRecordsWritten);
-        Assert.Single(transport.ExportedData);
 
-        data = transport.ExportedData[0];
+        data = Assert.Single(transport.ExportedData);
 
         Assert.NotNull(data);
         Assert.Equal(expectedPayloadSizeInBytes, data.Length);
@@ -178,9 +177,8 @@ public class WriteDirectlyToTransportSinkTests
 
         Assert.Equal(0, sink.Buffer.Length);
         Assert.Equal(2, numberOfRecordsWritten);
-        Assert.Single(transport.ExportedData);
 
-        var data = transport.ExportedData[0];
+        var data = Assert.Single(transport.ExportedData);
 
         Assert.NotNull(data);
         Assert.Equal(expectedPayloadSizeInBytes, data.Length);

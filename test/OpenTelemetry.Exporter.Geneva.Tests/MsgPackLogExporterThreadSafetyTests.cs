@@ -77,9 +77,9 @@ public class MsgPackLogExporterThreadSafetyTests
 
                         logger.LogInformation("Hello from {Thread} {Iteration}.", threadIndex, i);
 
-                        Assert.Single(logRecords);
+                        var logRecord = Assert.Single(logRecords);
 
-                        var serialized = exporter.SerializeLogRecord(logRecords[0]);
+                        var serialized = exporter.SerializeLogRecord(logRecord);
 
                         // Validate: the serialized data must be valid MessagePack
                         // representing a proper Fluentd Forward Mode message.
@@ -106,9 +106,9 @@ public class MsgPackLogExporterThreadSafetyTests
 
                             var innerArray = outerArray[1] as object[];
                             Assert.NotNull(innerArray);
-                            Assert.Single(innerArray);
+                            var innerArrayItem = Assert.Single(innerArray);
 
-                            var timestampAndMapping = innerArray[0] as object[];
+                            var timestampAndMapping = innerArrayItem as object[];
                             Assert.NotNull(timestampAndMapping);
                             Assert.Equal(2, timestampAndMapping.Length);
 

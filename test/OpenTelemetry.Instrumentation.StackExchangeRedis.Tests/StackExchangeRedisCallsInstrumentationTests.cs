@@ -589,8 +589,8 @@ public class StackExchangeRedisCallsInstrumentationTests(RedisXunitFixture fixtu
             db.StringGet("key1");
         }
 
-        Assert.Single(exportedItems);
-        Assert.Equal("SET", exportedItems[0].DisplayName);
+        var exportedItem = Assert.Single(exportedItems);
+        Assert.Equal("SET", exportedItem.DisplayName);
     }
 
     [EnabledOnDockerPlatformTheory(DockerPlatform.Linux)]

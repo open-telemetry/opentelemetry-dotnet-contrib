@@ -718,8 +718,8 @@ public class GenevaLogExporterTests
             var resource = ResourceBuilder.CreateEmpty().AddAttributes([
                 new KeyValuePair<string, object>("resourceAttr", "from resource"),
                 new KeyValuePair<string, object>("service.name", "BusyWorker"),
-                new KeyValuePair<string, object>("service.instanceId", "CY1SCH030021417"),])
-                .Build();
+                new KeyValuePair<string, object>("service.instanceId", "CY1SCH030021417"),
+            ]).Build();
 
             if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
             {

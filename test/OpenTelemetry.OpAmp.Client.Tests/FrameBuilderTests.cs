@@ -113,8 +113,10 @@ public class FrameBuilderTests
 
     [Theory]
     [ClassData(typeof(FrameBuilderTestData))]
-    internal void FrameBuilder_AddPartial(Func<IFrameBuilder, IFrameBuilder> addMessage, Func<AgentToServer, object> propertyFetcher)
+    internal void FrameBuilder_AddPartial(string testCaseName)
     {
+        var (addMessage, propertyFetcher) = FrameBuilderTestData.GetTestCase(testCaseName);
+
         var frameBuilder = new FrameBuilder(new());
         addMessage(frameBuilder);
 

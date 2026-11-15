@@ -198,7 +198,12 @@ internal class AWSLambdaUtils
         }
 
         start++;
+
+#if NET11_0_OR_GREATER
+        var end = functionArn!.IndexOf(':', start, StringComparison.Ordinal);
+#else
         var end = functionArn!.IndexOf(':', start);
+#endif
 
         return end < 0 ? functionArn.Substring(start) : functionArn.Substring(start, end - start);
     }
@@ -253,7 +258,12 @@ internal class AWSLambdaUtils
 
         for (var i = 0; i < occurrence; i++)
         {
+#if NET11_0_OR_GREATER
+            index = functionArn.IndexOf(':', index + 1, StringComparison.Ordinal);
+#else
             index = functionArn.IndexOf(':', index + 1);
+#endif
+
             if (index < 0)
             {
                 break;

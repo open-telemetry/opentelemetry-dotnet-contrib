@@ -18,7 +18,7 @@ public class InstrumentedChannelFactoryTests
 
         var channel = factory.CreateChannel(new EndpointAddress("net.tcp://localhost/Service"));
 
-        Assert.IsNotAssignableFrom<IRequestSessionChannel>(channel);
+        Assert.IsNotType<IRequestSessionChannel>(channel, exactMatch: false);
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public class InstrumentedChannelFactoryTests
 
         var channel = factory.CreateChannel(new EndpointAddress("net.tcp://localhost/Service"));
 
-        Assert.IsNotAssignableFrom<IDuplexSessionChannel>(channel);
+        Assert.IsNotType<IDuplexSessionChannel>(channel, exactMatch: false);
     }
 
     private sealed class FakeAsyncResult : IAsyncResult

@@ -20,7 +20,44 @@ public partial class HttpWebRequestTests
 
     [Theory]
     [MemberData(nameof(HttpTestData.TestData), MemberType = typeof(HttpTestData))]
-    public void HttpOutCallsAreCollectedSuccessfully(HttpOutTestCase tc)
+    public void HttpOutCallsAreCollectedSuccessfully(string testCaseName)
+        => this.VerifyHttpOutCall(HttpTestData.GetTestCase(testCaseName));
+
+    [Fact]
+    public void DebugIndividualTest()
+    {
+        var input = JsonSerializer.Deserialize<HttpOutTestCase>(
+        @"
+             {
+                ""name"": ""Http version attribute populated"",
+                ""method"": ""GET"",
+                ""url"": ""http://{host}:{port}/"",
+                ""responseCode"": 200,
+                ""spanName"": ""GET"",
+                ""spanStatus"": ""UNSET"",
+                ""spanKind"": ""Client"",
+                ""setHttpFlavor"": true,
+                ""spanAttributes"": {
+                  ""url.scheme"": ""http"",
+                  ""http.request.method"": ""GET"",
+                  ""server.address"": ""{host}"",
+                  ""server.port"": ""{port}"",
+                  ""network.protocol.version"": ""1.1"",
+                  ""http.response.status_code"": ""200"",
+                  ""url.full"": ""http://{host}:{port}/""
+                }
+              }
+            ",
+        JsonSerializerOptions);
+
+        Assert.NotNull(input);
+        this.VerifyHttpOutCall(input);
+    }
+
+    private static void ValidateHttpWebRequestActivity(Activity activityToValidate) =>
+        Assert.Equal(ActivityKind.Client, activityToValidate.Kind);
+
+    private void VerifyHttpOutCall(HttpOutTestCase tc)
     {
         using var serverLifeTime = TestHttpServer.RunServer(
             ctx =>
@@ -106,7 +143,7 @@ public partial class HttpWebRequestTests
                 Assert.Fail($"Tag {tag.Key} was not found in test data.");
             }
 
-#if NET9_0_OR_GREATER
+#if NET
             // TODO: NEED TO REVIEW THE SPEC
             // NET 9+ does not record the URL Fragment Identifier.
             if (value.EndsWith("#fragment", StringComparison.Ordinal))
@@ -139,8 +176,8 @@ public partial class HttpWebRequestTests
 
         if (tc.RecordException.HasValue && tc.RecordException.Value)
         {
-#if NET10_0_OR_GREATER
-            // .NET 10 reports its own activity, but does not set the status description
+#if NET
+            // .NET reports its own activity, but does not set the status description
             Assert.Contains(activity.Events, evt => evt.Name.Equals("exception"));
 #else
             Assert.Single(activity.Events, evt => evt.Name.Equals("exception"));
@@ -158,38 +195,4 @@ public partial class HttpWebRequestTests
         Assert.StartsWith("https://opentelemetry.io/schemas/", activity.Source.TelemetrySchemaUrl);
 #endif
     }
-
-    [Fact]
-    public void DebugIndividualTest()
-    {
-        var input = JsonSerializer.Deserialize<HttpOutTestCase>(
-        @"
-             {
-                ""name"": ""Http version attribute populated"",
-                ""method"": ""GET"",
-                ""url"": ""http://{host}:{port}/"",
-                ""responseCode"": 200,
-                ""spanName"": ""GET"",
-                ""spanStatus"": ""UNSET"",
-                ""spanKind"": ""Client"",
-                ""setHttpFlavor"": true,
-                ""spanAttributes"": {
-                  ""url.scheme"": ""http"",
-                  ""http.request.method"": ""GET"",
-                  ""server.address"": ""{host}"",
-                  ""server.port"": ""{port}"",
-                  ""network.protocol.version"": ""1.1"",
-                  ""http.response.status_code"": ""200"",
-                  ""url.full"": ""http://{host}:{port}/""
-                }
-              }
-            ",
-        JsonSerializerOptions);
-
-        Assert.NotNull(input);
-        this.HttpOutCallsAreCollectedSuccessfully(input);
-    }
-
-    private static void ValidateHttpWebRequestActivity(Activity activityToValidate) =>
-        Assert.Equal(ActivityKind.Client, activityToValidate.Kind);
 }

@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+## 0.1.0-alpha.10
+
+Released 2026-Nov-13
+
+* Fix query summarization taking quadratic time relative to the nesting depth
+  of queries with syntax errors, such as deeply nested unterminated calls.
+  ([#6068](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6068))
+
+## 0.1.0-alpha.9
+
+Released 2026-Nov-11
+
+* **Breaking Change** Dropped support for `net8.0` and `net9.0`.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+* Add support for .NET 11.0.
+  ([#3867](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867))
+
+* Updated OpenTelemetry core component version(s) to `1.21.0`.
+  ([#5969](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5969))
+
 ## 0.1.0-alpha.8
 
 Released 2026-Nov-09

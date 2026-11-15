@@ -89,7 +89,7 @@ internal static partial class SqlProcessor
     private static readonly SearchValues<char> InClauseScanSearchValues = SearchValues.Create(InClauseScanChars);
 #endif
 
-#if NET9_0_OR_GREATER
+#if NET
     private static readonly SearchValues<string> AccountWords = SearchValues.Create(["user", "login", "identified", "password"], StringComparison.OrdinalIgnoreCase);
 #endif
 
@@ -493,7 +493,7 @@ internal static partial class SqlProcessor
     // (e.g. CREATE USER name IDENTIFIED BY password). Without any of them there is nothing to find, so the words
     // around them are not looked at. The words can be part of longer ones (e.g. Users), which is not a problem.
     private static bool MayHaveAccounts(ReadOnlySpan<char> sql) =>
-#if NET9_0_OR_GREATER
+#if NET
         sql.ContainsAny(AccountWords);
 #else
         sql.IndexOf("user".AsSpan(), StringComparison.OrdinalIgnoreCase) >= 0 ||

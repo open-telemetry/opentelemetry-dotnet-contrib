@@ -1,7 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NET9_0_OR_GREATER
+#if NET
 using System.Buffers;
 #endif
 
@@ -12,7 +12,7 @@ namespace OpenTelemetry.Instrumentation.Kusto.Implementation;
 /// </summary>
 internal class TraceRecordParser
 {
-#if NET9_0_OR_GREATER
+#if NET
     private static readonly SearchValues<char> Delimiters = SearchValues.Create([',', '\n']);
 #else
     private static readonly char[] Delimiters = [',', '\n'];

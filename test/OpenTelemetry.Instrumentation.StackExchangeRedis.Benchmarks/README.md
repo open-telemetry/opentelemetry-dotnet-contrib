@@ -4,7 +4,7 @@ Navigate to the `./test/OpenTelemetry.Instrumentation.StackExchangeRedis.Benchma
 directory and run the following command:
 
 ```sh
-dotnet run --configuration Release --framework net10.0
+dotnet run --configuration Release --framework net11.0
 ```
 
 Then choose the benchmark class that you want to run by entering the

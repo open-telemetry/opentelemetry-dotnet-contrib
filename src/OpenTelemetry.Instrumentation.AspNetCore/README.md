@@ -116,7 +116,7 @@ public void ConfigureServices(IServiceCollection services)
 Following list of attributes are added by default on
 `http.server.request.duration` metric. See
 [http-metrics](https://github.com/open-telemetry/semantic-conventions/tree/v1.23.0/docs/http/http-metrics.md)
-for more details about each individual attribute. .NET 8 and above supports
+for more details about each individual attribute. .NET 10 and above supports
 additional metrics, see [list of metrics produced](#list-of-metrics-produced) for
 more details.
 
@@ -143,7 +143,7 @@ following the OpenTelemetry semantic conventions. The library includes additiona
 metrics beyond those defined in the
 [specification](https://github.com/open-telemetry/semantic-conventions/blob/v1.23.0/docs/http/http-metrics.md),
 covering additional scenarios for ASP.NET Core users. When the application
-targets .NET 8 and newer versions, the instrumentation library automatically
+targets .NET 10 and newer versions, the instrumentation library automatically
 enables all `built-in` metrics by default.
 
 Note that the `AddAspNetCoreInstrumentation()` extension simplifies the process
@@ -162,7 +162,7 @@ to achieve this.
 
 > [!NOTE]
 > There is no difference in features or emitted metrics when enabling metrics
-using `AddMeter()` or `AddAspNetCoreInstrumentation()` on .NET 8 and newer
+using `AddMeter()` or `AddAspNetCoreInstrumentation()` on .NET 10 and newer
 versions.
 <!-- This comment is to make sure the two notes above and below are not merged -->
 > [!NOTE]

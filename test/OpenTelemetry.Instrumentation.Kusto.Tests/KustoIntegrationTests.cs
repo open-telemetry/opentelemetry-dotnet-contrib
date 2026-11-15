@@ -331,8 +331,7 @@ public sealed class KustoIntegrationTests : IClassFixture<KustoIntegrationTestsF
             .Where(activity => activity.Source == KustoActivitySource.ActivitySource)
             .ToList();
 
-        Assert.Single(kustoActivities);
-        var activity = kustoActivities[0];
+        var activity = Assert.Single(kustoActivities);
 
         // Verify the custom summary was set by the Enrich callback
         var querySummaryTag = activity.TagObjects.SingleOrDefault(t => t.Key == SemanticConventions.AttributeDbQuerySummary);

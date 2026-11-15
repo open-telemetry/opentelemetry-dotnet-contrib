@@ -3,6 +3,8 @@
 
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
+using Amazon.SimpleNotificationService;
+using Amazon.SQS;
 
 namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 
@@ -30,6 +32,12 @@ internal class AWSTracingPipelineCustomizer : IRuntimePipelineCustomizer
             return;
         }
 
+        if (AWSServiceHelper.UsesProducerSpansForMessageSend(this.options.SemanticConventionVersion) && IsMessagingClient(type))
+        {
+            // MetricsHandler creates the SDK span, so the message's creation context must be available before it runs.
+            pipeline.AddHandlerBefore<MetricsHandler>(new AWSMessageContextPipelineHandler());
+        }
+
         var tracingPipelineHandler = new AWSTracingPipelineHandler(this.options);
         var propagatingPipelineHandler = new AWSPropagatorPipelineHandler();
 
@@ -41,4 +49,8 @@ internal class AWSTracingPipelineCustomizer : IRuntimePipelineCustomizer
         // the outgoing request object so that it can work with the request's Headers
         pipeline.AddHandlerBefore<RetryHandler>(propagatingPipelineHandler);
     }
+
+    internal static bool IsMessagingClient(Type type)
+        => typeof(AmazonSQSClient).IsAssignableFrom(type) ||
+           typeof(AmazonSimpleNotificationServiceClient).IsAssignableFrom(type);
 }

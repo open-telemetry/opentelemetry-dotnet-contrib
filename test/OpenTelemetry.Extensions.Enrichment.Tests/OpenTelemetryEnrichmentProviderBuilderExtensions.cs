@@ -28,9 +28,9 @@ public sealed class OpenTelemetryEnrichmentProviderBuilderExtensions
             Assert.NotNull(activity);
             activity.Stop();
 
-            Assert.Single(exportedItems);
+            var exportedItem = Assert.Single(exportedItems);
 
-            var tagObjects = exportedItems[0].TagObjects;
+            var tagObjects = exportedItem.TagObjects;
             var tagObject1 = tagObjects.Where(tag => tag.Key == MyTraceEnricher.Key);
             Assert.Equal(1, tagObject1.Single().Value);
 
@@ -58,9 +58,9 @@ public sealed class OpenTelemetryEnrichmentProviderBuilderExtensions
             Assert.NotNull(activity);
             activity.Stop();
 
-            Assert.Single(exportedItems);
+            var exportedItem = Assert.Single(exportedItems);
 
-            var tagObjects = exportedItems[0].TagObjects;
+            var tagObjects = exportedItem.TagObjects;
             var tagObject1 = tagObjects.Where(tag => tag.Key == MyTraceEnricher.Key);
             Assert.Equal(1, tagObject1.Single().Value);
 
@@ -93,9 +93,9 @@ public sealed class OpenTelemetryEnrichmentProviderBuilderExtensions
             Assert.NotNull(activity);
             activity.Stop();
 
-            Assert.Single(exportedItems);
+            var exportedItem = Assert.Single(exportedItems);
 
-            var tagObjects = exportedItems[0].TagObjects;
+            var tagObjects = exportedItem.TagObjects;
             var tagObject1 = tagObjects.Where(tag => tag.Key == testKey1);
             Assert.Equal(testValue1, tagObject1.Single().Value);
 
@@ -123,9 +123,9 @@ public sealed class OpenTelemetryEnrichmentProviderBuilderExtensions
             Assert.NotNull(activity);
             activity.Stop();
 
-            Assert.Single(exportedItems);
+            var exportedItem = Assert.Single(exportedItems);
 
-            var tagObjects = exportedItems[0].TagObjects;
+            var tagObjects = exportedItem.TagObjects;
             var tagObject1 = tagObjects.Where(tag => tag.Key == MyTraceEnricher.Key);
             Assert.Equal(1, tagObject1.Single().Value);
 

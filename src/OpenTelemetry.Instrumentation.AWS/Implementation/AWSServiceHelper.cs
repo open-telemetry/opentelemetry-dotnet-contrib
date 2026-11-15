@@ -8,6 +8,10 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 
 internal class AWSServiceHelper
 {
+    // The semantic conventions for AWS SNS and AWS SQS describe sending a single message as a producer span
+    // that preserves any existing message creation context, rather than a client span, since v1.44.0.
+    private static readonly Version MessageSendProducerSpanVersion = new(1, 44, 0);
+
     public AWSServiceHelper(AWSSemanticConventions semanticConventions)
     {
         this.ParameterAttributeMap =
@@ -111,6 +115,16 @@ internal class AWSServiceHelper
     internal IDictionary<string, string> ParameterAttributeMap { get; }
 
     internal HashSet<string> ArrayValueAttributeNames { get; }
+
+    /// <summary>
+    /// Gets whether the specified semantic conventions version describes sending a single SNS or SQS message as a producer span.
+    /// </summary>
+    /// <param name="semanticConventionVersion">The semantic conventions version.</param>
+    /// <returns>
+    /// <see langword="true"/> if the version describes producer spans for sending messages; otherwise <see langword="false"/>.
+    /// </returns>
+    internal static bool UsesProducerSpansForMessageSend(SemanticConventionVersion semanticConventionVersion)
+        => AWSSemanticConventions.GetVersion(semanticConventionVersion) >= MessageSendProducerSpanVersion;
 
     internal static string GetAWSServiceName(IRequestContext requestContext)
         => Utils.RemoveAmazonPrefixFromServiceName(requestContext.ServiceMetaData.ServiceId);

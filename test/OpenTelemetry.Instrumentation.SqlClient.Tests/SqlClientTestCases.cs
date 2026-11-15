@@ -18,32 +18,31 @@ public static class SqlClientTestCases
         Converters = { new JsonStringEnumConverter() },
     };
 
-    public static IEnumerable<object[]> GetTestCases()
+    public static TheoryData<string> GetTestCaseNames()
+        => [.. LoadTestCases().Select(testCase => testCase.Name)];
+
+    public static SqlClientTestCase GetTestCase(string name)
+        => LoadTestCases().Single(testCase => string.Equals(testCase.Name, name, StringComparison.Ordinal));
+
+    private static SqlClientTestCase[] LoadTestCases()
     {
         var assembly = Assembly.GetExecutingAssembly();
         var input = JsonSerializer.Deserialize<SqlClientTestCase[]>(
             assembly.GetManifestResourceStream("SqlClientTestCases.json")!,
             JsonSerializerOptions);
-        return GetArgumentsFromTestCaseObject(input!);
-    }
 
-    private static List<object[]> GetArgumentsFromTestCaseObject(IEnumerable<SqlClientTestCase> input)
-    {
-        var result = new List<object[]>();
-
-        foreach (var testCase in input)
-        {
 #if NETFRAMEWORK
+        foreach (var testCase in input!)
+        {
             testCase.Expected.DbOperationName = testCase.ExpectedNetFramework.DbOperationName;
             testCase.Expected.DbQuerySummary = testCase.ExpectedNetFramework.DbQuerySummary;
             testCase.Expected.DbQueryText = testCase.ExpectedNetFramework.DbQueryText;
             testCase.Expected.DbStoredProcedureName = testCase.ExpectedNetFramework.DbStoredProcedureName;
             testCase.Expected.SpanName = testCase.ExpectedNetFramework.SpanName;
-#endif
-            result.Add([testCase]);
         }
+#endif
 
-        return result;
+        return input!;
     }
 }
 

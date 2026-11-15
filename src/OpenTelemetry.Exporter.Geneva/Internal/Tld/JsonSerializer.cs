@@ -246,11 +246,14 @@ internal static class JsonSerializer
             case ulong:
             case float:
             case double:
-                Span<char> tmp = stackalloc char[MAX_STACK_ALLOC_SIZE_IN_BYTES / sizeof(char)];
-                ((ISpanFormattable)obj).TryFormat(tmp, out var charsWritten, default, CultureInfo.InvariantCulture);
-                return WriteString(buffer, cursor, tmp.Slice(0, charsWritten));
+                if (!((IUtf8SpanFormattable)obj).TryFormat(buffer.AsSpan(cursor), out var bytesWritten, default, CultureInfo.InvariantCulture))
+                {
+                    throw new ArgumentException("The buffer is too small to serialize the numeric value.", nameof(buffer));
+                }
+
+                return cursor + bytesWritten;
             case DateTime dt:
-                tmp = stackalloc char[MAX_STACK_ALLOC_SIZE_IN_BYTES / sizeof(char)];
+                Span<char> tmp = stackalloc char[MAX_STACK_ALLOC_SIZE_IN_BYTES / sizeof(char)];
                 dt = dt.ToUniversalTime();
                 dt.TryFormat(tmp, out var count, default, CultureInfo.InvariantCulture);
                 return WriteString(buffer, cursor, tmp.Slice(0, count));
@@ -305,7 +308,7 @@ internal static class JsonSerializer
 #if NET
             case ISpanFormattable v:
                 tmp = stackalloc char[MAX_STACK_ALLOC_SIZE_IN_BYTES / sizeof(char)];
-                if (v.TryFormat(tmp, out charsWritten, default, CultureInfo.InvariantCulture))
+                if (v.TryFormat(tmp, out var charsWritten, default, CultureInfo.InvariantCulture))
                 {
                     return SerializeString(buffer, cursor, tmp.Slice(0, charsWritten));
                 }

@@ -18,8 +18,10 @@ public class RoutingTests(RoutingTestFixture fixture) : IClassFixture<RoutingTes
 
     [Theory]
     [MemberData(nameof(RoutingTestCases.GetTestCases), MemberType = typeof(RoutingTestCases))]
-    public async Task TestHttpRoute_Traces(TestCase testCase)
+    public async Task TestHttpRoute_Traces(string testCaseName)
     {
+        var testCase = RoutingTestCases.GetTestCase(testCaseName);
+
         List<Activity> exportedActivities = [];
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
@@ -65,8 +67,10 @@ public class RoutingTests(RoutingTestFixture fixture) : IClassFixture<RoutingTes
 
     [Theory]
     [MemberData(nameof(RoutingTestCases.GetTestCases), MemberType = typeof(RoutingTestCases))]
-    public async Task TestHttpRoute_Metrics(TestCase testCase)
+    public async Task TestHttpRoute_Metrics(string testCaseName)
     {
+        var testCase = RoutingTestCases.GetTestCase(testCaseName);
+
         List<Metric> exportedMetrics = [];
 
         using var meterProvider = Sdk.CreateMeterProviderBuilder()

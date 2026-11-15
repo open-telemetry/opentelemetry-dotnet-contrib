@@ -157,6 +157,13 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
                 }
             }
         }
+
+        // The number of messages received is only known once the response has been received.
+        // See https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/messaging/sqs.md#receive-span
+        if (responseContext.Response is Amazon.SQS.Model.ReceiveMessageResponse receiveMessageResponse)
+        {
+            this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingBatchMessageCount(activity, receiveMessageResponse.Messages?.Count ?? 0);
+        }
     }
 
 #if NET
@@ -275,6 +282,11 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
             {
                 this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingOperationType(activity, operationType);
             }
+
+            if (requestContext.OriginalRequest is Amazon.SimpleNotificationService.Model.PublishBatchRequest { PublishBatchRequestEntries: { } entries })
+            {
+                this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingBatchMessageCount(activity, entries.Count);
+            }
         }
         else if (AWSServiceType.IsSqsService(service))
         {
@@ -305,6 +317,11 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
             {
                 this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingOperationType(activity, operationType);
             }
+
+            if (requestContext.OriginalRequest is Amazon.SQS.Model.SendMessageBatchRequest { Entries: { } entries })
+            {
+                this.awsSemanticConventions.TagBuilder.SetTagAttributeMessagingBatchMessageCount(activity, entries.Count);
+            }
         }
 
         var region = requestContext.ClientConfig?.RegionEndpoint?.SystemName;
@@ -326,7 +343,11 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
             lastItem = null;
             var result = false;
 
+#if NET11_0_OR_GREATER
+            var index = value.LastIndexOf(delimiter, StringComparison.Ordinal);
+#else
             var index = value.LastIndexOf(delimiter);
+#endif
 
             if (index > -1 && index < value.Length - 1)
             {

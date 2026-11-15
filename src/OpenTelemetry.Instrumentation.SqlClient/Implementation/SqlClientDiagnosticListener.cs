@@ -399,8 +399,6 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
 
     private static string FormatActivityTraceFlags(ActivityTraceFlags flags)
     {
-        // https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/3867
-        // will change this code to use ActivityTraceFlags.RandomTraceId instead of 2.
         // If new enum values are added in the future the Fallback path will ensure
         // that the handling is functionally correct, but the switch should be updated
         // to include the new value(s) for better readability and performance where possible.
@@ -409,7 +407,7 @@ internal sealed class SqlClientDiagnosticListener : ListenerHandler
             ActivityTraceFlags.None => "00",
             ActivityTraceFlags.Recorded => "01",
             (ActivityTraceFlags)2 => "02",
-            ActivityTraceFlags.Recorded | (ActivityTraceFlags)2 => "03",
+            ActivityTraceFlags.Recorded | ActivityTraceFlags.RandomTraceId => "03",
             _ => Fallback((byte)flags),
         };
 

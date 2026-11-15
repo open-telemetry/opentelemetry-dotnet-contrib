@@ -14,7 +14,7 @@ namespace OpenTelemetry.Instrumentation.AspNetCore;
 internal sealed class AspNetCoreInstrumentationProvider
 {
     private readonly IOptionsMonitor<AspNetCoreTraceInstrumentationOptions> optionsMonitor;
-    private readonly Dictionary<string, AspNetCoreInstrumentation> instances = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, AspNetCoreInstrumentation> instances = [with(StringComparer.Ordinal)];
 
     public AspNetCoreInstrumentationProvider(
         IOptionsMonitor<AspNetCoreTraceInstrumentationOptions> optionsMonitor)
