@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* Update Semantic Conventions for RPC/gRPC to version
+  [1.45.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/rpc/README.md).
+  When the experimental gRPC support is on, the `rpc.response.status_code`
+  attribute is renamed to `rpc.status_code`.
+  ([#PLACEHOLDER](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/PLACEHOLDER))
+
 ## 1.21.0
 
 Released 2026-Nov-11
