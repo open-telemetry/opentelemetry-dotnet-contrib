@@ -2,7 +2,7 @@
 
 ## Unreleased
 
-* Update Semantic Conventions for RPC/gRPC to version
+* **Breaking Change**: Update Semantic Conventions for RPC/gRPC to version
   [1.45.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/rpc/README.md).
   When the experimental gRPC support is on, the `rpc.response.status_code`
   attribute is renamed to `rpc.status_code`.
