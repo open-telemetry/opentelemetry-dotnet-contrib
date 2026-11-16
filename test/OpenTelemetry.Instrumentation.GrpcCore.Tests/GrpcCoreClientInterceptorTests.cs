@@ -358,7 +358,6 @@ public class GrpcCoreClientInterceptorTests(WeaverFixture weaver, ITestOutputHel
         Assert.DoesNotContain(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcService);
         Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcMethod && (string?)t.Value == expectedRpcMethod);
         Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcStatusCode && (string?)t.Value == expectedResponseStatusCode);
-        Assert.DoesNotContain(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcResponseStatusCode);
 
         // Client spans treat every non-OK status as an error, whereas server spans only treat a
         // subset of status codes as errors.

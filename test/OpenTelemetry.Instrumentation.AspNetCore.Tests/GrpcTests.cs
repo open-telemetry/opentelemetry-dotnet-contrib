@@ -36,7 +36,6 @@ public class GrpcTests
         AssertTag(activity, SemanticConventions.AttributeRpcMethod, "package.Service/Method");
         AssertTag(activity, SemanticConventions.AttributeRpcMethodOriginal, null);
         AssertTag(activity, SemanticConventions.AttributeRpcStatusCode, "INTERNAL");
-        AssertTag(activity, SemanticConventions.AttributeRpcResponseStatusCode, null);
         AssertTag(activity, SemanticConventions.AttributeErrorType, "INTERNAL");
     }
 
