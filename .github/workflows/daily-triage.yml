@@ -1,0 +1,54 @@
+name: Personal daily triage
+
+on:
+  schedule:
+  - cron: '0 9 * * *'
+    timezone: America/Los_Angeles
+  workflow_dispatch:
+    inputs:
+      publish:
+        description: Create or update today's digest issue (otherwise preview only)
+        type: boolean
+        default: false
+
+permissions: {}
+
+concurrency:
+  group: personal-daily-triage
+  cancel-in-progress: false
+
+jobs:
+  digest:
+    if: github.repository == 'harsimar/opentelemetry-dotnet-contrib'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+
+    permissions:
+      contents: read
+      issues: write
+
+    env:
+      TRIAGE_USER: harsimar
+      TRIAGE_REPOSITORY: harsimar/opentelemetry-dotnet-contrib
+      TRIAGE_TIMEZONE: America/Los_Angeles
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      with:
+        filter: 'tree:0'
+        persist-credentials: false
+        show-progress: false
+
+    - name: Generate digest
+      env:
+        GH_TOKEN: ${{ github.token }}
+        PUBLISH: ${{ github.event_name == 'schedule' || inputs.publish }}
+      shell: bash
+      run: |
+        args=(--output "$RUNNER_TEMP/daily-triage.md")
+        if [[ "$PUBLISH" == "true" ]]; then
+          args+=(--publish)
+        fi
+        node build/scripts/daily-triage.mjs "${args[@]}"
+        cat "$RUNNER_TEMP/daily-triage.md" >> "$GITHUB_STEP_SUMMARY"
