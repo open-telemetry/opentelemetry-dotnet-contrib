@@ -579,9 +579,10 @@ the private route this is the only verification before review, because the
 temporary private fork runs no CI, so be thorough and report exactly what ran:
 
 - Build and run the affected test project(s) on every TFM that can run locally
-  (use the `Test` target in `build/OpenTelemetry.proj` when a project does not
-  target the TFM).
-- `dotnet format OpenTelemetry.slnx --no-restore --verify-no-changes`
+   (use the `Test` target in the relevant component project under `build/Projects/`,
+   or `build/Projects/Component.proj` with `-p:BUILD_COMPONENT=<component>` when
+   there is no dedicated component project).
+- `dotnet format opentelemetry-dotnet-contrib.slnx --no-restore --verify-no-changes`
   (or scoped with `--include` to the touched files), `markdownlint` for
   Markdown if installed, and `python3 ./build/scripts/sanitycheck.py`.
 - Public API files (`.publicApi/PublicAPI.Unshipped.txt`) if the API changed;
@@ -615,8 +616,8 @@ To avoid this, send the output to the session scratchpad instead:
 - With the `Test` target, pass
   `-p:TestResultsDirectory=<scratchpad>\TestResults`. With `dotnet test`, pass
   `--results-directory <scratchpad>\TestResults` and
-  `--diagnostic-output-directory <scratchpad>\TestResults\diag`.
-- `benchmark.ps1` has no option to move its output. Run the `test/Benchmarks`
+  `--diagnostic --diagnostic-output-directory <scratchpad>\TestResults\diag`.
+- `benchmark.ps1` has no option to move its output. Run the relevant benchmark
   project directly with BenchmarkDotNet's `--artifacts <scratchpad>` instead, or
   move the folder out of the checkout afterwards.
 
