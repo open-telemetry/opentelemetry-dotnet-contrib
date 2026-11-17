@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Fixed the OTLP protobuf encoding copying the prepopulated number data point
+  attributes using the histogram attributes length.
+  ([#NNNN](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/NNNN))
+
 ## 1.21.0
 
 Released 2026-Nov-11
