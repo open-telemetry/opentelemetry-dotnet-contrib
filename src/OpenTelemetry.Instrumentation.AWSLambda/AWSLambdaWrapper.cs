@@ -20,6 +20,8 @@ public static class AWSLambdaWrapper
 
     internal const string DisableUrlQueryRedactionEnvVarName = "OTEL_DOTNET_EXPERIMENTAL_AWS_LAMBDA_DISABLE_URL_QUERY_REDACTION";
 
+    private const string ErrorTypeAttributeName = "error.type";
+
     private static readonly Lazy<ActivitySource> AWSLambdaActivitySource = new(CreateActivitySource);
 
     private static int isColdStart = 1;
@@ -39,6 +41,12 @@ public static class AWSLambdaWrapper
     internal static AWSSemanticConventions AWSSemanticConventions { get; set; } = new();
 
     internal static Action<Activity, object?, ILambdaContext>? EnrichWithInput { get; set; }
+
+    /// <summary>
+    /// Gets or sets a value indicating whether exceptions thrown by the handler are recorded
+    /// as <c>exception</c> events on the invocation activity. Default value is false.
+    /// </summary>
+    internal static bool RecordException { get; set; }
 
 #pragma warning disable RS0026 // Do not add multiple public overloads with optional parameters
 
@@ -235,8 +243,13 @@ public static class AWSLambdaWrapper
         {
             if (activity.IsAllDataRequested)
             {
-                activity.AddException(exception);
-                activity.SetStatus(ActivityStatusCode.Error, exception.Message);
+                if (RecordException)
+                {
+                    activity.AddException(exception);
+                }
+
+                activity.SetStatus(ActivityStatusCode.Error);
+                activity.SetTag(ErrorTypeAttributeName, exception.GetType().FullName);
             }
         }
     }

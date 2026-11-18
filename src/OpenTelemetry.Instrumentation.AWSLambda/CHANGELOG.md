@@ -2,6 +2,14 @@
 
 ## Unreleased
 
+* **Breaking Change** Exception messages are no longer exported as the span
+  status description, and `exception` events are no longer recorded by default,
+  as they can contain data from the function input. Set the new
+  `AWSLambdaInstrumentationOptions.RecordException` option to `true` to record
+  `exception` events. The exception type is now recorded in the `error.type`
+  attribute.
+  ([#5877](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5877))
+
 ## 1.21.0
 
 Released 2026-Nov-11

@@ -73,8 +73,15 @@ internal class SampleHandlers
 
     // Action<TInput, ILambdaContext>
     public void SampleHandlerSyncNoReturnException(string str, ILambdaContext _2)
+    {
+        throw new Exception(str);
+    }
+
+    // Func<TInput, ILambdaContext, Task>
+    public async Task SampleHandlerAsyncNoReturnException(string str, ILambdaContext _2)
 #pragma warning restore SA1313
     {
+        await Task.Delay(10);
         throw new Exception(str);
     }
 }
