@@ -382,7 +382,7 @@ export function renderDigest(digest, user, now, timezone) {
   return `<!-- opentelemetry-daily-triage:${user}:${date} -->
 # OpenTelemetry daily digest - ${date}
 
-@${user} - generated ${now.toISOString()} (${timezone}).
+Digest for ${escapeMarkdown(user)} - generated ${now.toISOString()} (${timezone}).
 
 ## 1. Issues assigned to you
 
@@ -456,7 +456,7 @@ export async function publishDigest(api, destination, user, now, timezone, body)
   const result = existing.length
     ? await api.request(`${path}/${existing[0].number}`, 'PATCH', { body })
     : await api.request(path, 'POST', {
-      title: `OpenTelemetry daily digest - ${date}`, body, assignees: [user],
+      title: `OpenTelemetry daily digest - ${date}`, body,
     });
   return result.html_url;
 }
