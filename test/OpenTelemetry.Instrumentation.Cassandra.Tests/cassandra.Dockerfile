@@ -1,1 +1,1 @@
-FROM cassandra:5.0.9@sha256:7e2afd76d5afb991f64c5d9be7d1f8abf749e7ab0e9daaccfd6e865efcece7cc
+FROM cassandra:5.0.9@sha256:acd754f07c73f3a166bb477354b56ce9a05690c3e5e2aaacc1aab2afddba6436
