@@ -101,7 +101,7 @@ public class AWSLambdaWrapperTests : IDisposable
     [Fact]
     public void ResourceOmitsLogGroupNamesWhenEnvironmentVariableIsNotSet()
     {
-        Environment.SetEnvironmentVariable("AWS_LAMBDA_LOG_GROUP_NAME", null);
+        using var envScope = EnvironmentVariableScope.Create("AWS_LAMBDA_LOG_GROUP_NAME", null);
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddAWSLambdaConfigurations()
