@@ -120,7 +120,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.15" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.15" />
     <PackageVersion Include="Microsoft.Azure.Kusto.Data" Version="14.2.4" />
-    <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.1.1" />
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.1.2" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.15" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.15" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.15" />
