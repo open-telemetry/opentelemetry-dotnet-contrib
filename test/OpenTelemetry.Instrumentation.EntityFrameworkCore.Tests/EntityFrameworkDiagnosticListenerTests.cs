@@ -806,9 +806,9 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
 
             var activity = Assert.Single(exportedItems);
 
-            Assert.DoesNotContain(activity.Tags, t => t.Key == "peer.service");
-            Assert.DoesNotContain(activity.Tags, t => t.Key == "server.address");
-            Assert.DoesNotContain(activity.Tags, t => t.Key == "server.port");
+            Assert.DoesNotContain(activity.TagObjects, t => t.Key == "peer.service");
+            Assert.DoesNotContain(activity.TagObjects, t => t.Key == "server.address");
+            Assert.DoesNotContain(activity.TagObjects, t => t.Key == "server.port");
         }
         finally
         {
