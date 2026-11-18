@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+## 1.21.0-beta.2
+
+Released 2026-Nov-18
+
 * Fixed `server.address` and `peer.service` being set to a meaningless value, such
   as the first directory of the path, from the path to the database file when using
   SQLite. These attributes are no longer set for SQLite.
