@@ -750,6 +750,74 @@ public class EntityFrameworkDiagnosticListenerTests : IDisposable
         VerifyActivityData(Assert.Single(exportedItems));
     }
 
+    [Theory]
+    [InlineData("Devart.Data.SQLite.Entity.EFCore", false)]
+    [InlineData("Microsoft.Data.Sqlite.SqliteCommand", false)]
+    [InlineData("Microsoft.EntityFrameworkCore.Sqlite", false)]
+    [InlineData("Microsoft.Data.SqlClient.SqlCommand", true)]
+    [InlineData("Microsoft.EntityFrameworkCore.SqlServer", true)]
+    [InlineData("Npgsql.EntityFrameworkCore.PostgreSQL", true)]
+    [InlineData("Pomelo.EntityFrameworkCore.MySql", true)]
+    [InlineData("Some.Unknown.Provider", true)]
+    [InlineData(null, true)]
+    public void ShouldReturnCorrectValueForServerAddressDataSourceProviderOrCommandName(string? name, bool expected)
+    {
+        var actual = EntityFrameworkProviderInfo.HasServerAddressDataSource(name);
+
+        Assert.Equal(expected, actual);
+    }
+
+    [Theory]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(true, true)]
+    public void ShouldNotSetServerAddressForSqliteDatabaseFile(bool emitOldAttributes, bool emitNewAttributes)
+    {
+        // The data source of a SQLite connection is the path to its database file, not a server
+        // address, so none of the parts of it (such as the first directory) must be used as one.
+        var directory = Path.Combine(Path.GetTempPath(), "server-address-" + Guid.NewGuid().ToString("N"), "databases");
+        var path = Path.Combine(directory, "items.db");
+
+        Directory.CreateDirectory(directory);
+
+        try
+        {
+            var exportedItems = new List<Activity>();
+
+            using (Sdk.CreateTracerProviderBuilder()
+                      .AddInMemoryExporter(exportedItems)
+                      .AddEntityFrameworkCoreInstrumentation(options =>
+                      {
+                          options.EmitOldAttributes = emitOldAttributes;
+                          options.EmitNewAttributes = emitNewAttributes;
+                      })
+                      .Build())
+            {
+                var contextOptions = new DbContextOptionsBuilder<ItemsContext>()
+                    .UseSqlite($"Filename={path}")
+                    .Options;
+
+                using var context = new ItemsContext(contextOptions);
+
+                Assert.Equal(path, context.Database.GetDbConnection().DataSource);
+
+                context.Database.ExecuteSqlRaw("SELECT 1");
+            }
+
+            var activity = Assert.Single(exportedItems);
+
+            Assert.DoesNotContain(activity.Tags, t => t.Key == "peer.service");
+            Assert.DoesNotContain(activity.Tags, t => t.Key == "server.address");
+            Assert.DoesNotContain(activity.Tags, t => t.Key == "server.port");
+        }
+        finally
+        {
+            // Release the database file, as pooled connections keep it open
+            SqliteConnection.ClearAllPools();
+            Directory.Delete(Path.GetDirectoryName(directory)!, recursive: true);
+        }
+    }
+
     public void Dispose() => this.connection.Dispose();
 
     [Theory]
