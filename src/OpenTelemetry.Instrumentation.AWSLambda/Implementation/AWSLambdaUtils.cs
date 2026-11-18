@@ -25,6 +25,7 @@ internal class AWSLambdaUtils
     private const string FunctionVersion = "AWS_LAMBDA_FUNCTION_VERSION";
     private const string FunctionMaxMemory = "AWS_LAMBDA_FUNCTION_MEMORY_SIZE";
     private const string FunctionLogStreamName = "AWS_LAMBDA_LOG_STREAM_NAME";
+    private const string FunctionLogGroupName = "AWS_LAMBDA_LOG_GROUP_NAME";
     private const string AWSXRayLambdaTraceHeaderKey = "_X_AMZN_TRACE_ID";
 
     private static readonly Func<string, string, IEnumerable<string>> Getter = static (rawHeader, name) =>
@@ -147,6 +148,9 @@ internal class AWSLambdaUtils
 
     internal static string? GetFunctionInstance(ILambdaContext? context = null)
         => context?.LogStreamName ?? Environment.GetEnvironmentVariable(FunctionLogStreamName);
+
+    internal static string[]? GetLogGroupNames()
+        => Environment.GetEnvironmentVariable(FunctionLogGroupName) is { Length: > 0 } name ? [name] : null;
 
     internal static IEnumerable<string>? GetHeaderValues(APIGatewayProxyRequest request, string name)
     {
