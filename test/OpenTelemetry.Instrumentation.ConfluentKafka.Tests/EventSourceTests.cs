@@ -25,6 +25,17 @@ public class EventSourceTests
         Assert.Contains("boom", (string?)loggedEvent.Payload?[0]);
     }
 
+    [Fact]
+    public void StatisticsHandlerFailedLogsExceptionDetails()
+    {
+        var capturedEvents = new List<EventWrittenEventArgs>();
+        using var listener = new ClusterIdEventListener(capturedEvents);
+        ConfluentKafkaInstrumentationEventSource.Log.StatisticsHandlerFailed(new InvalidOperationException("statistics failure"));
+
+        var loggedEvent = Assert.Single(capturedEvents, e => e.EventId == 2);
+        Assert.Contains("statistics failure", (string?)loggedEvent.Payload?[0]);
+    }
+
     private sealed class ClusterIdEventListener : EventListener
     {
         private readonly List<EventWrittenEventArgs> capturedEvents;
