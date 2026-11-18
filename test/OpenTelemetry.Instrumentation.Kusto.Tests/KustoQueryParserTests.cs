@@ -666,6 +666,38 @@ public class KustoQueryParserTests
         Assert.Equal(expectedSanitizedQuery, info.Sanitized);
     }
 
+    [Theory]
+    [InlineData("T | where ", "f(")]
+    [InlineData("T | where ", "(")]
+    [InlineData("T | where ", "not(")]
+    public void GenerateQuerySummary_DeeplyNestedUnterminatedQuery_CompletesInReasonableTime(string prefix, string repeated)
+    {
+        // An unterminated nest of calls or brackets produces a syntax diagnostic for every unclosed level.
+        // Materializing the diagnostics to check whether there are any costs time proportional to the nesting
+        // depth for each of them, so quadratic in the length of the query.
+        var query = prefix + string.Concat(Enumerable.Repeat(repeated, 32_000));
+
+        // Warm up so that one-off initialization (JIT, caches) is not counted.
+        _ = KustoProcessor.Process(shouldSummarize: true, shouldSanitize: true, prefix + string.Concat(Enumerable.Repeat(repeated, 200)));
+
+        // Sanitization only walks the syntax tree once the query is parsed, so it is the baseline for
+        // how long processing the query takes on this machine and runtime, which parsing dominates.
+        var stopwatch = Stopwatch.StartNew();
+        _ = KustoProcessor.Process(shouldSummarize: false, shouldSanitize: true, query);
+        var baseline = stopwatch.Elapsed;
+
+        stopwatch.Restart();
+        var info = KustoProcessor.Process(shouldSummarize: true, shouldSanitize: false, query);
+        var elapsed = stopwatch.Elapsed;
+
+        // The query has syntax errors, so there is no summary.
+        Assert.Null(info.Summarized);
+
+        // Summarizing costs about the same as the baseline, as both are dominated by parsing.
+        var limit = TimeSpan.FromTicks(3 * baseline.Ticks) + TimeSpan.FromSeconds(1);
+        Assert.True(elapsed < limit, $"Summarizing took {elapsed}, but sanitizing took {baseline}.");
+    }
+
     [Fact]
     public void GenerateQuerySummary_ManyMaterializedViewCallsAfterTruncation_CompletesInReasonableTime()
     {
