@@ -17,7 +17,7 @@ internal sealed class TelemetryDynamicSinkProvider : IDynamicProperty, IContribu
     internal const string ActivitySourceName = "OpenTelemetry.Instrumentation.Remoting";
     internal const string DynamicPropertyName = "TelemetryDynamicSinkProvider";
     internal const int MaxCachedServiceNames = 1024;
-    internal static readonly Version SemanticConventionsVersion = new(1, 40, 0);
+    internal static readonly Version SemanticConventionsVersion = new(1, 45, 0);
 
     private readonly ActivitySource activitySource = Trace.ActivitySourceFactory.Create<TelemetryDynamicSinkProvider>(SemanticConventionsVersion);
     private readonly ConcurrentDictionary<string, string> serviceNameCache = new();
