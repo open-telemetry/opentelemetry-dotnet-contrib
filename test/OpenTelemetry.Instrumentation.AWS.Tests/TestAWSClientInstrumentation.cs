@@ -1551,6 +1551,145 @@ public class TestAWSClientInstrumentation : IDisposable
         Assert.Null(Utils.GetTagValue(activity, "aws.step_functions.state_machine.arn"));
     }
 
+    [Fact]
+#if NETFRAMEWORK
+    public void TestStepFunctionsCreateStateMachineSuccessful()
+#else
+    public async Task TestStepFunctionsCreateStateMachineSuccessful()
+#endif
+    {
+        var exportedItems = new List<Activity>();
+        var requestId = "8e2b6f4a-1c7d-4a3e-b5f9-0d6c2e8a4b71";
+        var extendedRequestId = "wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation(o => o.SemanticConventionVersion = SemanticConventionVersion.Latest)
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            using var sfn = new AmazonStepFunctionsClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            var dummyResponse = """
+                {
+                  "stateMachineArn": "arn:aws:states:us-east-1:123456789012:stateMachine:MyStateMachine",
+                  "creationDate": 1767225600
+                }
+                """;
+            CustomResponses.SetResponse(sfn, dummyResponse, requestId, extendedRequestId, true);
+            var request = new CreateStateMachineRequest
+            {
+                Name = "MyStateMachine",
+                Definition = """{ "StartAt": "Done", "States": { "Done": { "Type": "Succeed" } } }""",
+                RoleArn = "arn:aws:iam::123456789012:role/MyStateMachineRole",
+            };
+#if NETFRAMEWORK
+            sfn.CreateStateMachine(request);
+#else
+            await sfn.CreateStateMachineAsync(request, TestContext.Current.CancellationToken);
+#endif
+        }
+
+        var activity = Assert.Single(exportedItems, e => e.DisplayName == "SFN.CreateStateMachine");
+
+        // The state machine ARN is only known once the state machine has been created.
+        Assert.Equal(
+            "arn:aws:states:us-east-1:123456789012:stateMachine:MyStateMachine",
+            Utils.GetTagValue(activity, "aws.step_functions.state_machine.arn"));
+    }
+
+    [Fact]
+#if NETFRAMEWORK
+    public void TestStepFunctionsCreateActivitySuccessful()
+#else
+    public async Task TestStepFunctionsCreateActivitySuccessful()
+#endif
+    {
+        var exportedItems = new List<Activity>();
+        var requestId = "8e2b6f4a-1c7d-4a3e-b5f9-0d6c2e8a4b71";
+        var extendedRequestId = "wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation(o => o.SemanticConventionVersion = SemanticConventionVersion.Latest)
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            using var sfn = new AmazonStepFunctionsClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            var dummyResponse = """
+                {
+                  "activityArn": "arn:aws:states:us-east-1:123456789012:activity:MyActivity",
+                  "creationDate": 1767225600
+                }
+                """;
+            CustomResponses.SetResponse(sfn, dummyResponse, requestId, extendedRequestId, true);
+            var request = new CreateActivityRequest
+            {
+                Name = "MyActivity",
+            };
+#if NETFRAMEWORK
+            sfn.CreateActivity(request);
+#else
+            await sfn.CreateActivityAsync(request, TestContext.Current.CancellationToken);
+#endif
+        }
+
+        var activity = Assert.Single(exportedItems, e => e.DisplayName == "SFN.CreateActivity");
+
+        // The activity ARN is only known once the activity has been created.
+        Assert.Equal(
+            "arn:aws:states:us-east-1:123456789012:activity:MyActivity",
+            Utils.GetTagValue(activity, "aws.step_functions.activity.arn"));
+    }
+
+    [Fact]
+#if NETFRAMEWORK
+    public void TestStepFunctionsStartSyncExecutionKeepsRequestStateMachineArn()
+#else
+    public async Task TestStepFunctionsStartSyncExecutionKeepsRequestStateMachineArn()
+#endif
+    {
+        var exportedItems = new List<Activity>();
+        var requestId = "8e2b6f4a-1c7d-4a3e-b5f9-0d6c2e8a4b71";
+        var extendedRequestId = "wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation(o => o.SemanticConventionVersion = SemanticConventionVersion.Latest)
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            using var sfn = new AmazonStepFunctionsClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+
+            // stateMachineArn is optional in the StartSyncExecution response.
+            var dummyResponse = """
+                {
+                  "executionArn": "arn:aws:states:us-east-1:123456789012:express:MyStateMachine:MyExecution:1",
+                  "status": "SUCCEEDED",
+                  "startDate": 1767225600,
+                  "stopDate": 1767225601
+                }
+                """;
+            CustomResponses.SetResponse(sfn, dummyResponse, requestId, extendedRequestId, true);
+            var request = new StartSyncExecutionRequest
+            {
+                StateMachineArn = "arn:aws:states:us-east-1:123456789012:stateMachine:MyStateMachine",
+                Input = "{}",
+            };
+#if NETFRAMEWORK
+            sfn.StartSyncExecution(request);
+#else
+            await sfn.StartSyncExecutionAsync(request, TestContext.Current.CancellationToken);
+#endif
+        }
+
+        var activity = Assert.Single(exportedItems, e => e.DisplayName == "SFN.StartSyncExecution");
+
+        // A response that omits the ARN must not remove the one taken from the request.
+        Assert.Equal(
+            "arn:aws:states:us-east-1:123456789012:stateMachine:MyStateMachine",
+            Utils.GetTagValue(activity, "aws.step_functions.state_machine.arn"));
+    }
+
     public void Dispose() =>
         RuntimePipelineCustomizerRegistry.Instance.Deregister(AWS.Implementation.AWSTracingPipelineCustomizer.UniqueName);
 

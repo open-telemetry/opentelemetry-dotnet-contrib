@@ -47,12 +47,13 @@ internal class AWSServiceHelper
         { AWSServiceType.BedrockRuntimeService, ["ModelId"] },
     };
 
-    internal static IReadOnlyDictionary<string, List<string>> ServiceResponseParameterMap { get; } = new Dictionary<string, List<string>>(4)
+    internal static IReadOnlyDictionary<string, List<string>> ServiceResponseParameterMap { get; } = new Dictionary<string, List<string>>(5)
     {
         { AWSServiceType.BedrockService, ["GuardrailId"] },
         { AWSServiceType.BedrockAgentService, ["AgentId", "DataSourceId"] },
         { AWSServiceType.SNSService, ["MessageId", "TopicArn"] },
         { AWSServiceType.SQSService, ["MessageId", "QueueUrl"] },
+        { AWSServiceType.StepFunctionsService, ["StateMachineArn", "ActivityArn"] },
     };
 
     internal static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> MessagingOperationTypeMap { get; } = new Dictionary<string, IReadOnlyDictionary<string, string>>(2)
