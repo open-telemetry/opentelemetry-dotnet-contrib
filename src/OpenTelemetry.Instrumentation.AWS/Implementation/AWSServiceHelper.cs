@@ -27,16 +27,18 @@ internal class AWSServiceHelper
                 .AddAttributeAWSBedrockKnowledgeBaseId("KnowledgeBaseId")
                 .AddAttributeAWSS3BucketName("BucketName")
                 .AddAttributeAWSS3Key("Key")
+                .AddAttributeAWSKinesisStreamName("StreamName")
                 .AddAttributeMessageId("MessageId")
                 .Build();
 
         this.ArrayValueAttributeNames = new(semanticConventions.GetArrayValueAttributeNames(), StringComparer.Ordinal);
     }
 
-    internal static IReadOnlyDictionary<string, List<string>> ServiceRequestParameterMap { get; } = new Dictionary<string, List<string>>(7)
+    internal static IReadOnlyDictionary<string, List<string>> ServiceRequestParameterMap { get; } = new Dictionary<string, List<string>>(8)
     {
         { AWSServiceType.DynamoDbService, ["TableName"] },
         { AWSServiceType.S3Service, ["BucketName", "Key"] },
+        { AWSServiceType.KinesisService, ["StreamName"] },
         { AWSServiceType.SNSService, ["TopicArn"] },
         { AWSServiceType.SQSService, ["QueueUrl"] },
         { AWSServiceType.BedrockAgentService, ["AgentId", "KnowledgeBaseId", "DataSourceId"] },
