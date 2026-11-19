@@ -326,7 +326,7 @@ public class ClientTracingInterceptor : Interceptor
                 this.FullServiceName,
                 ActivityKind.Client,
                 parentContext,
-                tags: options.AdditionalTags);
+                tags: this.CreateActivityTags(options.AdditionalTags, options.ChannelTarget));
 
             if (rpcActivity == null)
             {

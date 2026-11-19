@@ -217,7 +217,7 @@ public class ServerTracingInterceptor : Interceptor
                 this.FullServiceName,
                 ActivityKind.Server,
                 currentContext ?? default,
-                tags: options.AdditionalTags);
+                tags: this.CreateActivityTags(options.AdditionalTags));
 
             this.SetActivity(activity);
         }

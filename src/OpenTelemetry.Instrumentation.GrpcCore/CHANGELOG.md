@@ -2,6 +2,30 @@
 
 ## Unreleased
 
+* Fixed `rpc.system.name`, `rpc.method`, `server.address` and `server.port`
+  missing from the sampling decision. The interceptors now set them when they
+  create the span.
+  ([#6102](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6102))
+
+* Fixed `server.port` missing when the host has the port 80.
+  ([#6102](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6102))
+
+* Fixed `server.address` having square brackets for an IPv6 address. For
+  example, `[2001:db8::1]` is now `2001:db8::1`.
+  ([#6102](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6102))
+
+* Added `ClientTracingInterceptorOptions.ChannelTarget`. When a call has no
+  host, client spans get `server.address` and `server.port` from it.
+  ([#6102](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6102))
+
+* Fixed `message.type` on the message events of server spans. Requests are now
+  `RECEIVED` and responses are now `SENT`.
+  ([#6102](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6102))
+
+* **Breaking Change**: Message events no longer have `message.compressed_size`.
+  Its value was the size before compression.
+  ([#6102](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6102))
+
 ## 1.0.0-beta.20
 
 Released 2026-Nov-11
