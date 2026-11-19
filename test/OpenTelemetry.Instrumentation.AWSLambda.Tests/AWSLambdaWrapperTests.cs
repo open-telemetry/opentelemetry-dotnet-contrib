@@ -98,10 +98,12 @@ public class AWSLambdaWrapperTests : IDisposable
         Assert.Null(activity.GetTagValue(unexpectedName));
     }
 
-    [Fact]
-    public void ResourceOmitsLogGroupNamesWhenEnvironmentVariableIsNotSet()
+[Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void ResourceOmitsLogGroupNamesWhenEnvironmentVariableIsUnsetOrEmpty(string? value)
     {
-        using var envScope = EnvironmentVariableScope.Create("AWS_LAMBDA_LOG_GROUP_NAME", null);
+        using var envScope = EnvironmentVariableScope.Create("AWS_LAMBDA_LOG_GROUP_NAME", value);
 
         using var tracerProvider = Sdk.CreateTracerProviderBuilder()
             .AddAWSLambdaConfigurations()
