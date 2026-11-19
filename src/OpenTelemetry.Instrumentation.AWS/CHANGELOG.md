@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Add the `aws.kinesis.stream_name` attribute to Kinesis spans when
+  `SemanticConventionVersion.V1_40_0` or later is used.
+  ([#6096](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6096))
+
 ## 1.21.0
 
 Released 2026-Nov-11
