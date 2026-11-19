@@ -20,6 +20,7 @@ internal partial class AWSSemanticConventions
     {
         // AWS Attributes
         public override string AttributeAWSExtendedRequestId => "aws.extended_request_id";
+        public override string AttributeAWSKinesisStreamName => "aws.kinesis.stream_name";
         public override string AttributeAWSSNS => "aws.sns";
         public override string AttributeAWSSNSTopicArn => "aws.sns.topic.arn";
         public override string AttributeAWSSQS => "aws_sqs";

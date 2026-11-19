@@ -170,6 +170,10 @@ internal partial class AWSSemanticConventions
         public ParameterMappingBuilderImpl AddAttributeAWSS3Key(string value)
             => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSS3Key, value);
 
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSKinesisStreamName"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSKinesisStreamName(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSKinesisStreamName, value);
+
         /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeMessagingMessageId"/>
         public ParameterMappingBuilderImpl AddAttributeMessageId(string value)
             => this.awsSemanticConventions.AddDic(this, x => x.AttributeMessagingMessageId, value);
