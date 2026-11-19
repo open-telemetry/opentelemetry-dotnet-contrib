@@ -369,6 +369,16 @@ internal partial class AWSSemanticConventions
         public virtual string AttributeAWSS3Key => string.Empty;
 
         /// <summary>
+        /// The ARN of the Step Functions state machine the request targets.
+        /// </summary>
+        public virtual string AttributeAWSStepFunctionsStateMachineArn => string.Empty;
+
+        /// <summary>
+        /// The ARN of the Step Functions activity the request targets.
+        /// </summary>
+        public virtual string AttributeAWSStepFunctionsActivityArn => string.Empty;
+
+        /// <summary>
         /// The AWS extended request ID as returned in the response header <c>x-amz-id-2</c>.
         /// </summary>
         public virtual string AttributeAWSExtendedRequestId => string.Empty;

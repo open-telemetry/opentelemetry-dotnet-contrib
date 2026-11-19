@@ -24,6 +24,8 @@ internal partial class AWSSemanticConventions
         public override string AttributeAWSSNSTopicArn => "aws.sns.topic.arn";
         public override string AttributeAWSSQS => "aws_sqs";
         public override string AttributeAWSSQSQueueUrl => "aws.sqs.queue.url";
+        public override string AttributeAWSStepFunctionsActivityArn => "aws.step_functions.activity.arn";
+        public override string AttributeAWSStepFunctionsStateMachineArn => "aws.step_functions.state_machine.arn";
 
         // MESSAGING Attributes
         public override string AttributeMessagingDestinationName => "messaging.destination.name";

@@ -170,6 +170,14 @@ internal partial class AWSSemanticConventions
         public ParameterMappingBuilderImpl AddAttributeAWSS3Key(string value)
             => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSS3Key, value);
 
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSStepFunctionsStateMachineArn"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSStepFunctionsStateMachineArn(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSStepFunctionsStateMachineArn, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSStepFunctionsActivityArn"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSStepFunctionsActivityArn(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSStepFunctionsActivityArn, value);
+
         /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeMessagingMessageId"/>
         public ParameterMappingBuilderImpl AddAttributeMessageId(string value)
             => this.awsSemanticConventions.AddDic(this, x => x.AttributeMessagingMessageId, value);

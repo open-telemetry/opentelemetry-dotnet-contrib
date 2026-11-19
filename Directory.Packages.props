@@ -99,6 +99,7 @@
     <PackageVersion Include="AWSSDK.S3" Version="4.1.2.1" />
     <PackageVersion Include="AWSSDK.SimpleNotificationService" Version="4.1.0.2" />
     <PackageVersion Include="AWSSDK.SQS" Version="4.1.0.2" />
+    <PackageVersion Include="AWSSDK.StepFunctions" Version="4.1.0.2" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.16.0-preview.2" />
     <PackageVersion Include="CommandLineParser" Version="2.9.1" />
     <PackageVersion Include="FsCheck.Xunit.v3" Version="3.6.0" />

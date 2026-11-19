@@ -19,6 +19,8 @@ using Amazon.Runtime.Telemetry;
 using Amazon.SimpleNotificationService;
 using Amazon.SQS;
 using Amazon.SQS.Model;
+using Amazon.StepFunctions;
+using Amazon.StepFunctions.Model;
 using OpenTelemetry.Instrumentation.AWS.Tests.Tools;
 using OpenTelemetry.Trace;
 using AWSTracingPipelineHandler = OpenTelemetry.Instrumentation.AWS.Implementation.AWSTracingPipelineHandler;
@@ -1438,6 +1440,115 @@ public class TestAWSClientInstrumentation : IDisposable
         {
             Activity.Current = previousActivity;
         }
+    }
+
+    [Theory]
+    [InlineData(SemanticConventionVersion.V1_28_0, null)]
+    [InlineData(SemanticConventionVersion.V1_29_0, null)]
+    [InlineData(SemanticConventionVersion.V1_40_0, "arn:aws:states:us-east-1:123456789012:stateMachine:MyStateMachine")]
+    [InlineData(SemanticConventionVersion.V1_45_0, "arn:aws:states:us-east-1:123456789012:stateMachine:MyStateMachine")]
+    [InlineData(SemanticConventionVersion.Latest, "arn:aws:states:us-east-1:123456789012:stateMachine:MyStateMachine")]
+#if NETFRAMEWORK
+    public void TestStepFunctionsStartExecutionForSemanticConventionVersion(
+        SemanticConventionVersion version,
+        string? expectedStateMachineArn)
+#else
+    public async Task TestStepFunctionsStartExecutionForSemanticConventionVersion(
+        SemanticConventionVersion version,
+        string? expectedStateMachineArn)
+#endif
+    {
+        var exportedItems = new List<Activity>();
+        var requestId = "8e2b6f4a-1c7d-4a3e-b5f9-0d6c2e8a4b71";
+        var extendedRequestId = "wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation(o => o.SemanticConventionVersion = version)
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            using var sfn = new AmazonStepFunctionsClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            var dummyResponse = """
+                {
+                  "executionArn": "arn:aws:states:us-east-1:123456789012:execution:MyStateMachine:MyExecution",
+                  "startDate": 1767225600
+                }
+                """;
+            CustomResponses.SetResponse(sfn, dummyResponse, requestId, extendedRequestId, true);
+            var request = new StartExecutionRequest
+            {
+                StateMachineArn = "arn:aws:states:us-east-1:123456789012:stateMachine:MyStateMachine",
+                Name = "MyExecution",
+                Input = "{}",
+            };
+#if NETFRAMEWORK
+            sfn.StartExecution(request);
+#else
+            await sfn.StartExecutionAsync(request, TestContext.Current.CancellationToken);
+#endif
+        }
+
+        var activity = Assert.Single(exportedItems, e => e.DisplayName == "SFN.StartExecution");
+
+        // The Step Functions attributes were added in v1.34.0 of the semantic conventions,
+        // so they are only emitted from 1.40.0 onwards.
+        Assert.Equal(expectedStateMachineArn, Utils.GetTagValue(activity, "aws.step_functions.state_machine.arn"));
+        Assert.Null(Utils.GetTagValue(activity, "aws.step_functions.activity.arn"));
+    }
+
+    [Theory]
+    [InlineData(SemanticConventionVersion.V1_28_0, null)]
+    [InlineData(SemanticConventionVersion.V1_29_0, null)]
+    [InlineData(SemanticConventionVersion.V1_40_0, "arn:aws:states:us-east-1:123456789012:activity:MyActivity")]
+    [InlineData(SemanticConventionVersion.V1_45_0, "arn:aws:states:us-east-1:123456789012:activity:MyActivity")]
+    [InlineData(SemanticConventionVersion.Latest, "arn:aws:states:us-east-1:123456789012:activity:MyActivity")]
+#if NETFRAMEWORK
+    public void TestStepFunctionsGetActivityTaskForSemanticConventionVersion(
+        SemanticConventionVersion version,
+        string? expectedActivityArn)
+#else
+    public async Task TestStepFunctionsGetActivityTaskForSemanticConventionVersion(
+        SemanticConventionVersion version,
+        string? expectedActivityArn)
+#endif
+    {
+        var exportedItems = new List<Activity>();
+        var requestId = "8e2b6f4a-1c7d-4a3e-b5f9-0d6c2e8a4b71";
+        var extendedRequestId = "wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation(o => o.SemanticConventionVersion = version)
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            using var sfn = new AmazonStepFunctionsClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            var dummyResponse = """
+                {
+                  "taskToken": "AAAAKgAAAAIAAAAAAAAAAQ",
+                  "input": "{}"
+                }
+                """;
+            CustomResponses.SetResponse(sfn, dummyResponse, requestId, extendedRequestId, true);
+            var request = new GetActivityTaskRequest
+            {
+                ActivityArn = "arn:aws:states:us-east-1:123456789012:activity:MyActivity",
+                WorkerName = "MyWorker",
+            };
+#if NETFRAMEWORK
+            sfn.GetActivityTask(request);
+#else
+            await sfn.GetActivityTaskAsync(request, TestContext.Current.CancellationToken);
+#endif
+        }
+
+        var activity = Assert.Single(exportedItems, e => e.DisplayName == "SFN.GetActivityTask");
+
+        // The Step Functions attributes were added in v1.34.0 of the semantic conventions,
+        // so they are only emitted from 1.40.0 onwards.
+        Assert.Equal(expectedActivityArn, Utils.GetTagValue(activity, "aws.step_functions.activity.arn"));
+        Assert.Null(Utils.GetTagValue(activity, "aws.step_functions.state_machine.arn"));
     }
 
     public void Dispose() =>
