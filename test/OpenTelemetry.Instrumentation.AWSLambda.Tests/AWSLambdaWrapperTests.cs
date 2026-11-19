@@ -98,7 +98,7 @@ public class AWSLambdaWrapperTests : IDisposable
         Assert.Null(activity.GetTagValue(unexpectedName));
     }
 
-[Theory]
+    [Theory]
     [InlineData(null)]
     [InlineData("")]
     public void ResourceOmitsLogGroupNamesWhenEnvironmentVariableIsUnsetOrEmpty(string? value)
