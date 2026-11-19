@@ -328,6 +328,110 @@ public class GrpcCoreClientInterceptorTests(WeaverFixture weaver, ITestOutputHel
     }
 
     /// <summary>
+    /// Validates that the RPC and server attributes of a unary call are available to the sampler.
+    /// </summary>
+    [Fact]
+    public void BlockingUnaryCallProvidesSamplingTagsAtCreation()
+    {
+        var testTags = new TestActivityTags();
+        var interceptor = new ClientTracingInterceptor(new ClientTracingInterceptorOptions { AdditionalTags = testTags.Tags });
+        var context = new ClientInterceptorContext<NonProtobufPayload, NonProtobufPayload>(
+            NonProtobufGrpcTestHelpers.UnaryMethod,
+            "example.com:50051",
+            default);
+
+        List<SamplingParameters> samplingParameters = [];
+        using var tracerProvider = CreateTracerProvider(testTags, samplingParameters);
+        using var activityListener = new InterceptorActivityListener(testTags);
+
+        interceptor.BlockingUnaryCall(new NonProtobufPayload(), context, static (request, _) => request);
+
+        ValidateSamplingTags(Assert.Single(samplingParameters), activityListener.Activity, FoobarService.UnaryMethod, "example.com", 50051);
+    }
+
+    /// <summary>
+    /// Validates the server attributes set from the host of the call.
+    /// </summary>
+    /// <param name="host">The host of the call.</param>
+    /// <param name="expectedServerAddress">The expected server address.</param>
+    /// <param name="expectedServerPort">The expected server port, if any.</param>
+    [Theory]
+    [InlineData("example.com:80", "example.com", 80)]
+    [InlineData("example.com", "example.com", null)]
+    [InlineData("[2001:db8::1]:50051", "2001:db8::1", 50051)]
+    public void BlockingUnaryCallSetsServerAttributesFromHost(string host, string expectedServerAddress, int? expectedServerPort)
+    {
+        var activity = MakeBlockingUnaryCall(host, new ClientTracingInterceptorOptions());
+
+        ValidateServerAttributes(activity, expectedServerAddress, expectedServerPort);
+    }
+
+    /// <summary>
+    /// Validates the server attributes set from the channel target when the call has no host.
+    /// </summary>
+    /// <param name="channelTarget">The channel target.</param>
+    /// <param name="expectedServerAddress">The expected server address.</param>
+    /// <param name="expectedServerPort">The expected server port, if any.</param>
+    [Theory]
+    [InlineData("grpc.io:50051", "grpc.io", 50051)]
+    [InlineData("dns://1.2.3.4/grpc.io:50051", "grpc.io", 50051)]
+    [InlineData("unix:///run/containerd/containerd.sock", "/run/containerd/containerd.sock", null)]
+    [InlineData("zk://zookeeper:2181/my-server", "zk://zookeeper:2181/my-server", null)]
+    [InlineData("ipv4:198.51.100.123:50051,198.51.100.124:50051", "ipv4:198.51.100.123:50051,198.51.100.124:50051", null)]
+    [InlineData("dns:///grpc.io:50051", "grpc.io", 50051)]
+    [InlineData("dns:example.com:50051", "example.com", 50051)]
+    [InlineData("example.com:80", "example.com", 80)]
+    [InlineData("example.com", "example.com", null)]
+    [InlineData("ipv4:198.51.100.123:50051", "198.51.100.123", 50051)]
+    [InlineData("ipv6:[2001:db8::1]:50051", "2001:db8::1", 50051)]
+    [InlineData("ipv6:2001:db8::1", "2001:db8::1", null)]
+    [InlineData("dns:///[2001:db8::1]:50051", "2001:db8::1", 50051)]
+    [InlineData("[2001:db8::1]:50051", "2001:db8::1", 50051)]
+    public void BlockingUnaryCallSetsServerAttributesFromChannelTarget(string channelTarget, string expectedServerAddress, int? expectedServerPort)
+    {
+        var activity = MakeBlockingUnaryCall(null, new ClientTracingInterceptorOptions { ChannelTarget = channelTarget });
+
+        ValidateServerAttributes(activity, expectedServerAddress, expectedServerPort);
+    }
+
+    /// <summary>
+    /// Validates that the host of the call takes precedence over the channel target.
+    /// </summary>
+    [Fact]
+    public void BlockingUnaryCallPrefersHostOverChannelTarget()
+    {
+        var activity = MakeBlockingUnaryCall("example.com:50051", new ClientTracingInterceptorOptions { ChannelTarget = "dns:///example.org:8080" });
+
+        ValidateServerAttributes(activity, "example.com", 50051);
+    }
+
+    /// <summary>
+    /// Validates that the server attributes from the channel target are available to the sampler.
+    /// </summary>
+    [Fact]
+    public void BlockingUnaryCallProvidesChannelTargetSamplingTagsAtCreation()
+    {
+        var testTags = new TestActivityTags();
+        var interceptor = new ClientTracingInterceptor(new ClientTracingInterceptorOptions
+        {
+            AdditionalTags = testTags.Tags,
+            ChannelTarget = "dns:///example.com:50051",
+        });
+        var context = new ClientInterceptorContext<NonProtobufPayload, NonProtobufPayload>(
+            NonProtobufGrpcTestHelpers.UnaryMethod,
+            null,
+            default);
+
+        List<SamplingParameters> samplingParameters = [];
+        using var tracerProvider = CreateTracerProvider(testTags, samplingParameters);
+        using var activityListener = new InterceptorActivityListener(testTags);
+
+        interceptor.BlockingUnaryCall(new NonProtobufPayload(), context, static (request, _) => request);
+
+        ValidateSamplingTags(Assert.Single(samplingParameters), activityListener.Activity, FoobarService.UnaryMethod, "example.com", 50051);
+    }
+
+    /// <summary>
     /// Validates the common activity tags.
     /// </summary>
     /// <param name="activity">The activity.</param>
@@ -390,18 +494,22 @@ public class GrpcCoreClientInterceptorTests(WeaverFixture weaver, ITestOutputHel
                 Assert.NotNull(activityEvent.Tags);
                 Assert.Contains(activityEvent.Tags, t => t.Key == "name" && (string?)t.Value == "message");
                 Assert.Contains(activityEvent.Tags, t => t.Key == SemanticConventions.AttributeMessageId && (int?)t.Value == 1);
+
+                Assert.DoesNotContain(activityEvent.Tags, t => t.Key == SemanticConventions.AttributeMessageCompressedSize);
             }
 
             Assert.NotEqual(default, requestMessage);
             Assert.NotEqual(default, responseMessage);
 
+            var isServer = activity.Kind == ActivityKind.Server;
+
             ValidateCommonEventAttributes(requestMessage);
-            Assert.Contains(requestMessage.Tags, t => t.Key == SemanticConventions.AttributeMessageType && (string?)t.Value == "SENT");
-            Assert.Contains(requestMessage.Tags, t => t.Key == SemanticConventions.AttributeMessageCompressedSize && (int?)t.Value == FoobarService.DefaultRequestMessageSize);
+            Assert.Contains(requestMessage.Tags, t => t.Key == SemanticConventions.AttributeMessageType && (string?)t.Value == (isServer ? "RECEIVED" : "SENT"));
+            Assert.Contains(requestMessage.Tags, t => t.Key == SemanticConventions.AttributeMessageUncompressedSize && (int?)t.Value == FoobarService.DefaultRequestMessageSize);
 
             ValidateCommonEventAttributes(responseMessage);
-            Assert.Contains(responseMessage.Tags, t => t.Key == SemanticConventions.AttributeMessageType && (string?)t.Value == "RECEIVED");
-            Assert.Contains(requestMessage.Tags, t => t.Key == SemanticConventions.AttributeMessageCompressedSize && (int?)t.Value == FoobarService.DefaultResponseMessageSize);
+            Assert.Contains(responseMessage.Tags, t => t.Key == SemanticConventions.AttributeMessageType && (string?)t.Value == (isServer ? "SENT" : "RECEIVED"));
+            Assert.Contains(responseMessage.Tags, t => t.Key == SemanticConventions.AttributeMessageUncompressedSize && (int?)t.Value == FoobarService.DefaultResponseMessageSize);
         }
 
         if (recordedExceptions)
@@ -415,6 +523,110 @@ public class GrpcCoreClientInterceptorTests(WeaverFixture weaver, ITestOutputHel
             Assert.Contains(exceptionEvent.Tags, t => t.Key == SemanticConventions.AttributeExceptionMessage);
             Assert.Contains(exceptionEvent.Tags, t => t.Key == SemanticConventions.AttributeExceptionStacktrace);
         }
+    }
+
+    /// <summary>
+    /// Validates the server attributes of an activity.
+    /// </summary>
+    /// <param name="activity">The activity.</param>
+    /// <param name="expectedServerAddress">The expected server address.</param>
+    /// <param name="expectedServerPort">The expected server port, if any.</param>
+    internal static void ValidateServerAttributes(Activity? activity, string expectedServerAddress, int? expectedServerPort)
+    {
+        Assert.NotNull(activity);
+        Assert.Equal(expectedServerAddress, activity.GetTagItem(SemanticConventions.AttributeServerAddress));
+        Assert.Equal(expectedServerPort, (int?)activity.GetTagItem(SemanticConventions.AttributeServerPort));
+    }
+
+    /// <summary>
+    /// Validates that the sampler saw the RPC and server attributes, with the values of the activity.
+    /// </summary>
+    /// <param name="samplingParameters">The sampling parameters.</param>
+    /// <param name="activity">The activity.</param>
+    /// <param name="expectedMethodName">The expected gRPC method name.</param>
+    /// <param name="expectedServerAddress">The expected server address.</param>
+    /// <param name="expectedServerPort">The expected server port.</param>
+    internal static void ValidateSamplingTags(
+        SamplingParameters samplingParameters,
+        Activity? activity,
+        string expectedMethodName,
+        string expectedServerAddress,
+        int expectedServerPort)
+    {
+        Assert.NotNull(activity);
+        Assert.NotNull(samplingParameters.Tags);
+
+        var samplingTags = samplingParameters.Tags.ToDictionary(t => t.Key, t => t.Value);
+
+        Assert.Equal("grpc", Assert.Contains(SemanticConventions.AttributeRpcSystemName, samplingTags));
+        Assert.Equal($"OpenTelemetry.Instrumentation.GrpcCore.Tests.Foobar/{expectedMethodName}", Assert.Contains(SemanticConventions.AttributeRpcMethod, samplingTags));
+        Assert.Equal(expectedServerAddress, Assert.Contains(SemanticConventions.AttributeServerAddress, samplingTags));
+        Assert.Equal(expectedServerPort, (int?)Assert.Contains(SemanticConventions.AttributeServerPort, samplingTags));
+
+        string[] keys =
+        [
+            SemanticConventions.AttributeRpcMethod,
+            SemanticConventions.AttributeRpcSystemName,
+            SemanticConventions.AttributeServerAddress,
+            SemanticConventions.AttributeServerPort,
+        ];
+
+        foreach (var key in keys)
+        {
+            Assert.Equal(activity.GetTagItem(key), samplingTags[key]);
+        }
+    }
+
+    /// <summary>
+    /// Creates a tracer provider whose sampler captures the sampling parameters of the activities with the test tags.
+    /// </summary>
+    /// <param name="testTags">The test activity tags.</param>
+    /// <param name="samplingParameters">The list to add the captured sampling parameters to.</param>
+    /// <returns>The tracer provider.</returns>
+    internal static TracerProvider CreateTracerProvider(TestActivityTags testTags, List<SamplingParameters> samplingParameters)
+    {
+        var testTagValue = testTags.Tags[TestActivityTags.ActivityIdentifierTag];
+        var sampler = new TestSampler
+        {
+            SamplingAction = parameters =>
+            {
+                if (parameters.Tags?.Any(t => t.Key == TestActivityTags.ActivityIdentifierTag && Equals(t.Value, testTagValue)) == true)
+                {
+                    samplingParameters.Add(parameters);
+                }
+
+                return new SamplingResult(SamplingDecision.RecordAndSample);
+            },
+        };
+
+        return Sdk.CreateTracerProviderBuilder()
+            .SetSampler(sampler)
+            .AddGrpcCoreInstrumentation()
+            .Build();
+    }
+
+    /// <summary>
+    /// Makes a blocking unary call through the client interceptor, without a server.
+    /// </summary>
+    /// <param name="host">The host of the call.</param>
+    /// <param name="interceptorOptions">The interceptor options.</param>
+    /// <returns>The activity of the call.</returns>
+    private static Activity? MakeBlockingUnaryCall(string? host, ClientTracingInterceptorOptions interceptorOptions)
+    {
+        var testTags = new TestActivityTags();
+        interceptorOptions.AdditionalTags = testTags.Tags;
+
+        var interceptor = new ClientTracingInterceptor(interceptorOptions);
+        var context = new ClientInterceptorContext<NonProtobufPayload, NonProtobufPayload>(
+            NonProtobufGrpcTestHelpers.UnaryMethod,
+            host,
+            default);
+
+        using var activityListener = new InterceptorActivityListener(testTags);
+
+        interceptor.BlockingUnaryCall(new NonProtobufPayload(), context, static (request, _) => request);
+
+        return activityListener.Activity;
     }
 
     /// <summary>

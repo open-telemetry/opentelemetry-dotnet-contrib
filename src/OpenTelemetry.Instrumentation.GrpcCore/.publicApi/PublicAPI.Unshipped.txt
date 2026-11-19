@@ -1,6 +1,8 @@
 OpenTelemetry.Instrumentation.GrpcCore.ClientTracingInterceptor
 OpenTelemetry.Instrumentation.GrpcCore.ClientTracingInterceptor.ClientTracingInterceptor(OpenTelemetry.Instrumentation.GrpcCore.ClientTracingInterceptorOptions! options) -> void
 OpenTelemetry.Instrumentation.GrpcCore.ClientTracingInterceptorOptions
+OpenTelemetry.Instrumentation.GrpcCore.ClientTracingInterceptorOptions.ChannelTarget.get -> string?
+OpenTelemetry.Instrumentation.GrpcCore.ClientTracingInterceptorOptions.ChannelTarget.set -> void
 OpenTelemetry.Instrumentation.GrpcCore.ClientTracingInterceptorOptions.ClientTracingInterceptorOptions() -> void
 OpenTelemetry.Instrumentation.GrpcCore.ClientTracingInterceptorOptions.Propagator.get -> OpenTelemetry.Context.Propagation.TextMapPropagator!
 OpenTelemetry.Instrumentation.GrpcCore.ClientTracingInterceptorOptions.RecordException.get -> bool

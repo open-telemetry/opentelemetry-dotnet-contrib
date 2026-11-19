@@ -6,6 +6,8 @@ using Grpc.Core;
 using Grpc.Core.Interceptors;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Tests;
+using OpenTelemetry.Trace;
+using StatusCode = Grpc.Core.StatusCode;
 
 namespace OpenTelemetry.Instrumentation.GrpcCore.Tests;
 
@@ -303,6 +305,53 @@ public class GrpcCoreServerInterceptorTests(WeaverFixture weaver, ITestOutputHel
             e => e.EventId == 1 && ((string?)e.Payload?[0])?.EndsWith(FoobarService.ClientStreamingMethod, StringComparison.Ordinal) == true);
         Assert.Equal(EventLevel.Warning, logged.Level);
         Assert.Equal(RpcScope<FoobarRequest, FoobarResponse>.MaxMessageEvents, (int)logged.Payload![1]!);
+    }
+
+    /// <summary>
+    /// Validates that the RPC and server attributes of a unary call are available to the sampler.
+    /// </summary>
+    /// <returns>A task.</returns>
+    [Fact]
+    public async Task UnaryServerHandlerProvidesSamplingTagsAtCreation()
+    {
+        var testTags = new TestActivityTags();
+        var interceptor = new ServerTracingInterceptor(new ServerTracingInterceptorOptions { AdditionalTags = testTags.Tags });
+
+        List<SamplingParameters> samplingParameters = [];
+        using var tracerProvider = GrpcCoreClientInterceptorTests.CreateTracerProvider(testTags, samplingParameters);
+        using var activityListener = new InterceptorActivityListener(testTags);
+
+        await interceptor.UnaryServerHandler(
+            FoobarService.DefaultRequestMessage,
+            new TestServerCallContext([], "example.com:50051"),
+            (request, context) => Task.FromResult(FoobarService.DefaultResponseMessage));
+
+        GrpcCoreClientInterceptorTests.ValidateSamplingTags(Assert.Single(samplingParameters), activityListener.Activity, FoobarService.UnaryMethod, "example.com", 50051);
+    }
+
+    /// <summary>
+    /// Validates the server attributes set from the host the client used to reach the server.
+    /// </summary>
+    /// <param name="host">The host the client used to reach the server.</param>
+    /// <param name="expectedServerAddress">The expected server address.</param>
+    /// <param name="expectedServerPort">The expected server port, if any.</param>
+    /// <returns>A task.</returns>
+    [Theory]
+    [InlineData("example.com:80", "example.com", 80)]
+    [InlineData("example.com", "example.com", null)]
+    [InlineData("[2001:db8::1]:50051", "2001:db8::1", 50051)]
+    public async Task UnaryServerHandlerSetsServerAttributesFromHost(string host, string expectedServerAddress, int? expectedServerPort)
+    {
+        var testTags = new TestActivityTags();
+        var interceptor = new ServerTracingInterceptor(new ServerTracingInterceptorOptions { AdditionalTags = testTags.Tags });
+        using var activityListener = new InterceptorActivityListener(testTags);
+
+        await interceptor.UnaryServerHandler(
+            FoobarService.DefaultRequestMessage,
+            new TestServerCallContext([], host),
+            (request, context) => Task.FromResult(FoobarService.DefaultResponseMessage));
+
+        GrpcCoreClientInterceptorTests.ValidateServerAttributes(activityListener.Activity, expectedServerAddress, expectedServerPort);
     }
 
     /// <summary>

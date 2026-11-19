@@ -23,6 +23,11 @@ public class ClientTracingInterceptorOptions
     public bool RecordException { get; set; }
 
     /// <summary>
+    /// Gets or sets the target of the channel, used for the <c>server.address</c> and <c>server.port</c> attributes of calls that have no host.
+    /// </summary>
+    public string? ChannelTarget { get; set; }
+
+    /// <summary>
     /// Gets the propagator.
     /// </summary>
     public TextMapPropagator Propagator { get; internal set; } = Propagators.DefaultTextMapPropagator;
