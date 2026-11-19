@@ -3,7 +3,11 @@
   <PropertyGroup>
     <TargetFrameworks>$(TargetFrameworksForLibraries)</TargetFrameworks>
     <TargetFrameworks Condition="$(OS) == 'Windows_NT'">$(TargetFrameworks);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
+    <!-- Only needed for EventSource.WriteEventCore (see RawEventSource); everything else is memory safe under the updated rules. -->
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <Features>$(Features);updated-memory-safety-rules</Features>
+    <LangVersion>preview</LangVersion>
+    <MemorySafetyRulesVersion>2</MemorySafetyRulesVersion>
     <Description>An OpenTelemetry .NET exporter that exports to local ETW or UDS.</Description>
     <PackageThirdPartyNoticesFile>THIRD-PARTY-NOTICES.TXT</PackageThirdPartyNoticesFile>
     <!-- Tweak style rules for Geneva: Allow underscores in constant names and allow regions inside code blocks -->

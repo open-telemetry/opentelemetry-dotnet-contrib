@@ -42,73 +42,13 @@ internal sealed class UncheckedASCIIEncoding : Encoding
     public override int GetBytes(char[] chars, int charIndex, int charCount, byte[] bytes, int byteIndex)
     {
         ValidateArgs(chars, charIndex, charCount, bytes, byteIndex, "char", "byte");
-        unsafe
-        {
-            fixed (char* charPtr = chars)
-            {
-                fixed (byte* bytePtr = bytes)
-                {
-                    return this.GetBytes(charPtr + charIndex, charCount, bytePtr + byteIndex, bytes.Length - byteIndex);
-                }
-            }
-        }
+        return GetBytesCore(chars.AsSpan(charIndex, charCount), bytes.AsSpan(byteIndex));
     }
 
     public override int GetChars(byte[] bytes, int byteIndex, int byteCount, char[] chars, int charIndex)
     {
         ValidateArgs(bytes, byteIndex, byteCount, chars, charIndex, "byte", "char");
-        unsafe
-        {
-            fixed (byte* bytePtr = bytes)
-            {
-                fixed (char* charPtr = chars)
-                {
-                    return this.GetChars(bytePtr + byteIndex, byteCount, charPtr + charIndex, chars.Length - charIndex);
-                }
-            }
-        }
-    }
-
-    #endregion
-
-    #region Required overrides (used by the required implementation)
-
-    public override unsafe int GetBytes(char* chars, int charCount, byte* bytes, int byteCount)
-    {
-#if NET
-        ArgumentOutOfRangeException.ThrowIfLessThan(byteCount, charCount);
-#else
-        if (byteCount < charCount)
-        {
-            throw new ArgumentOutOfRangeException(nameof(byteCount));
-        }
-#endif
-
-        for (var i = 0; i < charCount; i += 1)
-        {
-            bytes[i] = unchecked((byte)(chars[i] & 0x7F));
-        }
-
-        return charCount;
-    }
-
-    public override unsafe int GetChars(byte* bytes, int byteCount, char* chars, int charCount)
-    {
-#if NET
-        ArgumentOutOfRangeException.ThrowIfLessThan(charCount, byteCount);
-#else
-        if (charCount < byteCount)
-        {
-            throw new ArgumentOutOfRangeException(nameof(charCount));
-        }
-#endif
-
-        for (var i = 0; i < byteCount; i += 1)
-        {
-            chars[i] = (char)bytes[i];
-        }
-
-        return byteCount;
+        return GetCharsCore(bytes.AsSpan(byteIndex, byteCount), chars.AsSpan(charIndex));
     }
 
     #endregion
@@ -120,10 +60,6 @@ internal sealed class UncheckedASCIIEncoding : Encoding
         Guard.ThrowIfNull(s);
         return s.Length;
     }
-
-    public override unsafe int GetByteCount(char* chars, int count) => count;
-
-    public override unsafe int GetCharCount(byte* bytes, int count) => count;
 
     public override int GetBytes(string s, int charIndex, int charCount, byte[] bytes, int byteIndex)
     {
@@ -144,19 +80,40 @@ internal sealed class UncheckedASCIIEncoding : Encoding
             throw new ArgumentOutOfRangeException(nameof(byteIndex));
         }
 
-        unsafe
-        {
-            fixed (char* charPtr = s)
-            {
-                fixed (byte* bytePtr = bytes)
-                {
-                    return this.GetBytes(charPtr + charIndex, charCount, bytePtr + byteIndex, bytes.Length - byteIndex);
-                }
-            }
-        }
+        return GetBytesCore(s.AsSpan(charIndex, charCount), bytes.AsSpan(byteIndex));
     }
 
     #endregion
+
+    private static int GetBytesCore(ReadOnlySpan<char> chars, Span<byte> bytes)
+    {
+        if (bytes.Length < chars.Length)
+        {
+            throw new ArgumentOutOfRangeException(nameof(bytes));
+        }
+
+        for (var i = 0; i < chars.Length; i += 1)
+        {
+            bytes[i] = unchecked((byte)(chars[i] & 0x7F));
+        }
+
+        return chars.Length;
+    }
+
+    private static int GetCharsCore(ReadOnlySpan<byte> bytes, Span<char> chars)
+    {
+        if (chars.Length < bytes.Length)
+        {
+            throw new ArgumentOutOfRangeException(nameof(chars));
+        }
+
+        for (var i = 0; i < bytes.Length; i += 1)
+        {
+            chars[i] = (char)bytes[i];
+        }
+
+        return bytes.Length;
+    }
 
     private static void ValidateArgs<TA, TB>(TA[] a, int aIndex, int aCount, TB[] b, int bIndex, string aName, string bName)
     {

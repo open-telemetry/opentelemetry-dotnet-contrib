@@ -3,6 +3,7 @@
 
 #if NET
 
+using System.Buffers.Binary;
 using System.Text;
 using Microsoft.LinuxTracepoints.Provider;
 
@@ -16,6 +17,9 @@ internal sealed class MetricUnixUserEventsDataTransport : IMetricDataTransport
     public const string MetricsTracepointNameArgs = $"{MetricsTracepointName} u32 protocol;char[8] version;__rel_loc u8[] buffer";
 
     private static readonly ReadOnlyMemory<byte> MetricsVersionUtf8 = Encoding.UTF8.GetBytes(MetricsVersion);
+    [ThreadStatic]
+    private static byte[]? headerBuffer;
+
     private readonly PerfTracepoint metricsTracepoint;
 
     private MetricUnixUserEventsDataTransport()
@@ -47,15 +51,17 @@ internal sealed class MetricUnixUserEventsDataTransport : IMetricDataTransport
     {
         if (this.metricsTracepoint.IsEnabled)
         {
-            var buffer = new ReadOnlySpan<byte>(body, 0, size);
+            var bufferRelLoc = 0u | ((uint)size << 16);
 
-            var bufferRelLoc = 0u | ((uint)buffer.Length << 16);
+            // Fixed-size prefix: u32 protocol; char[8] version; __rel_loc u8[] buffer (u32)
+            var header = headerBuffer ??= new byte[sizeof(uint) + 8 + sizeof(uint)];
+            BinaryPrimitives.WriteUInt32LittleEndian(header.AsSpan(0, sizeof(uint)), MetricsProtocol);
+            MetricsVersionUtf8.Span.CopyTo(header.AsSpan(sizeof(uint), 8));
+            BinaryPrimitives.WriteUInt32LittleEndian(header.AsSpan(sizeof(uint) + 8, sizeof(uint)), bufferRelLoc);
 
             this.metricsTracepoint.Write(
-                [MetricsProtocol],
-                MetricsVersionUtf8.Span,
-                [bufferRelLoc],
-                buffer);
+                new ArraySegment<byte>(header),
+                new ArraySegment<byte>(body, 0, size));
         }
     }
 

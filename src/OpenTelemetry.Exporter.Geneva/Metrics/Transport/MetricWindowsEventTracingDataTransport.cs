@@ -1,15 +1,13 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NET
-using System.Diagnostics.CodeAnalysis;
-#endif
 using System.Diagnostics.Tracing;
+using OpenTelemetry.Exporter.Geneva.Transports;
 
 namespace OpenTelemetry.Exporter.Geneva;
 
 [EventSource(Name = "OpenTelemetryGenevaMetricExporter", Guid = "{edc24920-e004-40f6-a8e1-0e6e48f39d84}")]
-internal sealed class MetricWindowsEventTracingDataTransport : EventSource, IMetricDataTransport
+internal sealed class MetricWindowsEventTracingDataTransport : RawEventSource, IMetricDataTransport
 {
     private const int OtlpProtobufMetricEventId = 81;
     private readonly int fixedPayloadEndIndex;
@@ -17,46 +15,25 @@ internal sealed class MetricWindowsEventTracingDataTransport : EventSource, IMet
 
     private MetricWindowsEventTracingDataTransport()
     {
-        unsafe
-        {
-            this.fixedPayloadEndIndex = sizeof(BinaryHeader);
-        }
+        this.fixedPayloadEndIndex = BinaryHeader.Size;
     }
 
     public static MetricWindowsEventTracingDataTransport Instance { get; private set; } = new();
 
     [NonEvent]
-#if NET
-    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026:RequiresUnreferencedCode", Justification = "WriteEventCore is safe when eventData object is a primitive type, which it is in this case.")]
-#endif
-    public unsafe void Send(MetricEventType eventType, byte[] body, int size)
+    public void Send(MetricEventType eventType, byte[] body, int size)
     {
-        var eventDataPtr = stackalloc EventData[1];
-        fixed (byte* bufferPtr = body)
-        {
-            eventDataPtr[0].DataPointer = (nint)bufferPtr + this.fixedPayloadEndIndex;
-            eventDataPtr[0].Size = size;
-            this.WriteEventCore((int)eventType, 1, eventDataPtr);
-        }
+        this.WriteRawEvent((int)eventType, body, this.fixedPayloadEndIndex, size);
     }
 
     [NonEvent]
-#if NET
-    [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026:RequiresUnreferencedCode", Justification = "WriteEventCore is safe when eventData object is a primitive type, which it is in this case.")]
-#endif
-    public unsafe void SendOtlpProtobufEvent(byte[] body, int size)
+    public void SendOtlpProtobufEvent(byte[] body, int size)
     {
         if (this.IsEnabled())
         {
-            var descr = stackalloc EventData[1];
             if (body != null && body.Length != 0)
             {
-                fixed (byte* blob = body)
-                {
-                    descr[0].DataPointer = (nint)blob;
-                    descr[0].Size = size;
-                    this.WriteEventCore(OtlpProtobufMetricEventId, 1, descr);
-                }
+                this.WriteRawEvent(OtlpProtobufMetricEventId, body, 0, size);
             }
         }
     }

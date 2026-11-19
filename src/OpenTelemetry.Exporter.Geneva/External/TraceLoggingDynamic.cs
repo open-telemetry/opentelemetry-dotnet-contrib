@@ -167,7 +167,7 @@ internal sealed class EventProvider
         // UINT16 size + UTF8 name + NUL termination for name + traits.
         int totalByteCount = 2 + nameByteCount + 1 + traitsByteCount;
 
-        this.providerMeta = new byte[totalByteCount];
+        this.providerMeta = PinnedBuffer.Allocate(totalByteCount);
         this.enableCallback = this.EnableCallback;
         this.name = name;
         this.guid = guid;
@@ -381,7 +381,7 @@ internal sealed class EventProvider
     /// The return code is normally ignored in release code. The return code is
     /// normally used for debugging/diagnosis.
     /// </returns>
-    public unsafe int Write(EventBuilder eventBuilder)
+    public int Write(EventBuilder eventBuilder)
     {
         return this.WriteRaw(eventBuilder, null, null);
     }
@@ -396,9 +396,9 @@ internal sealed class EventProvider
     /// The return code is normally ignored in release code. The return code is
     /// normally used for debugging/diagnosis.
     /// </returns>
-    public unsafe int Write(EventBuilder eventBuilder, Guid activityId)
+    public int Write(EventBuilder eventBuilder, Guid activityId)
     {
-        return this.WriteRaw(eventBuilder, &activityId, null);
+        return this.WriteRaw(eventBuilder, new[] { activityId }, null);
     }
 
     /// <summary>
@@ -412,15 +412,15 @@ internal sealed class EventProvider
     /// The return code is normally ignored in release code. The return code is
     /// normally used for debugging/diagnosis.
     /// </returns>
-    public unsafe int Write(EventBuilder eventBuilder, Guid activityId, Guid relatedActivityId)
+    public int Write(EventBuilder eventBuilder, Guid activityId, Guid relatedActivityId)
     {
-        return this.WriteRaw(eventBuilder, &activityId, &relatedActivityId);
+        return this.WriteRaw(eventBuilder, new[] { activityId }, new[] { relatedActivityId });
     }
 
-    private unsafe int WriteRaw(
+    private int WriteRaw(
         EventBuilder eventBuilder,
-        Guid* activityId,
-        Guid* relatedActivityId)
+        Guid[] activityId,
+        Guid[] relatedActivityId)
     {
         EventRawInfo rawInfo = eventBuilder.GetRawData();
 
@@ -436,37 +436,81 @@ internal sealed class EventProvider
             throw new ArgumentOutOfRangeException(nameof(rawInfo.DataSize));
         }
 
-        fixed (byte*
-            pProviderMeta = this.providerMeta,
-            pEventMeta = rawInfo.Meta,
-            pEventData = rawInfo.Data)
+        rawInfo.Meta[0] = unchecked((byte)rawInfo.MetaSize);
+        rawInfo.Meta[1] = unchecked((byte)(rawInfo.MetaSize >> 8));
+
+        var dd3 = default(EventDataDescriptor3);
+        dd3.ProviderMetaSize = this.providerMeta.Length;
+        dd3.ProviderMetaType = 2; // EVENT_DATA_DESCRIPTOR_TYPE_PROVIDER_METADATA
+        dd3.EventMetaSize = rawInfo.MetaSize;
+        dd3.EventMetaType = 1; // EVENT_DATA_DESCRIPTOR_TYPE_EVENT_METADATA
+        dd3.EventDataSize = rawInfo.DataSize;
+        dd3.EventDataType = 0; // EVENT_DATA_DESCRIPTOR_TYPE_NONE
+
+        var descriptor = eventBuilder.Descriptor;
+
+#if NET
+        // The provider metadata and the event builder's buffers are allocated on the pinned object heap,
+        // so their addresses can be given to the native API directly.
+        dd3.ProviderMeta = unchecked((ulong)PinnedBuffer.AddressOf(this.providerMeta));
+        dd3.EventMeta = unchecked((ulong)PinnedBuffer.AddressOf(rawInfo.Meta));
+        dd3.EventData = rawInfo.Data != null
+            ? unchecked((ulong)PinnedBuffer.AddressOf(rawInfo.Data))
+            : 0;
+
+        return NativeMethods.EventWriteTransfer(
+            this.regHandle,
+            in descriptor,
+            activityId,
+            relatedActivityId,
+            3,
+            in dd3);
+#else
+        // The native API takes raw addresses, so the buffers must stay pinned for the duration of the call.
+        GCHandle providerMetaHandle = default;
+        GCHandle eventMetaHandle = default;
+        GCHandle eventDataHandle = default;
+        try
         {
-            EventDataDescriptor3 dd3;
+            providerMetaHandle = GCHandle.Alloc(this.providerMeta, GCHandleType.Pinned);
+            eventMetaHandle = GCHandle.Alloc(rawInfo.Meta, GCHandleType.Pinned);
+            if (rawInfo.Data != null)
+            {
+                eventDataHandle = GCHandle.Alloc(rawInfo.Data, GCHandleType.Pinned);
+            }
 
-            dd3.ProviderMeta = unchecked((ulong)(UIntPtr)pProviderMeta);
-            dd3.ProviderMetaSize = this.providerMeta.Length;
-            dd3.ProviderMetaType = 2; // EVENT_DATA_DESCRIPTOR_TYPE_PROVIDER_METADATA
+            dd3.ProviderMeta = unchecked((ulong)(long)providerMetaHandle.AddrOfPinnedObject());
+            dd3.EventMeta = unchecked((ulong)(long)eventMetaHandle.AddrOfPinnedObject());
+            dd3.EventData = eventDataHandle.IsAllocated
+                ? unchecked((ulong)(long)eventDataHandle.AddrOfPinnedObject())
+                : 0;
 
-            dd3.EventMeta = unchecked((ulong)(UIntPtr)pEventMeta);
-            dd3.EventMetaSize = rawInfo.MetaSize;
-            dd3.EventMetaType = 1; // EVENT_DATA_DESCRIPTOR_TYPE_EVENT_METADATA
-
-            dd3.EventData = unchecked((ulong)(UIntPtr)pEventData);
-            dd3.EventDataSize = rawInfo.DataSize;
-            dd3.EventDataType = 0; // EVENT_DATA_DESCRIPTOR_TYPE_NONE
-
-            pEventMeta[0] = unchecked((byte)rawInfo.MetaSize);
-            pEventMeta[1] = unchecked((byte)(rawInfo.MetaSize >> 8));
-
-            var descriptor = eventBuilder.Descriptor;
             return NativeMethods.EventWriteTransfer(
                 this.regHandle,
-                &descriptor,
+                in descriptor,
                 activityId,
                 relatedActivityId,
                 3,
-                &dd3);
+                in dd3);
         }
+        finally
+        {
+            if (providerMetaHandle.IsAllocated)
+            {
+                providerMetaHandle.Free();
+            }
+
+            if (eventMetaHandle.IsAllocated)
+            {
+                eventMetaHandle.Free();
+            }
+
+            if (eventDataHandle.IsAllocated)
+            {
+                eventDataHandle.Free();
+            }
+        }
+#endif
     }
 
     /// <summary>
@@ -574,7 +618,7 @@ internal sealed class EventProvider
             CharSet = CharSet.Unicode,
             ExactSpelling = true,
             SetLastError = false)]
-        public static extern int EventRegister(
+        public static extern safe int EventRegister(
             in Guid providerId,
             EnableCallback enableCallback,
             IntPtr callbackContext,
@@ -585,7 +629,7 @@ internal sealed class EventProvider
             CharSet = CharSet.Unicode,
             ExactSpelling = true,
             SetLastError = false)]
-        public static extern int EventUnregister(
+        public static extern safe int EventUnregister(
             long regHandle);
 
         [DllImport(
@@ -593,7 +637,7 @@ internal sealed class EventProvider
             CharSet = CharSet.Unicode,
             ExactSpelling = true,
             SetLastError = false)]
-        public static extern int EventSetInformation(
+        public static extern safe int EventSetInformation(
             long regHandle,
             int informationClass,
             byte[] eventInformation,
@@ -604,20 +648,20 @@ internal sealed class EventProvider
             CharSet = CharSet.Unicode,
             ExactSpelling = true,
             SetLastError = false)]
-        public static extern unsafe int EventWriteTransfer(
+        public static extern safe int EventWriteTransfer(
             long regHandle,
-            [In] EventDescriptor* eventDescriptor,
-            [In] Guid* activityId,
-            [In] Guid* relatedActivityId,
+            in EventDescriptor eventDescriptor,
+            [In] Guid[] activityId,
+            [In] Guid[] relatedActivityId,
             int userDataCount,
-            [In] EventDataDescriptor3* userData);
+            in EventDataDescriptor3 userData);
 
         [DllImport(
             "api-ms-win-eventing-provider-l1-1-0.dll",
             CharSet = CharSet.Unicode,
             ExactSpelling = true,
             SetLastError = false)]
-        public static extern int EventActivityIdControl(
+        public static extern safe int EventActivityIdControl(
             EventActivityCtrl controlCode,
             ref Guid activityId);
     }
@@ -1309,30 +1353,26 @@ internal sealed class EventBuilder
     /// Adds a Guid field.
     /// Meaningful outTypes: Default.
     /// </summary>
-    public unsafe void AddGuid(string name, Guid value, EventOutType outType = EventOutType.Default, int tag = 0)
+    public void AddGuid(string name, Guid value, EventOutType outType = EventOutType.Default, int tag = 0)
     {
         this.AddMetadata(name, InType.Guid, outType, tag);
         int pos = this.data.ReserveSpaceFor(16);
-        Marshal.Copy((IntPtr)(&value), this.data.data, pos, 16);
-
+        WriteGuid(value, this.data.data, pos);
     }
 
     /// <summary>
     /// Adds a Guid array field.
     /// Meaningful outTypes: Default.
     /// </summary>
-    public unsafe void AddGuidArray(string name, Guid[] values, EventOutType outType = EventOutType.Default, int tag = 0)
+    public void AddGuidArray(string name, Guid[] values, EventOutType outType = EventOutType.Default, int tag = 0)
     {
         this.AddMetadata(name, InType.GuidArray, outType, tag);
-        fixed (Guid* valuesPtr = values)
+        var valuesLength = values.Length;
+        var valuesSize = valuesLength * 16;
+        int pos = this.AddArrayBegin(valuesLength, valuesSize);
+        for (int i = 0; i < valuesLength; i += 1)
         {
-            var valuesLength = values.Length;
-            var valuesSize = valuesLength * 16;
-            int pos = this.AddArrayBegin(valuesLength, valuesSize);
-            if (valuesPtr != null)
-            {
-                Marshal.Copy((IntPtr)valuesPtr, this.data.data, pos, valuesSize);
-            }
+            WriteGuid(values[i], this.data.data, pos + (i * 16));
         }
     }
 
@@ -1822,7 +1862,7 @@ internal sealed class EventBuilder
     }
 
     /// <returns>The position of the outType byte within the metadata array.</returns>
-    private unsafe int AddMetadata(string name, InType inType, EventOutType outType, int tag)
+    private int AddMetadata(string name, InType inType, EventOutType outType, int tag)
     {
         int metadataPos;
         Debug.Assert(name.IndexOf('\0') < 0, "Field name must not have embedded NUL characters.");
@@ -1836,51 +1876,36 @@ internal sealed class EventBuilder
         if (tag != 0)
         {
             pos = this.metadata.ReserveSpaceFor(nameMaxByteCount + 7);
-            fixed (char* pName = name)
-            {
-                fixed (byte* pMeta = this.metadata.data)
-                {
-                    pos += this.utf8NameEncoding.GetBytes(pName, nameLength, pMeta + pos, nameMaxByteCount);
-                    pMeta[pos + 0] = 0; // nul
-                    pMeta[pos + 1] = (byte)((byte)inType | ChainBit);
-                    pMeta[pos + 2] = (byte)((byte)outType | ChainBit);
-                    pMeta[pos + 3] = unchecked((byte)(0x80 | tag >> 21));
-                    pMeta[pos + 4] = unchecked((byte)(0x80 | tag >> 14));
-                    pMeta[pos + 5] = unchecked((byte)(0x80 | tag >> 7));
-                    pMeta[pos + 6] = unchecked((byte)(0x7F & tag));
-                }
-            }
+            var pMeta = this.metadata.data;
+            pos += this.utf8NameEncoding.GetBytes(name, 0, nameLength, pMeta, pos);
+            pMeta[pos + 0] = 0; // nul
+            pMeta[pos + 1] = (byte)((byte)inType | ChainBit);
+            pMeta[pos + 2] = (byte)((byte)outType | ChainBit);
+            pMeta[pos + 3] = unchecked((byte)(0x80 | tag >> 21));
+            pMeta[pos + 4] = unchecked((byte)(0x80 | tag >> 14));
+            pMeta[pos + 5] = unchecked((byte)(0x80 | tag >> 7));
+            pMeta[pos + 6] = unchecked((byte)(0x7F & tag));
             this.metadata.SetSize(pos + 7);
             metadataPos = pos + 2;
         }
         else if (outType != EventOutType.Default)
         {
             pos = this.metadata.ReserveSpaceFor(nameMaxByteCount + 3);
-            fixed (char* pName = name)
-            {
-                fixed (byte* pMeta = this.metadata.data)
-                {
-                    pos += this.utf8NameEncoding.GetBytes(pName, nameLength, pMeta + pos, nameMaxByteCount);
-                    pMeta[pos + 0] = 0; // nul
-                    pMeta[pos + 1] = (byte)((byte)inType | ChainBit);
-                    pMeta[pos + 2] = (byte)outType;
-                }
-            }
+            var pMeta = this.metadata.data;
+            pos += this.utf8NameEncoding.GetBytes(name, 0, nameLength, pMeta, pos);
+            pMeta[pos + 0] = 0; // nul
+            pMeta[pos + 1] = (byte)((byte)inType | ChainBit);
+            pMeta[pos + 2] = (byte)outType;
             this.metadata.SetSize(pos + 3);
             metadataPos = pos + 2;
         }
         else
         {
             pos = this.metadata.ReserveSpaceFor(nameMaxByteCount + 2);
-            fixed (char* pName = name)
-            {
-                fixed (byte* pMeta = this.metadata.data)
-                {
-                    pos += this.utf8NameEncoding.GetBytes(pName, nameLength, pMeta + pos, nameMaxByteCount);
-                    pMeta[pos + 0] = 0; // nul
-                    pMeta[pos + 1] = (byte)inType;
-                }
-            }
+            var pMeta = this.metadata.data;
+            pos += this.utf8NameEncoding.GetBytes(name, 0, nameLength, pMeta, pos);
+            pMeta[pos + 0] = 0; // nul
+            pMeta[pos + 1] = (byte)inType;
             this.metadata.SetSize(pos + 2);
             metadataPos = -1;
         }
@@ -1888,19 +1913,13 @@ internal sealed class EventBuilder
         return metadataPos;
     }
 
-    private unsafe int AddMetadataName(string name, int nulInOutTagSize)
+    private int AddMetadataName(string name, int nulInOutTagSize)
     {
         int nameLength = name.Length;
         int byteMax = this.utf8NameEncoding.GetMaxByteCount(nameLength) + nulInOutTagSize; // nul + intype + outtype + tag
 
         int pos = this.metadata.ReserveSpaceFor(byteMax);
-        fixed (char* pName = name)
-        {
-            fixed (byte* pMeta = this.metadata.data)
-            {
-                pos += this.utf8NameEncoding.GetBytes(pName, nameLength, pMeta + pos, byteMax);
-            }
-        }
+        pos += this.utf8NameEncoding.GetBytes(name, 0, nameLength, this.metadata.data, pos);
 
         return pos;
     }
@@ -1935,16 +1954,29 @@ internal sealed class EventBuilder
         this.data.SetUInt64(pos, value);
     }
 
-    private unsafe void AddScalarDataFloat32(Single value)
+    private void AddScalarDataFloat32(Single value)
     {
         int pos = this.data.ReserveSpaceFor(4);
-        this.data.SetUInt32(pos, *(UInt32*)&value);
+#if NET
+        this.data.SetUInt32(pos, unchecked((UInt32)BitConverter.SingleToInt32Bits(value)));
+#else
+        this.data.SetUInt32(pos, BitConverter.ToUInt32(BitConverter.GetBytes(value), 0));
+#endif
     }
 
-    private unsafe void AddScalarDataFloat64(Double value)
+    private void AddScalarDataFloat64(Double value)
     {
         int pos = this.data.ReserveSpaceFor(8);
-        this.data.SetUInt64(pos, *(UInt64*)&value);
+        this.data.SetUInt64(pos, unchecked((UInt64)BitConverter.DoubleToInt64Bits(value)));
+    }
+
+    private static void WriteGuid(Guid value, byte[] destination, int index)
+    {
+#if NET
+        value.TryWriteBytes(destination.AsSpan(index, 16));
+#else
+        Buffer.BlockCopy(value.ToByteArray(), 0, destination, index, 16);
+#endif
     }
 
     private void AddScalarDataNulTerminatedByteString(byte[] value, int startIndex, int count)
@@ -1958,7 +1990,7 @@ internal sealed class EventBuilder
         this.data.SetUInt8(pos + copyLength, 0);
     }
 
-    private unsafe void AddScalarDataNulTerminatedString(String value, int startIndex, int count)
+    private void AddScalarDataNulTerminatedString(String value, int startIndex, int count)
     {
         int endIndex = value.IndexOf('\0', startIndex, count);
         int copyLength = endIndex < 0
@@ -1967,20 +1999,19 @@ internal sealed class EventBuilder
 
         int valueSize = copyLength * sizeof(UInt16);
         int pos = this.data.ReserveSpaceFor(valueSize + sizeof(UInt16));
-        fixed (char* pValue = value)
+        var pData = this.data.data;
+        for (int i = 0; i < copyLength; i += 1)
         {
-            fixed (byte* pData = this.data.data)
-            {
-                // Safety: startIndex and count were validated by IndexOf.
-                Buffer.MemoryCopy(pValue + startIndex, pData + pos, valueSize, valueSize);
-                pos += valueSize;
-                pData[pos++] = 0;
-                pData[pos++] = 0;
-            }
+            var c = value[startIndex + i];
+            pData[pos++] = unchecked((byte)c);
+            pData[pos++] = unchecked((byte)(c >> 8));
         }
+
+        pData[pos++] = 0;
+        pData[pos++] = 0;
     }
 
-    private unsafe void AddScalarDataCountedString(String value, int startIndex, int count)
+    private void AddScalarDataCountedString(String value, int startIndex, int count)
     {
         int valueLength = value.Length;
         if (startIndex < 0 || startIndex > valueLength)
@@ -1995,20 +2026,19 @@ internal sealed class EventBuilder
 
         int valueSize = count * sizeof(UInt16);
         int pos = this.data.ReserveSpaceFor(sizeof(UInt16) + valueSize);
-        fixed (char* pValue = value)
-        {
-            fixed (byte* pData = this.data.data)
-            {
-                pData[pos++] = (byte)valueSize;
-                pData[pos++] = (byte)(valueSize >> 8);
+        var pData = this.data.data;
+        pData[pos++] = (byte)valueSize;
+        pData[pos++] = (byte)(valueSize >> 8);
 
-                // Safety: startIndex and count validated above.
-                Buffer.MemoryCopy(pValue + startIndex, pData + pos, valueSize, valueSize);
-            }
+        for (int i = 0; i < count; i += 1)
+        {
+            var c = value[startIndex + i];
+            pData[pos++] = unchecked((byte)c);
+            pData[pos++] = unchecked((byte)(c >> 8));
         }
     }
 
-    private unsafe void AddScalarDataNulTerminatedAnsiString(
+    private void AddScalarDataNulTerminatedAnsiString(
         String value,
         Encoding encoding,
         int startIndex,
@@ -2021,24 +2051,13 @@ internal sealed class EventBuilder
 
         int maxValueSize = encoding.GetMaxByteCount(copyLength);
         int pos = this.data.ReserveSpaceFor(maxValueSize + 1);
-        fixed (char* pValue = value)
-        {
-            fixed (byte* pData = this.data.data)
-            {
-                // Safety: startIndex and count were validated by IndexOf.
-                pos += encoding.GetBytes(
-                    pValue + startIndex,
-                    copyLength,
-                    pData + pos,
-                    maxValueSize);
-                pData[pos++] = 0;
-            }
-        }
+        pos += encoding.GetBytes(value, startIndex, copyLength, this.data.data, pos);
+        this.data.data[pos++] = 0;
 
         this.data.SetSize(pos);
     }
 
-    private unsafe void AddScalarDataCountedAnsiString(String value, Encoding encoding, int startIndex, int count)
+    private void AddScalarDataCountedAnsiString(String value, Encoding encoding, int startIndex, int count)
     {
         int valueLength = value.Length;
         if (startIndex < 0 || startIndex > valueLength)
@@ -2053,21 +2072,11 @@ internal sealed class EventBuilder
 
         int maxValueSize = encoding.GetMaxByteCount(count);
         int pos = this.data.ReserveSpaceFor(sizeof(UInt16) + maxValueSize);
-        fixed (char* pValue = value)
-        {
-            fixed (byte* pData = this.data.data)
-            {
-                // Safety: startIndex and count validated above.
-                int valueSize = encoding.GetBytes(
-                    pValue + startIndex,
-                    count,
-                    pData + pos + sizeof(UInt16),
-                    maxValueSize);
-                pData[pos++] = (byte)valueSize;
-                pData[pos++] = (byte)(valueSize >> 8);
-                pos += valueSize;
-            }
-        }
+        var pData = this.data.data;
+        int valueSize = encoding.GetBytes(value, startIndex, count, pData, pos + sizeof(UInt16));
+        pData[pos++] = (byte)valueSize;
+        pData[pos++] = (byte)(valueSize >> 8);
+        pos += valueSize;
 
         this.data.SetSize(pos);
     }
@@ -2104,7 +2113,7 @@ internal sealed class EventBuilder
         return valueTicks < 504911232000000000 ? 0u : (UInt64)valueTicks - 504911232000000000u;
     }
 
-    private unsafe void ResetEvent()
+    private void ResetEvent()
     {
         Debug.Assert(this.name.IndexOf('\0') < 0, "Event name must not have embedded NUL characters.");
         this.data.Reset();
@@ -2119,47 +2128,32 @@ internal sealed class EventBuilder
         {
             // Event tag fits in 7 bits.
             this.metadata.ReserveSpaceFor(eventNameMaxByteCount + 2 + 1 + 1);
-            fixed (char* pEventName = eventName)
-            {
-                fixed (byte* pMeta = this.metadata.data)
-                {
-                    pMeta[pos++] = unchecked((byte)(this.tag >> 21));
-                    pos += this.utf8NameEncoding.GetBytes(pEventName, eventNameLength, pMeta + pos, eventNameMaxByteCount);
-                    pMeta[pos++] = 0;
-                }
-            }
+            var pMeta = this.metadata.data;
+            pMeta[pos++] = unchecked((byte)(this.tag >> 21));
+            pos += this.utf8NameEncoding.GetBytes(eventName, 0, eventNameLength, pMeta, pos);
+            pMeta[pos++] = 0;
         }
         else if ((tag & 0x0FFFC000) == tag)
         {
             // Event tag fits in 14 bits.
             this.metadata.ReserveSpaceFor(eventNameMaxByteCount + 2 + 2 + 1);
-            fixed (char* pEventName = eventName)
-            {
-                fixed (byte* pMeta = this.metadata.data)
-                {
-                    pMeta[pos++] = unchecked((byte)(0x80 | this.tag >> 21));
-                    pMeta[pos++] = unchecked((byte)(0x7f & this.tag >> 14));
-                    pos += this.utf8NameEncoding.GetBytes(pEventName, eventNameLength, pMeta + pos, eventNameMaxByteCount);
-                    pMeta[pos++] = 0;
-                }
-            }
+            var pMeta = this.metadata.data;
+            pMeta[pos++] = unchecked((byte)(0x80 | this.tag >> 21));
+            pMeta[pos++] = unchecked((byte)(0x7f & this.tag >> 14));
+            pos += this.utf8NameEncoding.GetBytes(eventName, 0, eventNameLength, pMeta, pos);
+            pMeta[pos++] = 0;
         }
         else if ((this.tag & 0x0FFFFFFF) == tag)
         {
             // Event tag fits in 28 bits.
             this.metadata.ReserveSpaceFor(eventNameMaxByteCount + 2 + 4 + 1);
-            fixed (char* pEventName = eventName)
-            {
-                fixed (byte* pMeta = this.metadata.data)
-                {
-                    pMeta[pos++] = unchecked((byte)(0x80 | this.tag >> 21));
-                    pMeta[pos++] = unchecked((byte)(0x80 | this.tag >> 14));
-                    pMeta[pos++] = unchecked((byte)(0x80 | this.tag >> 7));
-                    pMeta[pos++] = unchecked((byte)(0x7f & this.tag >> 0));
-                    pos += this.utf8NameEncoding.GetBytes(pEventName, eventNameLength, pMeta + pos, eventNameMaxByteCount);
-                    pMeta[pos++] = 0;
-                }
-            }
+            var pMeta = this.metadata.data;
+            pMeta[pos++] = unchecked((byte)(0x80 | this.tag >> 21));
+            pMeta[pos++] = unchecked((byte)(0x80 | this.tag >> 14));
+            pMeta[pos++] = unchecked((byte)(0x80 | this.tag >> 7));
+            pMeta[pos++] = unchecked((byte)(0x7f & this.tag >> 0));
+            pos += this.utf8NameEncoding.GetBytes(eventName, 0, eventNameLength, pMeta, pos);
+            pMeta[pos++] = 0;
         }
         else
         {
@@ -2179,7 +2173,7 @@ internal sealed class EventBuilder
             Debug.Assert(0 < initialCapacity, "initialCapacity <= 0");
             Debug.Assert(initialCapacity <= 65536, "initialCapacity > 65536");
             Debug.Assert((initialCapacity & (initialCapacity - 1)) == 0, "initialCapacity is not a power of 2.");
-            this.data = new byte[initialCapacity];
+            this.data = PinnedBuffer.Allocate(initialCapacity);
             this.size = 0;
         }
 
@@ -2264,7 +2258,7 @@ internal sealed class EventBuilder
                 }
             }
 
-            byte[] newData = new byte[newCapacity];
+            byte[] newData = PinnedBuffer.Allocate(newCapacity);
             Buffer.BlockCopy(this.data, 0, newData, 0, this.size);
             this.data = newData;
         }

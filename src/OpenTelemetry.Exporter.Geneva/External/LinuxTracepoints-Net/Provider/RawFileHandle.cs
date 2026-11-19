@@ -62,14 +62,8 @@ internal sealed class RawFileHandle
         }
         finally
         {
-            unsafe
-            {
-                fixed (byte* pathNamePtr = nulTerminatedPathName)
-                {
-                    const int O_WRONLY = 0x0001;
-                    result.handle = (nint)NativeMethods.open(pathNamePtr, O_WRONLY, 0);
-                }
-            }
+            const int O_WRONLY = 0x0001;
+            result.handle = (nint)NativeMethods.open(nulTerminatedPathName.ToArray(), O_WRONLY, 0);
         }
 
         if (0 > (nint)result.handle)
@@ -91,19 +85,13 @@ internal sealed class RawFileHandle
     /// On success, returns the number of bytes written.
     /// On error, returns -1 (check Marshal.GetLastWin32Error() for the errno).
     /// </summary>
-    public nint WriteV(ReadOnlySpan<DataSegment> iovecs)
+    public nint WriteV(DataSegment[] iovecs)
     {
         var needRelease = false;
         try
         {
             this.DangerousAddRef(ref needRelease);
-            unsafe
-            {
-                fixed (DataSegment* iovecsPtr = iovecs)
-                {
-                    return NativeMethods.writev((Int32)(nint)this.handle, iovecsPtr, iovecs.Length);
-                }
-            }
+            return NativeMethods.writev((Int32)(nint)this.handle, iovecs, iovecs.Length);
         }
         finally
         {
@@ -118,20 +106,34 @@ internal sealed class RawFileHandle
     /// Calls "ioctl" with the given request and data.
     /// On error, returns -1 (check Marshal.GetLastWin32Error() for the errno).
     /// </summary>
-    public int Ioctl<T>(uint request, ref T data)
-        where T : unmanaged
+    public int Ioctl(uint request, ref TracepointHandle.UserReg data)
     {
         var needRelease = false;
         try
         {
             this.DangerousAddRef(ref needRelease);
-            unsafe
+            return NativeMethods.ioctl_reg((Int32)(nint)this.handle, new UIntPtr(request), ref data);
+        }
+        finally
+        {
+            if (needRelease)
             {
-                fixed (void* dataPtr = &data)
-                {
-                    return NativeMethods.ioctl((Int32)(nint)this.handle, new UIntPtr(request), dataPtr);
-                }
+                this.DangerousRelease();
             }
+        }
+    }
+
+    /// <summary>
+    /// Calls "ioctl" with the given request and data.
+    /// On error, returns -1 (check Marshal.GetLastWin32Error() for the errno).
+    /// </summary>
+    public int Ioctl(uint request, ref TracepointHandle.UserUnreg data)
+    {
+        var needRelease = false;
+        try
+        {
+            this.DangerousAddRef(ref needRelease);
+            return NativeMethods.ioctl_unreg((Int32)(nint)this.handle, new UIntPtr(request), ref data);
         }
         finally
         {
@@ -148,18 +150,21 @@ internal sealed class RawFileHandle
         return 0 <= NativeMethods.close(h);
     }
 
-    private unsafe static class NativeMethods
+    private static class NativeMethods
     {
         [DllImport("libc", SetLastError = true)]
-        public static extern int close(Int32 fd);
+        public static extern safe int close(Int32 fd);
 
         [DllImport("libc", SetLastError = true)]
-        public static extern int open(byte* pathname, Int32 flags, Int32 mode);
+        public static extern safe int open(byte[] pathname, Int32 flags, Int32 mode);
+
+        [DllImport("libc", EntryPoint = "ioctl", SetLastError = true)]
+        public static extern safe int ioctl_reg(Int32 fd, UIntPtr request, ref TracepointHandle.UserReg data);
+
+        [DllImport("libc", EntryPoint = "ioctl", SetLastError = true)]
+        public static extern safe int ioctl_unreg(Int32 fd, UIntPtr request, ref TracepointHandle.UserUnreg data);
 
         [DllImport("libc", SetLastError = true)]
-        public static extern int ioctl(Int32 fd, UIntPtr request, void* data);
-
-        [DllImport("libc", SetLastError = true)]
-        public static extern IntPtr writev(Int32 fd, DataSegment* iovec, Int32 iovecCount);
+        public static extern safe IntPtr writev(Int32 fd, DataSegment[] iovec, Int32 iovecCount);
     }
 }

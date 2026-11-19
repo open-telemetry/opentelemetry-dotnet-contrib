@@ -6,6 +6,7 @@
 namespace Microsoft.LinuxTracepoints.Provider;
 
 using System;
+using OpenTelemetry.Exporter.Geneva;
 
 /// <summary>
 /// Flags used when registering a user_events tracepoint.
@@ -180,12 +181,6 @@ internal class PerfTracepoint : IDisposable
     /// If !IsEnabled, immediately returns EBADF.
     /// Otherwise, writes an event with no data.
     /// </summary>
-    /// <returns>
-    /// 0 if event was written, errno otherwise.
-    /// Typically returns EBADF if no data collection sessions are listening for the tracepoint.
-    /// The return value is for debugging/diagnostic purposes and is usually ignored in normal operation
-    /// since most programs should continue to function even when tracing is not configured.
-    /// </returns>
     public int Write()
     {
         if (this.enablementArray[0] == 0)
@@ -193,214 +188,49 @@ internal class PerfTracepoint : IDisposable
             return TracepointHandle.DisabledEventError;
         }
 
-        return this.handle.Write(stackalloc DataSegment[] {
-            default, // segment[0] is used for headers.
-        });
+        var segments = Segments1 ??= new DataSegment[1];
+        segments[0] = default; // segment[0] is used for headers.
+        return this.handle.Write(segments);
     }
 
     /// <summary>
     /// If !IsEnabled, immediately returns EBADF.
-    /// Otherwise, writes an event with 1 chunk of data.
+    /// Otherwise, writes an event whose data is the concatenation of the given segments.
     /// </summary>
-    /// <returns>
-    /// 0 if event was written, errno otherwise.
-    /// Typically returns EBADF if no data collection sessions are listening for the tracepoint.
-    /// The return value is for debugging/diagnostic purposes and is usually ignored in normal operation
-    /// since most programs should continue to function even when tracing is not configured.
-    /// </returns>
-    public int Write<T1>(
-        ReadOnlySpan<T1> v1)
-        where T1 : unmanaged
+    public int Write(ArraySegment<byte> v1, ArraySegment<byte> v2)
     {
         if (this.enablementArray[0] == 0)
         {
             return TracepointHandle.DisabledEventError;
         }
 
-        unsafe
+        // The kernel reads the data directly, so it has to be at a fixed address during the write. The caller's
+        // buffers are arbitrary, so the segments are gathered into a per-thread buffer from the pinned object heap.
+        var length = v1.Count + v2.Count;
+        var scratch = Scratch;
+        if (scratch == null || scratch.Length < length)
         {
-            fixed (void*
-                p1 = v1)
-            {
-                return this.handle.Write(stackalloc DataSegment[] {
-                    default, // segment[0] is used for headers.
-                    new DataSegment(p1, (uint)v1.Length * (uint)sizeof(T1)),
-                });
-            }
+            scratch = Scratch = PinnedBuffer.Allocate(Math.Max(length, 4096));
         }
+
+        Buffer.BlockCopy(v1.Array!, v1.Offset, scratch, 0, v1.Count);
+        Buffer.BlockCopy(v2.Array!, v2.Offset, scratch, v1.Count, v2.Count);
+
+        var segments = Segments2 ??= new DataSegment[2];
+        segments[0] = default; // segment[0] is used for headers.
+        segments[1] = new DataSegment(PinnedBuffer.AddressOf(scratch), (uint)length);
+        return this.handle.Write(segments);
     }
 
-    /// <summary>
-    /// If !IsEnabled, immediately returns EBADF.
-    /// Otherwise, writes an event with 2 chunks of data.
-    /// </summary>
-    /// <returns>
-    /// 0 if event was written, errno otherwise.
-    /// Typically returns EBADF if no data collection sessions are listening for the tracepoint.
-    /// The return value is for debugging/diagnostic purposes and is usually ignored in normal operation
-    /// since most programs should continue to function even when tracing is not configured.
-    /// </returns>
-    public int Write<T1, T2>(
-        ReadOnlySpan<T1> v1,
-        ReadOnlySpan<T2> v2)
-        where T1 : unmanaged
-        where T2 : unmanaged
-    {
-        if (this.enablementArray[0] == 0)
-        {
-            return TracepointHandle.DisabledEventError;
-        }
+    [ThreadStatic]
+    private static DataSegment[]? Segments1;
 
-        unsafe
-        {
-            fixed (void*
-                p1 = v1,
-                p2 = v2)
-            {
-                return this.handle.Write(stackalloc DataSegment[] {
-                    default, // segment[0] is used for headers.
-                    new DataSegment(p1, (uint)v1.Length * (uint)sizeof(T1)),
-                    new DataSegment(p2, (uint)v2.Length * (uint)sizeof(T2)),
-                });
-            }
-        }
-    }
+    [ThreadStatic]
+    private static DataSegment[]? Segments2;
 
-    /// <summary>
-    /// If !IsEnabled, immediately returns EBADF.
-    /// Otherwise, writes an event with 3 chunks of data.
-    /// </summary>
-    /// <returns>
-    /// 0 if event was written, errno otherwise.
-    /// Typically returns EBADF if no data collection sessions are listening for the tracepoint.
-    /// The return value is for debugging/diagnostic purposes and is usually ignored in normal operation
-    /// since most programs should continue to function even when tracing is not configured.
-    /// </returns>
-    public int Write<T1, T2, T3>(
-        ReadOnlySpan<T1> v1,
-        ReadOnlySpan<T2> v2,
-        ReadOnlySpan<T3> v3)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-    {
-        if (this.enablementArray[0] == 0)
-        {
-            return TracepointHandle.DisabledEventError;
-        }
+    [ThreadStatic]
+    private static byte[]? Scratch; // From pinned object heap.
 
-        unsafe
-        {
-            fixed (void*
-                p1 = v1,
-                p2 = v2,
-                p3 = v3)
-            {
-                return this.handle.Write(stackalloc DataSegment[] {
-                    default, // segment[0] is used for headers.
-                    new DataSegment(p1, (uint)v1.Length * (uint)sizeof(T1)),
-                    new DataSegment(p2, (uint)v2.Length * (uint)sizeof(T2)),
-                    new DataSegment(p3, (uint)v3.Length * (uint)sizeof(T3)),
-                });
-            }
-        }
-    }
-
-    /// <summary>
-    /// If !IsEnabled, immediately returns EBADF.
-    /// Otherwise, writes an event with 4 chunks of data.
-    /// </summary>
-    /// <returns>
-    /// 0 if event was written, errno otherwise.
-    /// Typically returns EBADF if no data collection sessions are listening for the tracepoint.
-    /// The return value is for debugging/diagnostic purposes and is usually ignored in normal operation
-    /// since most programs should continue to function even when tracing is not configured.
-    /// </returns>
-    public int Write<T1, T2, T3, T4>(
-        ReadOnlySpan<T1> v1,
-        ReadOnlySpan<T2> v2,
-        ReadOnlySpan<T3> v3,
-        ReadOnlySpan<T4> v4)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-    {
-        if (this.enablementArray[0] == 0)
-        {
-            return TracepointHandle.DisabledEventError;
-        }
-
-        unsafe
-        {
-            fixed (void*
-                p1 = v1,
-                p2 = v2,
-                p3 = v3,
-                p4 = v4)
-            {
-                return this.handle.Write(stackalloc DataSegment[] {
-                    default, // segment[0] is used for headers.
-                    new DataSegment(p1, (uint)v1.Length * (uint)sizeof(T1)),
-                    new DataSegment(p2, (uint)v2.Length * (uint)sizeof(T2)),
-                    new DataSegment(p3, (uint)v3.Length * (uint)sizeof(T3)),
-                    new DataSegment(p4, (uint)v4.Length * (uint)sizeof(T4)),
-                });
-            }
-        }
-    }
-
-    /// <summary>
-    /// If !IsEnabled, immediately returns EBADF.
-    /// Otherwise, writes an event with 5 chunks of data.
-    /// </summary>
-    /// <returns>
-    /// 0 if event was written, errno otherwise.
-    /// Typically returns EBADF if no data collection sessions are listening for the tracepoint.
-    /// The return value is for debugging/diagnostic purposes and is usually ignored in normal operation
-    /// since most programs should continue to function even when tracing is not configured.
-    /// </returns>
-    public int Write<T1, T2, T3, T4, T5>(
-        ReadOnlySpan<T1> v1,
-        ReadOnlySpan<T2> v2,
-        ReadOnlySpan<T3> v3,
-        ReadOnlySpan<T4> v4,
-        ReadOnlySpan<T5> v5)
-        where T1 : unmanaged
-        where T2 : unmanaged
-        where T3 : unmanaged
-        where T4 : unmanaged
-        where T5 : unmanaged
-    {
-        if (this.enablementArray[0] == 0)
-        {
-            return TracepointHandle.DisabledEventError;
-        }
-
-        unsafe
-        {
-            fixed (void*
-                p1 = v1,
-                p2 = v2,
-                p3 = v3,
-                p4 = v4,
-                p5 = v5)
-            {
-                return this.handle.Write(stackalloc DataSegment[] {
-                    default, // segment[0] is used for headers.
-                    new DataSegment(p1, (uint)v1.Length * (uint)sizeof(T1)),
-                    new DataSegment(p2, (uint)v2.Length * (uint)sizeof(T2)),
-                    new DataSegment(p3, (uint)v3.Length * (uint)sizeof(T3)),
-                    new DataSegment(p4, (uint)v4.Length * (uint)sizeof(T4)),
-                    new DataSegment(p5, (uint)v5.Length * (uint)sizeof(T5)),
-                });
-            }
-        }
-    }
-
-    /// <summary>
-    /// If disposing is true, calls this.handle.Dispose().
-    /// </summary>
     protected virtual void Dispose(bool disposing)
     {
         if (disposing)

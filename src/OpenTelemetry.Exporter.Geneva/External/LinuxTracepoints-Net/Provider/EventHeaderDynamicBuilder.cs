@@ -6,11 +6,12 @@
 namespace Microsoft.LinuxTracepoints.Provider;
 
 using System;
-using System.Buffers;
+using OpenTelemetry.Exporter.Geneva;
 using Debug = System.Diagnostics.Debug;
 using Encoding = System.Text.Encoding;
 using EventOpcode = System.Diagnostics.Tracing.EventOpcode;
-using MemoryMarshal = System.Runtime.InteropServices.MemoryMarshal;
+using BinaryPrimitives = System.Buffers.Binary.BinaryPrimitives;
+using Unsafe = System.Runtime.CompilerServices.Unsafe;
 
 /// <summary>
 /// Builder for events to be written through an <see cref="EventHeaderDynamicTracepoint"/>.
@@ -2374,10 +2375,7 @@ internal class EventHeaderDynamicBuilder : IDisposable
     /// </returns>
     public int Write(EventHeaderDynamicTracepoint tracepoint)
     {
-        unsafe
-        {
-            return tracepoint.WriteRaw(this, null, null);
-        }
+        return tracepoint.WriteRaw(this, null, null);
     }
 
     /// <summary>
@@ -2402,13 +2400,7 @@ internal class EventHeaderDynamicBuilder : IDisposable
     /// </returns>
     public int Write(EventHeaderDynamicTracepoint tracepoint, in Guid activityId)
     {
-        unsafe
-        {
-            fixed (Guid* activityIdPtr = &activityId)
-            {
-                return tracepoint.WriteRaw(this, activityIdPtr, null);
-            }
-        }
+        return tracepoint.WriteRaw(this, activityId, null);
     }
 
     /// <summary>
@@ -2437,13 +2429,7 @@ internal class EventHeaderDynamicBuilder : IDisposable
     /// </returns>
     public int Write(EventHeaderDynamicTracepoint tracepoint, in Guid activityId, in Guid relatedActivityId)
     {
-        unsafe
-        {
-            fixed (Guid* activityIdPtr = &activityId, relatedActivityIdPtr = &relatedActivityId)
-            {
-                return tracepoint.WriteRaw(this, activityIdPtr, relatedActivityIdPtr);
-            }
-        }
+        return tracepoint.WriteRaw(this, activityId, relatedActivityId);
     }
 
     /// <summary>
@@ -2468,9 +2454,9 @@ internal class EventHeaderDynamicBuilder : IDisposable
         }
     }
 
-    internal ReadOnlySpan<byte> GetRawMeta() => this.meta.UsedSpan;
+    internal ArraySegment<byte> GetRawMeta() => this.meta.UsedSegment;
 
-    internal ReadOnlySpan<byte> GetRawData() => this.data.UsedSpan;
+    internal ArraySegment<byte> GetRawData() => this.data.UsedSegment;
 
     private void ResetImpl()
     {
@@ -2492,7 +2478,127 @@ internal class EventHeaderDynamicBuilder : IDisposable
         }
         else
         {
-            MemoryMarshal.Write(dest, ref value);
+            Utility.WriteUInt16Native(dest, value);
+        }
+    }
+
+    /// <summary>
+    /// Writes the value in native byte order. Supports the primitive types that can be used in events.
+    /// </summary>
+    private static void WriteNative<T>(Span<byte> destination, T value)
+        where T : unmanaged
+    {
+        if (typeof(T) == typeof(byte))
+        {
+            destination[0] = (byte)(object)value;
+            return;
+        }
+
+        if (typeof(T) == typeof(EventHeaderValue128))
+        {
+            // Raw bytes: no byte order.
+            var v = (EventHeaderValue128)(object)value;
+            destination[0] = v.Byte0;
+            destination[1] = v.Byte1;
+            destination[2] = v.Byte2;
+            destination[3] = v.Byte3;
+            destination[4] = v.Byte4;
+            destination[5] = v.Byte5;
+            destination[6] = v.Byte6;
+            destination[7] = v.Byte7;
+            destination[8] = v.Byte8;
+            destination[9] = v.Byte9;
+            destination[10] = v.Byte10;
+            destination[11] = v.Byte11;
+            destination[12] = v.Byte12;
+            destination[13] = v.Byte13;
+            destination[14] = v.Byte14;
+            destination[15] = v.Byte15;
+            return;
+        }
+
+        var size = Unsafe.SizeOf<T>();
+        var dest = destination.Slice(0, size);
+        if (typeof(T) == typeof(sbyte))
+        {
+            dest[0] = unchecked((byte)(sbyte)(object)value);
+        }
+        else if (typeof(T) == typeof(UInt16))
+        {
+            BinaryPrimitives.WriteUInt16LittleEndian(dest, (UInt16)(object)value);
+        }
+        else if (typeof(T) == typeof(Int16))
+        {
+            BinaryPrimitives.WriteInt16LittleEndian(dest, (Int16)(object)value);
+        }
+        else if (typeof(T) == typeof(char))
+        {
+            BinaryPrimitives.WriteUInt16LittleEndian(dest, (char)(object)value);
+        }
+        else if (typeof(T) == typeof(UInt32))
+        {
+            BinaryPrimitives.WriteUInt32LittleEndian(dest, (UInt32)(object)value);
+        }
+        else if (typeof(T) == typeof(Int32))
+        {
+            BinaryPrimitives.WriteInt32LittleEndian(dest, (Int32)(object)value);
+        }
+        else if (typeof(T) == typeof(UInt64))
+        {
+            BinaryPrimitives.WriteUInt64LittleEndian(dest, (UInt64)(object)value);
+        }
+        else if (typeof(T) == typeof(Int64))
+        {
+            BinaryPrimitives.WriteInt64LittleEndian(dest, (Int64)(object)value);
+        }
+        else if (typeof(T) == typeof(Single))
+        {
+            BinaryPrimitives.WriteSingleLittleEndian(dest, (Single)(object)value);
+        }
+        else if (typeof(T) == typeof(Double))
+        {
+            BinaryPrimitives.WriteDoubleLittleEndian(dest, (Double)(object)value);
+        }
+        else if (typeof(T) == typeof(nint))
+        {
+            if (size == 8)
+            {
+                BinaryPrimitives.WriteInt64LittleEndian(dest, (nint)(object)value);
+            }
+            else
+            {
+                BinaryPrimitives.WriteInt32LittleEndian(dest, (int)(nint)(object)value);
+            }
+        }
+        else if (typeof(T) == typeof(nuint))
+        {
+            if (size == 8)
+            {
+                BinaryPrimitives.WriteUInt64LittleEndian(dest, (nuint)(object)value);
+            }
+            else
+            {
+                BinaryPrimitives.WriteUInt32LittleEndian(dest, (uint)(nuint)(object)value);
+            }
+        }
+        else
+        {
+            throw new NotSupportedException("Unsupported field type: " + typeof(T).Name);
+        }
+
+        if (!BitConverter.IsLittleEndian)
+        {
+            dest.Reverse();
+        }
+    }
+
+    private static void WriteNative<T>(Span<byte> destination, ReadOnlySpan<T> values)
+        where T : unmanaged
+    {
+        var size = Unsafe.SizeOf<T>();
+        for (var i = 0; i < values.Length; i += 1)
+        {
+            WriteNative(destination.Slice(i * size), values[i]);
         }
     }
 
@@ -2512,11 +2618,7 @@ internal class EventHeaderDynamicBuilder : IDisposable
     private void AddDataT<T>(T value)
         where T : unmanaged
     {
-        uint sizeofT;
-        unsafe
-        {
-            sizeofT = (uint)sizeof(T);
-        }
+        var sizeofT = (uint)Unsafe.SizeOf<T>();
 
         var dest = this.data.ReserveSpanFor(sizeofT);
         if (dest.IsEmpty)
@@ -2525,7 +2627,7 @@ internal class EventHeaderDynamicBuilder : IDisposable
         }
         else
         {
-            MemoryMarshal.Write(dest, ref value);
+            WriteNative(dest, value);
         }
     }
 
@@ -2537,28 +2639,23 @@ internal class EventHeaderDynamicBuilder : IDisposable
             value = value.Slice(0, UInt16.MaxValue);
         }
 
-        var valueBytes = MemoryMarshal.AsBytes(value);
-        var dest = this.data.ReserveSpanFor(sizeof(UInt16) + (uint)valueBytes.Length);
+        var sizeofT = Unsafe.SizeOf<T>();
+        var dest = this.data.ReserveSpanFor(sizeof(UInt16) + ((uint)value.Length * (uint)sizeofT));
         if (dest.IsEmpty)
         {
             this.addFailed = true;
         }
         else
         {
-            UInt16 lenU16 = (UInt16)value.Length;
-            MemoryMarshal.Write(dest, ref lenU16);
-            valueBytes.CopyTo(dest.Slice(sizeof(UInt16)));
+            Utility.WriteUInt16Native(dest, (UInt16)value.Length);
+            WriteNative(dest.Slice(sizeof(UInt16)), value);
         }
     }
 
     private void AddDataZStringT<T>(ReadOnlySpan<T> value)
         where T : unmanaged, IEquatable<T>
     {
-        uint sizeofT;
-        unsafe
-        {
-            sizeofT = (uint)sizeof(T);
-        }
+        var sizeofT = (uint)Unsafe.SizeOf<T>();
 
         if (value.Length > UInt16.MaxValue)
         {
@@ -2577,34 +2674,31 @@ internal class EventHeaderDynamicBuilder : IDisposable
             len += 1;
         }
 
-        var valueBytes = MemoryMarshal.AsBytes(value);
-        var dest = this.data.ReserveSpanFor((uint)valueBytes.Length + sizeofT);
+        var valueBytesLength = (int)((uint)value.Length * sizeofT);
+        var dest = this.data.ReserveSpanFor((uint)valueBytesLength + sizeofT);
         if (dest.IsEmpty)
         {
             this.addFailed = true;
         }
         else
         {
-            valueBytes.CopyTo(dest);
-            var zero = default(T);
-            MemoryMarshal.Write(dest.Slice(valueBytes.Length), ref zero);
+            WriteNative(dest, value);
+            WriteNative(dest.Slice(valueBytesLength), default(T));
         }
     }
 
     private void AddDataArrayT<T>(ReadOnlySpan<T> values)
         where T : unmanaged
     {
-        var valuesBytes = MemoryMarshal.AsBytes(values);
-        var dest = this.data.ReserveSpanFor(sizeof(UInt16) + (uint)valuesBytes.Length);
+        var dest = this.data.ReserveSpanFor(sizeof(UInt16) + ((uint)values.Length * (uint)Unsafe.SizeOf<T>()));
         if (dest.IsEmpty)
         {
             this.addFailed = true;
         }
         else
         {
-            var countU16 = (UInt16)values.Length;
-            MemoryMarshal.Write(dest, ref countU16);
-            valuesBytes.CopyTo(dest.Slice(sizeof(UInt16)));
+            Utility.WriteUInt16Native(dest, (UInt16)values.Length);
+            WriteNative(dest.Slice(sizeof(UInt16)), values);
         }
     }
 
@@ -2617,8 +2711,7 @@ internal class EventHeaderDynamicBuilder : IDisposable
         }
         else
         {
-            var countU16 = (UInt16)values.Length;
-            MemoryMarshal.Write(dest, ref countU16);
+            Utility.WriteUInt16Native(dest, (UInt16)values.Length);
             var pos = sizeof(UInt16);
             foreach (var v in values)
             {
@@ -2657,7 +2750,7 @@ internal class EventHeaderDynamicBuilder : IDisposable
             metaSpan[pos++] = 0;
             metaSpan[pos++] = (byte)(encoding | EventHeaderFieldEncoding.ChainFlag);
             metaSpan[pos++] = (byte)(format | EventHeaderFieldFormat.ChainFlag);
-            MemoryMarshal.Write(metaSpan.Slice(pos), ref tag);
+            Utility.WriteUInt16Native(metaSpan.Slice(pos), tag);
             pos += sizeof(UInt16);
             this.meta.SetUsed(pos);
             metadataPos = pos - 3; // Returned from AddStructWithMetadataPosition.
@@ -2726,7 +2819,7 @@ internal class EventHeaderDynamicBuilder : IDisposable
             metaSpan[pos++] = 0;
             metaSpan[pos++] = (byte)(encoding | EventHeaderFieldEncoding.ChainFlag);
             metaSpan[pos++] = (byte)(format | EventHeaderFieldFormat.ChainFlag);
-            MemoryMarshal.Write(metaSpan.Slice(pos), ref tag);
+            Utility.WriteUInt16Native(metaSpan.Slice(pos), tag);
             pos += sizeof(UInt16);
             this.meta.SetUsed(pos);
             metadataPos = pos - 3; // Returned from AddStructWithMetadataPosition.
@@ -2775,7 +2868,7 @@ internal class EventHeaderDynamicBuilder : IDisposable
             Debug.Assert(0 < initialCapacity, "initialCapacity <= 0");
             Debug.Assert(initialCapacity <= 65536, "initialCapacity > 65536");
             Debug.Assert((initialCapacity & (initialCapacity - 1)) == 0, "initialCapacity is not a power of 2.");
-            this.Bytes = ArrayPool<byte>.Shared.Rent(initialCapacity);
+            this.Bytes = PinnedBuffer.Allocate(initialCapacity);
         }
 
         public byte[] Bytes { readonly get; private set; }
@@ -2784,16 +2877,12 @@ internal class EventHeaderDynamicBuilder : IDisposable
 
         public readonly Span<byte> UsedSpan => new Span<byte>(this.Bytes, 0, this.Used);
 
+        public readonly ArraySegment<byte> UsedSegment => new ArraySegment<byte>(this.Bytes, 0, this.Used);
+
         public void Dispose()
         {
-            var oldBytes = this.Bytes;
             this.Bytes = Array.Empty<byte>();
             this.Used = 0;
-
-            if (oldBytes.Length != 0)
-            {
-                ArrayPool<byte>.Shared.Return(oldBytes);
-            }
         }
 
         public void Reset()
@@ -2880,13 +2969,12 @@ internal class EventHeaderDynamicBuilder : IDisposable
                 return false;
             }
 
-            var sharedPool = ArrayPool<byte>.Shared;
+            // The buffers are read directly by the kernel, so they are allocated on the pinned object heap.
             var oldArray = this.Bytes;
-            var newArray = sharedPool.Rent((int)newCapacity);
+            var newArray = PinnedBuffer.Allocate((int)newCapacity);
 
             Buffer.BlockCopy(oldArray, 0, newArray, 0, this.Used);
             this.Bytes = newArray;
-            sharedPool.Return(oldArray);
             return true;
         }
     }

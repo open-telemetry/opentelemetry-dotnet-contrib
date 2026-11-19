@@ -3,7 +3,6 @@
 namespace Microsoft.LinuxTracepoints.Provider
 {
     using System;
-    using System.Runtime.CompilerServices;
     using System.Runtime.InteropServices;
 
     /// <summary>
@@ -44,7 +43,22 @@ namespace Microsoft.LinuxTracepoints.Provider
                 throw new ArgumentOutOfRangeException(nameof(source), nameof(source) + ".Length < 16");
             }
 
-            Unsafe.CopyBlockUnaligned(ref this.Byte0, ref MemoryMarshal.GetReference(source), 16);
+            this.Byte0 = source[0];
+            this.Byte1 = source[1];
+            this.Byte2 = source[2];
+            this.Byte3 = source[3];
+            this.Byte4 = source[4];
+            this.Byte5 = source[5];
+            this.Byte6 = source[6];
+            this.Byte7 = source[7];
+            this.Byte8 = source[8];
+            this.Byte9 = source[9];
+            this.Byte10 = source[10];
+            this.Byte11 = source[11];
+            this.Byte12 = source[12];
+            this.Byte13 = source[13];
+            this.Byte14 = source[14];
+            this.Byte15 = source[15];
         }
     }
 }

@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Buffers.Binary;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -66,10 +67,7 @@ internal sealed class TlvMetricExporter : IDisposable
                 throw new NotSupportedException($"Protocol '{connectionStringBuilder.Protocol}' is not supported");
         }
 
-        unsafe
-        {
-            this.fixedPayloadStartIndex = sizeof(BinaryHeader);
-        }
+        this.fixedPayloadStartIndex = BinaryHeader.Size;
     }
 
     public void Dispose()
@@ -254,7 +252,7 @@ internal sealed class TlvMetricExporter : IDisposable
         return result;
     }
 
-    internal unsafe ushort SerializeMetricWithTLV(
+    internal ushort SerializeMetricWithTLV(
         MetricEventType eventType,
         string metricName,
         long timestamp,
@@ -273,7 +271,7 @@ internal sealed class TlvMetricExporter : IDisposable
             // -- Sequence of payload types
 
             // Leave enough space for the header
-            var bufferIndex = sizeof(BinaryHeader);
+            var bufferIndex = BinaryHeader.Size;
 
             SerializeMetricName(metricName, this.buffer, ref bufferIndex);
 
@@ -298,12 +296,8 @@ internal sealed class TlvMetricExporter : IDisposable
             bodyLength = (ushort)(bufferIndex - this.fixedPayloadStartIndex);
 
             // Copy in the final structures to the front
-            fixed (byte* bufferBytes = this.buffer)
-            {
-                var ptr = (BinaryHeader*)bufferBytes;
-                ptr->EventId = (ushort)MetricEventType.TLV;
-                ptr->BodyLength = bodyLength;
-            }
+            BinaryPrimitives.WriteUInt16LittleEndian(this.buffer.AsSpan(0, 2), (ushort)MetricEventType.TLV);
+            BinaryPrimitives.WriteUInt16LittleEndian(this.buffer.AsSpan(2, 2), bodyLength);
         }
         finally
         {
@@ -312,7 +306,7 @@ internal sealed class TlvMetricExporter : IDisposable
         return bodyLength;
     }
 
-    internal unsafe ushort SerializeHistogramMetricWithTLV(
+    internal ushort SerializeHistogramMetricWithTLV(
         string metricName,
         long timestamp,
         in ReadOnlyTagCollection tags,
@@ -334,7 +328,7 @@ internal sealed class TlvMetricExporter : IDisposable
             // -- Sequence of payload types
 
             // Leave enough space for the header
-            var bufferIndex = sizeof(BinaryHeader);
+            var bufferIndex = BinaryHeader.Size;
 
             SerializeMetricName(metricName, this.buffer, ref bufferIndex);
 
@@ -359,12 +353,8 @@ internal sealed class TlvMetricExporter : IDisposable
             bodyLength = (ushort)(bufferIndex - this.fixedPayloadStartIndex);
 
             // Copy in the final structures to the front
-            fixed (byte* bufferBytes = this.buffer)
-            {
-                var ptr = (BinaryHeader*)bufferBytes;
-                ptr->EventId = (ushort)MetricEventType.TLV;
-                ptr->BodyLength = bodyLength;
-            }
+            BinaryPrimitives.WriteUInt16LittleEndian(this.buffer.AsSpan(0, 2), (ushort)MetricEventType.TLV);
+            BinaryPrimitives.WriteUInt16LittleEndian(this.buffer.AsSpan(2, 2), bodyLength);
         }
         finally
         {

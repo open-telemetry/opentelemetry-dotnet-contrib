@@ -8,6 +8,7 @@ namespace Microsoft.LinuxTracepoints.Provider;
 using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using OpenTelemetry.Exporter.Geneva;
 using Debug = System.Diagnostics.Debug;
 using Interlocked = System.Threading.Interlocked;
 
@@ -44,6 +45,16 @@ internal sealed class TracepointHandle : SafeHandle
 
     private static RawFileHandle? userEventsDataStatic;
     private static Int32[]? emptyEnabledPinned; // From normal heap.
+
+    // writeIndex + eventHeader + activityId header + activityId + relatedId + metadata header
+    private const int HeadersMax = sizeof(Int32)
+        + EventHeader.SizeOfStruct
+        + EventHeaderExtension.SizeOfStruct + 16 + 16
+        + EventHeaderExtension.SizeOfStruct;
+    private const int HeadersBufferSize = 64;
+
+    [ThreadStatic]
+    private static byte[]? headerBuffer; // From pinned object heap.
 
     /// <summary>
     /// When this.IsInvalid, enabledPinned is a shared emptyEnabledPinned from the normal heap.
@@ -142,41 +153,39 @@ internal sealed class TracepointHandle : SafeHandle
             Debug.Assert(0 == enabledPinned[0]);
 
             int ioctlResult;
-            unsafe
-            {
-                fixed (Int32* enabledPtr = enabledPinned)
-                {
-                    fixed (byte* nameArgsPtr = nulTerminatedNameArgs)
-                    {
-                        var reg = new user_reg
-                        {
-                            size = user_reg.SizeOfStruct,
-                            enable_size = EnableSize,
-                            flags = flags,
-                            enable_addr = (nuint)enabledPtr,
-                            name_args = (nuint)nameArgsPtr,
-                        };
 
-                        // Need a finally block to make sure the thread is not interrupted
-                        // between the ioctl and the SetHandle.
-                        try
-                        {
-                            // Nothing.
-                        }
-                        finally
-                        {
-                            var DIAG_IOCSREG =
-                                ((IOC_WRITE | IOC_READ) << IOC_DIRSHIFT) |
-                                (DIAG_IOC_MAGIC << IOC_TYPESHIFT) |
-                                (0u << IOC_NRSHIFT) |
-                                ((uint)IntPtr.Size << IOC_SIZESHIFT);
-                            ioctlResult = userEventsData.Ioctl(DIAG_IOCSREG, ref reg);
-                            if (ioctlResult >= 0)
-                            {
-                                tracepoint.enabledPinned = enabledPinned;
-                                tracepoint.SetHandle((nint)reg.write_index);
-                            }
-                        }
+            // The address of the name needs to be stable for the duration of the ioctl, so (like the
+            // enabled array) copy it to the pinned object heap.
+            var nameArgsArray = PinnedBuffer.Allocate(nulTerminatedNameArgs.Length);
+            nulTerminatedNameArgs.CopyTo(nameArgsArray);
+            {
+                var reg = new UserReg
+                {
+                    size = UserReg.SizeOfStruct,
+                    enable_size = EnableSize,
+                    flags = flags,
+                    enable_addr = (nuint)Marshal.UnsafeAddrOfPinnedArrayElement(enabledPinned, 0),
+                    name_args = (nuint)PinnedBuffer.AddressOf(nameArgsArray),
+                };
+
+                // Need a finally block to make sure the thread is not interrupted
+                // between the ioctl and the SetHandle.
+                try
+                {
+                    // Nothing.
+                }
+                finally
+                {
+                    var DIAG_IOCSREG =
+                        ((IOC_WRITE | IOC_READ) << IOC_DIRSHIFT) |
+                        (DIAG_IOC_MAGIC << IOC_TYPESHIFT) |
+                        (0u << IOC_NRSHIFT) |
+                        ((uint)IntPtr.Size << IOC_SIZESHIFT);
+                    ioctlResult = userEventsData.Ioctl(DIAG_IOCSREG, ref reg);
+                    if (ioctlResult >= 0)
+                    {
+                        tracepoint.enabledPinned = enabledPinned;
+                        tracepoint.SetHandle((nint)reg.write_index);
                     }
                 }
             }
@@ -207,7 +216,7 @@ internal sealed class TracepointHandle : SafeHandle
     /// <br/>
     /// Requires: data[0].Length == 0 (data[0] will be used for headers).
     /// </summary>
-    public int Write(Span<DataSegment> data)
+    public int Write(DataSegment[] data)
     {
         // Precondition: slot for write_index in data[0].
         Debug.Assert(data[0].Length == 0);
@@ -216,13 +225,14 @@ internal sealed class TracepointHandle : SafeHandle
         Debug.Assert(userEventsData != null); // Otherwise there would be no TracepointHandle instance.
         Debug.Assert(userEventsData.OpenResult == 0); // Otherwise Enabled would be false.
 
-        var writeIndex = new WriteIndexPlus { WriteIndex = (Int32)(nint)this.handle, Padding = 0 };
-        unsafe
-        {
-            // Workaround: On old kernels, events with 0 bytes of data don't get written.
-            // If event has 0 bytes of data, add a byte to avoid the problem.
-            data[0] = new DataSegment(&writeIndex, sizeof(Int32) + (data.Length == 1 ? 1u : 0u));
-        }
+        // Workaround: On old kernels, events with 0 bytes of data don't get written.
+        // If event has 0 bytes of data, add a byte to avoid the problem.
+        var headers = GetHeaderBuffer();
+        headers.AsSpan(0, WriteIndexPlus.SizeOfStruct).Clear();
+        Utility.WriteInt32Native(headers, (Int32)(nint)this.handle);
+        data[0] = new DataSegment(
+            Marshal.UnsafeAddrOfPinnedArrayElement(headers, 0),
+            sizeof(Int32) + (data.Length == 1 ? 1u : 0u));
 
         if (this.IsClosed)
         {
@@ -256,12 +266,12 @@ internal sealed class TracepointHandle : SafeHandle
     /// <br/>
     /// Requires: If metaLength != 0 then data[1] starts with metadata extension block data.
     /// </summary>
-    public unsafe int WriteEventHeader(
+    public int WriteEventHeader(
         EventHeader eventHeader,
-        Guid* activityId,
-        Guid* relatedId,
+        in Guid? activityId,
+        in Guid? relatedId,
         ushort metaLength,
-        Span<DataSegment> data)
+        DataSegment[] data)
     {
         // Precondition: slot for write_index in data[0].
         Debug.Assert(data[0].Length == 0);
@@ -284,52 +294,51 @@ internal sealed class TracepointHandle : SafeHandle
             + EventHeader.SizeOfStruct                      // eventHeader
             + EventHeaderExtension.SizeOfStruct + 16 + 16   // activityId header + activityId + relatedId
             + EventHeaderExtension.SizeOfStruct;            // metadata header
-        var writeIndex = (Int32)(nint)this.handle;
-        unsafe
+        // The headers are built in a per-thread buffer from the pinned object heap,
+        // so that the address can be given to the kernel without having to pin on each write.
+        var headerBuffer = GetHeaderBuffer();
+        var headers = headerBuffer.AsSpan(0, HeadersMax);
+        int pos = 0;
+
+        Utility.WriteInt32Native(headers.Slice(pos), (Int32)(nint)this.handle);
+        pos += sizeof(Int32);
+
+        headers[pos + 0] = (byte)eventHeader.Flags;
+        headers[pos + 1] = eventHeader.Version;
+        Utility.WriteUInt16Native(headers.Slice(pos + 2), eventHeader.Id);
+        Utility.WriteUInt16Native(headers.Slice(pos + 4), eventHeader.Tag);
+        headers[pos + 6] = eventHeader.OpcodeByte;
+        headers[pos + 7] = eventHeader.LevelByte;
+        pos += EventHeader.SizeOfStruct;
+
+        if (activityId.HasValue)
         {
-            uint* headersUInt32 = stackalloc UInt32[HeadersMax / sizeof(UInt32)]; // Ensure 4-byte alignment.
-            byte* headers = (byte*)headersUInt32;
-            uint pos = 0;
-
-            *(Int32*)&headers[pos] = (Int32)(nint)this.handle;
-            pos += sizeof(Int32);
-
-            *(EventHeader*)&headers[pos] = eventHeader;
-            pos += EventHeader.SizeOfStruct;
-
-            if (activityId != null)
+            var kind = EventHeaderExtensionKind.ActivityId | (metaLength == 0 ? 0 : EventHeaderExtensionKind.ChainFlag);
+            if (relatedId.HasValue)
             {
-                var kind = EventHeaderExtensionKind.ActivityId | (metaLength == 0 ? 0 : EventHeaderExtensionKind.ChainFlag);
-                if (relatedId != null)
-                {
-                    *(EventHeaderExtension*)&headers[pos] = new EventHeaderExtension { Kind = kind, Size = 32 };
-                    pos += EventHeaderExtension.SizeOfStruct;
-                    Utility.WriteGuidBigEndian(new Span<byte>(&headers[pos], 16), *activityId);
-                    pos += 16;
-                    Utility.WriteGuidBigEndian(new Span<byte>(&headers[pos], 16), *relatedId);
-                    pos += 16;
-                }
-                else
-                {
-                    *(EventHeaderExtension*)&headers[pos] = new EventHeaderExtension { Kind = kind, Size = 16 };
-                    pos += EventHeaderExtension.SizeOfStruct;
-                    Utility.WriteGuidBigEndian(new Span<byte>(&headers[pos], 16), *activityId);
-                    pos += 16;
-                }
-            }
-
-            if (metaLength != 0)
-            {
-                *(EventHeaderExtension*)&headers[pos] = new EventHeaderExtension
-                {
-                    Kind = EventHeaderExtensionKind.Metadata, // Last one, so no chain flag.
-                    Size = metaLength,
-                };
+                WriteExtension(headers.Slice(pos), 32, kind);
                 pos += EventHeaderExtension.SizeOfStruct;
+                Utility.WriteGuidBigEndian(headers.Slice(pos, 16), activityId.Value);
+                pos += 16;
+                Utility.WriteGuidBigEndian(headers.Slice(pos, 16), relatedId.Value);
+                pos += 16;
             }
-
-            data[0] = new DataSegment(headers, pos);
+            else
+            {
+                WriteExtension(headers.Slice(pos), 16, kind);
+                pos += EventHeaderExtension.SizeOfStruct;
+                Utility.WriteGuidBigEndian(headers.Slice(pos, 16), activityId.Value);
+                pos += 16;
+            }
         }
+
+        if (metaLength != 0)
+        {
+            WriteExtension(headers.Slice(pos), metaLength, EventHeaderExtensionKind.Metadata); // Last one, so no chain flag.
+            pos += EventHeaderExtension.SizeOfStruct;
+        }
+
+        data[0] = new DataSegment(Marshal.UnsafeAddrOfPinnedArrayElement(headerBuffer, 0), (nuint)pos);
 
         if (this.IsClosed)
         {
@@ -345,6 +354,20 @@ internal sealed class TracepointHandle : SafeHandle
 
         var writevResult = userEventsData.WriteV(data);
         return writevResult >= 0 ? 0 : Marshal.GetLastWin32Error();
+    }
+
+    private static void WriteExtension(Span<byte> destination, ushort size, EventHeaderExtensionKind kind)
+    {
+        Utility.WriteUInt16Native(destination, size);
+        Utility.WriteUInt16Native(destination.Slice(2), (ushort)kind);
+    }
+
+    /// <summary>
+    /// Returns a per-thread buffer (from the pinned object heap) that is used to build headers.
+    /// </summary>
+    private static byte[] GetHeaderBuffer()
+    {
+        return headerBuffer ??= GC.AllocateArray<byte>(HeadersBufferSize, pinned: true);
     }
 
     /// <summary>
@@ -367,25 +390,19 @@ internal sealed class TracepointHandle : SafeHandle
 
         var enabledPinned = this.enabledPinned;
         int ioctlResult;
-        unsafe
+        Debug.Assert(!ReferenceEquals(enabledPinned, emptyEnabledPinned));
+        var unreg = new UserUnreg
         {
-            Debug.Assert(!ReferenceEquals(enabledPinned, emptyEnabledPinned));
-            fixed (Int32* enabledPtr = enabledPinned)
-            {
-                var unreg = new user_unreg
-                {
-                    size = user_unreg.SizeOfStruct,
-                    disable_addr = (nuint)enabledPtr,
-                };
+            size = UserUnreg.SizeOfStruct,
+            disable_addr = (nuint)Marshal.UnsafeAddrOfPinnedArrayElement(enabledPinned, 0),
+        };
 
-                var DIAG_IOCSUNREG =
-                    (IOC_WRITE << IOC_DIRSHIFT) |
-                    (DIAG_IOC_MAGIC << IOC_TYPESHIFT) |
-                    (2u << IOC_NRSHIFT) |
-                    ((uint)IntPtr.Size << IOC_SIZESHIFT);
-                ioctlResult = userEventsData.Ioctl(DIAG_IOCSUNREG, ref unreg);
-            }
-        }
+        var DIAG_IOCSUNREG =
+            (IOC_WRITE << IOC_DIRSHIFT) |
+            (DIAG_IOC_MAGIC << IOC_TYPESHIFT) |
+            (2u << IOC_NRSHIFT) |
+            ((uint)IntPtr.Size << IOC_SIZESHIFT);
+        ioctlResult = userEventsData.Ioctl(DIAG_IOCSUNREG, ref unreg);
 
         enabledPinned[0] = 0; // Force IsEnabled = false.
         return 0 <= ioctlResult;
@@ -599,7 +616,7 @@ internal sealed class TracepointHandle : SafeHandle
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    private struct user_reg
+    internal struct UserReg
     {
         public const int SizeOfStruct = 28;
         public UInt32 size;
@@ -612,7 +629,7 @@ internal sealed class TracepointHandle : SafeHandle
     }
 
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    private struct user_unreg
+    internal struct UserUnreg
     {
         public const int SizeOfStruct = 16;
         public UInt32 size;
@@ -625,6 +642,7 @@ internal sealed class TracepointHandle : SafeHandle
     [StructLayout(LayoutKind.Sequential)]
     private struct WriteIndexPlus
     {
+        public const int SizeOfStruct = 8;
         public Int32 WriteIndex;
         public UInt32 Padding;
     }

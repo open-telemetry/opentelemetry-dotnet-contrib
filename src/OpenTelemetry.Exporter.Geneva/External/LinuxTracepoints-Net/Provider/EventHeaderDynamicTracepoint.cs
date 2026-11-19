@@ -6,6 +6,7 @@
 namespace Microsoft.LinuxTracepoints.Provider;
 
 using System;
+using OpenTelemetry.Exporter.Geneva;
 using Debug = System.Diagnostics.Debug;
 using EventLevel = System.Diagnostics.Tracing.EventLevel;
 
@@ -148,10 +149,10 @@ internal sealed class EventHeaderDynamicTracepoint : IDisposable
         this.handle.Dispose();
     }
 
-    internal unsafe int WriteRaw(
+    internal int WriteRaw(
         EventHeaderDynamicBuilder builder,
-        in Guid* activityId,
-        in Guid* relatedId)
+        in Guid? activityId,
+        in Guid? relatedId)
     {
         if (builder.TooBig)
         {
@@ -165,29 +166,28 @@ internal sealed class EventHeaderDynamicTracepoint : IDisposable
 
         var meta = builder.GetRawMeta();
         var data = builder.GetRawData();
-        unsafe
-        {
-            fixed (byte* metaPtr = meta, dataPtr = data)
+
+        // The builder's buffers are allocated on the pinned object heap, so the kernel can read them directly.
+        var segments = DataSegments ??= new DataSegment[3];
+        segments[0] = default; // segment[0] is used for headers.
+        segments[1] = new DataSegment(PinnedBuffer.AddressOf(meta.Array!) + meta.Offset, (uint)meta.Count);
+        segments[2] = new DataSegment(PinnedBuffer.AddressOf(data.Array!) + data.Offset, (uint)data.Count);
+        return this.handle.WriteEventHeader(
+            new EventHeader
             {
-                return this.handle.WriteEventHeader(
-                    new EventHeader
-                    {
-                        Flags = EventHeader.DefaultFlags | EventHeaderFlags.Extension,
-                        Version = builder.Version,
-                        Id = builder.Id,
-                        Tag = builder.Tag,
-                        OpcodeByte = builder.OpcodeByte,
-                        LevelByte = this.LevelByte,
-                    },
-                    activityId,
-                    relatedId,
-                    (ushort)meta.Length,
-                    stackalloc DataSegment[] {
-                        default, // segment[0] is used for headers.
-                        new DataSegment(metaPtr, (uint)meta.Length),
-                        new DataSegment(dataPtr, (uint)data.Length),
-                    });
-            }
-        }
+                Flags = EventHeader.DefaultFlags | EventHeaderFlags.Extension,
+                Version = builder.Version,
+                Id = builder.Id,
+                Tag = builder.Tag,
+                OpcodeByte = builder.OpcodeByte,
+                LevelByte = this.LevelByte,
+            },
+            activityId,
+            relatedId,
+            (ushort)meta.Count,
+            segments);
     }
+
+    [ThreadStatic]
+    private static DataSegment[]? DataSegments;
 }

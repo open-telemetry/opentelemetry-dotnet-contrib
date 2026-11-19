@@ -11,12 +11,12 @@ using System.Runtime.InteropServices;
 /// struct iovec, for use with calls to writev.
 /// </summary>
 [StructLayout(LayoutKind.Sequential)]
-internal unsafe struct DataSegment
+internal struct DataSegment
 {
-    public void* PinnedBase;
+    public nint PinnedBase;
     public nuint Length;
 
-    public DataSegment(void* pinnedBase, nuint length)
+    public DataSegment(nint pinnedBase, nuint length)
     {
         this.PinnedBase = pinnedBase;
         this.Length = length;

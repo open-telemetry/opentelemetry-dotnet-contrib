@@ -6,6 +6,9 @@ using System.Buffers.Binary;
 #endif
 using System.Globalization;
 using System.Runtime.CompilerServices;
+#if !NET
+using System.Runtime.InteropServices;
+#endif
 using System.Text;
 
 namespace OpenTelemetry.Exporter.Geneva.MsgPack;
@@ -656,8 +659,25 @@ internal static class MessagePackSerializer
     }
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static unsafe long Float64ToInt64(double value) => *(long*)&value;
+    private static long Float64ToInt64(double value) => BitConverter.DoubleToInt64Bits(value);
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static unsafe int Float32ToInt32(float value) => *(int*)&value;
+    private static int Float32ToInt32(float value)
+#if NET
+        => BitConverter.SingleToInt32Bits(value);
+#else
+        => new SingleInt32Union { Single = value }.Int32;
+#endif
+
+#if !NET
+    [StructLayout(LayoutKind.Explicit)]
+    private struct SingleInt32Union
+    {
+        [FieldOffset(0)]
+        public safe float Single;
+
+        [FieldOffset(0)]
+        public safe int Int32;
+    }
+#endif
 }

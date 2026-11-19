@@ -6,7 +6,6 @@
 namespace Microsoft.LinuxTracepoints.Provider;
 
 using System;
-using System.Runtime.InteropServices;
 using Interlocked = System.Threading.Interlocked;
 using BinaryPrimitives = System.Buffers.Binary.BinaryPrimitives;
 
@@ -23,19 +22,39 @@ internal static class Utility
 
     public static void WriteGuidBigEndian(Span<byte> destination, Guid value)
     {
+        if (!value.TryWriteBytes(destination, bigEndian: true, out _))
+        {
+            throw new ArgumentOutOfRangeException(nameof(destination));
+        }
+    }
+
+    /// <summary>
+    /// Writes a 16-bit value in native byte order.
+    /// </summary>
+    public static void WriteUInt16Native(Span<byte> destination, ushort value)
+    {
         if (BitConverter.IsLittleEndian)
         {
-            unsafe
-            {
-                var p = (byte*)&value;
-                var p0 = (uint*)p;
-                var p1 = (ushort*)(p + 4);
-                var p2 = (ushort*)(p + 6);
-                *p0 = BinaryPrimitives.ReverseEndianness(*p0);
-                *p1 = BinaryPrimitives.ReverseEndianness(*p1);
-                *p2 = BinaryPrimitives.ReverseEndianness(*p2);
-            }
+            BinaryPrimitives.WriteUInt16LittleEndian(destination, value);
         }
-        MemoryMarshal.Write(destination, ref value);
+        else
+        {
+            BinaryPrimitives.WriteUInt16BigEndian(destination, value);
+        }
+    }
+
+    /// <summary>
+    /// Writes a 32-bit value in native byte order.
+    /// </summary>
+    public static void WriteInt32Native(Span<byte> destination, int value)
+    {
+        if (BitConverter.IsLittleEndian)
+        {
+            BinaryPrimitives.WriteInt32LittleEndian(destination, value);
+        }
+        else
+        {
+            BinaryPrimitives.WriteInt32BigEndian(destination, value);
+        }
     }
 }
