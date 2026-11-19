@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Add the `aws.log.group.names` resource attribute, populated from the
+  `AWS_LAMBDA_LOG_GROUP_NAME` environment variable.
+  ([#6088](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6088))
+
 ## 1.21.0
 
 Released 2026-Nov-11
