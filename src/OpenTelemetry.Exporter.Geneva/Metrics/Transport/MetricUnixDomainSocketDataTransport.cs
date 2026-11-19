@@ -15,10 +15,7 @@ internal sealed class MetricUnixDomainSocketDataTransport : IMetricDataTransport
         string unixDomainSocketPath,
         int timeoutMilliseconds = UnixDomainSocketDataTransport.DefaultTimeoutMilliseconds)
     {
-        unsafe
-        {
-            this.fixedPayloadLength = sizeof(BinaryHeader);
-        }
+        this.fixedPayloadLength = BinaryHeader.Size;
 
         this.udsDataTransport = new UnixDomainSocketDataTransport(unixDomainSocketPath, timeoutMilliseconds);
     }

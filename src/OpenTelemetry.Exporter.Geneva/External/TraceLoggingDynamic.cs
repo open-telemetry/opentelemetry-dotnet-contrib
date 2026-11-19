@@ -167,7 +167,7 @@ internal sealed class EventProvider
         // UINT16 size + UTF8 name + NUL termination for name + traits.
         int totalByteCount = 2 + nameByteCount + 1 + traitsByteCount;
 
-        this.providerMeta = new byte[totalByteCount];
+        this.providerMeta = PinnedBuffer.Allocate(totalByteCount);
         this.enableCallback = this.EnableCallback;
         this.name = name;
         this.guid = guid;
@@ -381,7 +381,7 @@ internal sealed class EventProvider
     /// The return code is normally ignored in release code. The return code is
     /// normally used for debugging/diagnosis.
     /// </returns>
-    public unsafe int Write(EventBuilder eventBuilder)
+    public int Write(EventBuilder eventBuilder)
     {
         return this.WriteRaw(eventBuilder, null, null);
     }
@@ -396,9 +396,9 @@ internal sealed class EventProvider
     /// The return code is normally ignored in release code. The return code is
     /// normally used for debugging/diagnosis.
     /// </returns>
-    public unsafe int Write(EventBuilder eventBuilder, Guid activityId)
+    public int Write(EventBuilder eventBuilder, Guid activityId)
     {
-        return this.WriteRaw(eventBuilder, &activityId, null);
+        return this.WriteRaw(eventBuilder, new[] { activityId }, null);
     }
 
     /// <summary>
@@ -412,15 +412,15 @@ internal sealed class EventProvider
     /// The return code is normally ignored in release code. The return code is
     /// normally used for debugging/diagnosis.
     /// </returns>
-    public unsafe int Write(EventBuilder eventBuilder, Guid activityId, Guid relatedActivityId)
+    public int Write(EventBuilder eventBuilder, Guid activityId, Guid relatedActivityId)
     {
-        return this.WriteRaw(eventBuilder, &activityId, &relatedActivityId);
+        return this.WriteRaw(eventBuilder, new[] { activityId }, new[] { relatedActivityId });
     }
 
-    private unsafe int WriteRaw(
+    private int WriteRaw(
         EventBuilder eventBuilder,
-        Guid* activityId,
-        Guid* relatedActivityId)
+        Guid[] activityId,
+        Guid[] relatedActivityId)
     {
         EventRawInfo rawInfo = eventBuilder.GetRawData();
 
@@ -436,38 +436,69 @@ internal sealed class EventProvider
             throw new ArgumentOutOfRangeException(nameof(rawInfo.DataSize));
         }
 
-        fixed (byte*
-            pProviderMeta = this.providerMeta,
-            pEventMeta = rawInfo.Meta,
-            pEventData = rawInfo.Data)
+        rawInfo.Meta[0] = unchecked((byte)rawInfo.MetaSize);
+        rawInfo.Meta[1] = unchecked((byte)(rawInfo.MetaSize >> 8));
+
+        var dd3 = default(EventDataDescriptor3);
+        dd3.ProviderMetaSize = this.providerMeta.Length;
+        dd3.ProviderMetaType = 2; // EVENT_DATA_DESCRIPTOR_TYPE_PROVIDER_METADATA
+        dd3.EventMetaSize = rawInfo.MetaSize;
+        dd3.EventMetaType = 1; // EVENT_DATA_DESCRIPTOR_TYPE_EVENT_METADATA
+        dd3.EventDataSize = rawInfo.DataSize;
+        dd3.EventDataType = 0; // EVENT_DATA_DESCRIPTOR_TYPE_NONE
+
+        var descriptor = eventBuilder.Descriptor;
+
+#if NET
+        // The provider metadata and the event builder's buffers are allocated on the pinned object heap,
+        // so their addresses can be given to the native API directly.
+        dd3.ProviderMeta = unchecked((ulong)PinnedBuffer.AddressOf(this.providerMeta));
+        dd3.EventMeta = unchecked((ulong)PinnedBuffer.AddressOf(rawInfo.Meta));
+        dd3.EventData = rawInfo.Data != null
+            ? unchecked((ulong)PinnedBuffer.AddressOf(rawInfo.Data))
+            : 0;
+
+        return this.WriteTransfer(in descriptor, activityId, relatedActivityId, in dd3);
+#else
+        // Without the pinned object heap, pin the buffers for the duration of the call.
+        unsafe
         {
-            EventDataDescriptor3 dd3;
+            fixed (byte*
+                pProviderMeta = this.providerMeta,
+                pEventMeta = rawInfo.Meta,
+                pEventData = rawInfo.Data)
+            fixed (Guid* pActivityId = activityId, pRelatedActivityId = relatedActivityId)
+            {
+                dd3.ProviderMeta = unchecked((ulong)(UIntPtr)pProviderMeta);
+                dd3.EventMeta = unchecked((ulong)(UIntPtr)pEventMeta);
+                dd3.EventData = unchecked((ulong)(UIntPtr)pEventData);
 
-            dd3.ProviderMeta = unchecked((ulong)(UIntPtr)pProviderMeta);
-            dd3.ProviderMetaSize = this.providerMeta.Length;
-            dd3.ProviderMetaType = 2; // EVENT_DATA_DESCRIPTOR_TYPE_PROVIDER_METADATA
-
-            dd3.EventMeta = unchecked((ulong)(UIntPtr)pEventMeta);
-            dd3.EventMetaSize = rawInfo.MetaSize;
-            dd3.EventMetaType = 1; // EVENT_DATA_DESCRIPTOR_TYPE_EVENT_METADATA
-
-            dd3.EventData = unchecked((ulong)(UIntPtr)pEventData);
-            dd3.EventDataSize = rawInfo.DataSize;
-            dd3.EventDataType = 0; // EVENT_DATA_DESCRIPTOR_TYPE_NONE
-
-            pEventMeta[0] = unchecked((byte)rawInfo.MetaSize);
-            pEventMeta[1] = unchecked((byte)(rawInfo.MetaSize >> 8));
-
-            var descriptor = eventBuilder.Descriptor;
-            return NativeMethods.EventWriteTransfer(
-                this.regHandle,
-                &descriptor,
-                activityId,
-                relatedActivityId,
-                3,
-                &dd3);
+                return NativeMethods.EventWriteTransfer(
+                    this.regHandle,
+                    in descriptor,
+                    pActivityId,
+                    pRelatedActivityId,
+                    3,
+                    in dd3);
+            }
         }
+#endif
     }
+
+#if NET
+    private int WriteTransfer(
+        in EventDescriptor descriptor,
+        Guid[] activityId,
+        Guid[] relatedActivityId,
+        in EventDataDescriptor3 dd3)
+    {
+        // The common case has no activity ids. Use the all-blittable overload for it, as the array
+        // parameters of the other overload make the P/Invoke need a (much slower) marshalling stub.
+        return activityId == null && relatedActivityId == null
+            ? NativeMethods.EventWriteTransfer(this.regHandle, in descriptor, IntPtr.Zero, IntPtr.Zero, 3, in dd3)
+            : NativeMethods.EventWriteTransfer(this.regHandle, in descriptor, activityId, relatedActivityId, 3, in dd3);
+    }
+#endif
 
     /// <summary>
     /// Closes this provider.
@@ -599,6 +630,7 @@ internal sealed class EventProvider
             byte[] eventInformation,
             int informationLength);
 
+#if !NET
         [DllImport(
             "api-ms-win-eventing-provider-l1-1-0.dll",
             CharSet = CharSet.Unicode,
@@ -606,11 +638,40 @@ internal sealed class EventProvider
             SetLastError = false)]
         public static extern unsafe int EventWriteTransfer(
             long regHandle,
-            [In] EventDescriptor* eventDescriptor,
-            [In] Guid* activityId,
-            [In] Guid* relatedActivityId,
+            in EventDescriptor eventDescriptor,
+            Guid* activityId,
+            Guid* relatedActivityId,
             int userDataCount,
-            [In] EventDataDescriptor3* userData);
+            in EventDataDescriptor3 userData);
+#endif
+
+        [DllImport(
+            "api-ms-win-eventing-provider-l1-1-0.dll",
+            CharSet = CharSet.Unicode,
+            ExactSpelling = true,
+            SetLastError = false)]
+        public static extern int EventWriteTransfer(
+            long regHandle,
+            in EventDescriptor eventDescriptor,
+            IntPtr activityId,
+            IntPtr relatedActivityId,
+            int userDataCount,
+            in EventDataDescriptor3 userData);
+
+#if NET
+        [DllImport(
+            "api-ms-win-eventing-provider-l1-1-0.dll",
+            CharSet = CharSet.Unicode,
+            ExactSpelling = true,
+            SetLastError = false)]
+        public static extern int EventWriteTransfer(
+            long regHandle,
+            in EventDescriptor eventDescriptor,
+            [In] Guid[] activityId,
+            [In] Guid[] relatedActivityId,
+            int userDataCount,
+            in EventDataDescriptor3 userData);
+#endif
 
         [DllImport(
             "api-ms-win-eventing-provider-l1-1-0.dll",
@@ -2179,7 +2240,7 @@ internal sealed class EventBuilder
             Debug.Assert(0 < initialCapacity, "initialCapacity <= 0");
             Debug.Assert(initialCapacity <= 65536, "initialCapacity > 65536");
             Debug.Assert((initialCapacity & (initialCapacity - 1)) == 0, "initialCapacity is not a power of 2.");
-            this.data = new byte[initialCapacity];
+            this.data = PinnedBuffer.Allocate(initialCapacity);
             this.size = 0;
         }
 
@@ -2264,7 +2325,7 @@ internal sealed class EventBuilder
                 }
             }
 
-            byte[] newData = new byte[newCapacity];
+            byte[] newData = PinnedBuffer.Allocate(newCapacity);
             Buffer.BlockCopy(this.data, 0, newData, 0, this.size);
             this.data = newData;
         }
