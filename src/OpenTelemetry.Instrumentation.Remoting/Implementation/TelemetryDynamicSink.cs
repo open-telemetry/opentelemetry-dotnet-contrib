@@ -24,8 +24,6 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
 {
     private const string AttributeRpcSystemNameValue = "dotnet.remoting";
     private readonly ActivitySource remotingActivitySource;
-    private readonly string activityInName;
-    private readonly string activityOutName;
     private readonly string savedAspnetActivityPropertyName;
 
     private readonly TelemetryDynamicSinkProvider optionsProvider;
@@ -36,8 +34,6 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
     {
         this.optionsProvider = optionsProvider;
         this.remotingActivitySource = activitySource;
-        this.activityOutName = activitySource.Name + ".RequestOut";
-        this.activityInName = activitySource.Name + ".RequestIn";
         this.savedAspnetActivityPropertyName = activitySource.Name + ".SavedAspnetActivity";
     }
 
@@ -61,9 +57,10 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
         try
         {
             var methodMsg = reqMsg as IMethodMessage;
+            var activityName = methodMsg != null ? this.GetFullyQualifiedMethod(methodMsg) : AttributeRpcSystemNameValue;
 
             IEnumerable<KeyValuePair<string, object?>>? tags = methodMsg != null
-                ? this.BuildSamplingTags(methodMsg)
+                ? BuildSamplingTags(methodMsg, activityName)
                 : null;
 
             // Are we executing on client?
@@ -76,7 +73,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
 
                 // Start new outgoing activity
                 var activity = this.remotingActivitySource.StartActivity(
-                    this.activityOutName,
+                    activityName,
                     ActivityKind.Client,
                     default(ActivityContext),
                     tags);
@@ -117,7 +114,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                     // We don't have an existing incoming activity. Start a brand new one ourselves using the extracted context.
 
                     ourActivity = this.remotingActivitySource.StartActivity(
-                        this.activityInName,
+                        activityName,
                         ActivityKind.Server,
                         activityParentContext.ActivityContext,
                         tags);
@@ -136,7 +133,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                     // We let this context take over and simply create our Remoting activity as a child of the ASP.NET one.
 
                     ourActivity = this.remotingActivitySource.StartActivity(
-                        this.activityInName,
+                        activityName,
                         ActivityKind.Server,
                         default(ActivityContext),
                         tags);
@@ -155,7 +152,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                     // (see ProcessMessageFinish) to give ASP.NET Instrumentation a chance to stop it.
 
                     ourActivity = this.remotingActivitySource.StartActivity(
-                        this.activityInName,
+                        activityName,
                         ActivityKind.Server,
                         activityParentContext.ActivityContext,
                         tags);
@@ -185,10 +182,10 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
     {
         // This will be called:
         // 1) On the server after we are done processing the call and are returning back to client
-        //    => Current activity should be the "ActivityIn", we need to stop it
+        //    => Current activity should be the server activity, we need to stop it
         //
         // 2) On the client, when the server call returns
-        //    => Current activity should be the "ActivityOut", we need to stop it as well
+        //    => Current activity should be the client activity, we need to stop it as well
 
         try
         {
@@ -200,9 +197,8 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                 return;
             }
 
-            var validClientActivity = bCliSide && activity.OperationName == this.activityOutName;
-            var validServerActivity = !bCliSide && activity.OperationName == this.activityInName;
-            if (validClientActivity || validServerActivity)
+            if (activity.Source == this.remotingActivitySource
+                && activity.Kind == (bCliSide ? ActivityKind.Client : ActivityKind.Server))
             {
                 if (replyMsg is IMethodReturnMessage returnMsg)
                 {
@@ -233,7 +229,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
 
                 // Did ProcessMessageStart discard activity created by the ASP.NET Instrumentation?
                 // If yes, we need to restore it here, so that it can be stopped by the instrumentation later.
-                if (validServerActivity && activity.GetCustomProperty(this.savedAspnetActivityPropertyName) is Activity otherActivity)
+                if (!bCliSide && activity.GetCustomProperty(this.savedAspnetActivityPropertyName) is Activity otherActivity)
                 {
                     Activity.Current = otherActivity;
                 }
@@ -267,7 +263,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
 
         host = parsedUri.Host;
 
-        if (!parsedUri.IsDefaultPort)
+        if (parsedUri.Port >= 0)
         {
             port = parsedUri.Port;
         }
@@ -283,10 +279,8 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
         return data != null ? [(string)data] : [];
     }
 
-    private TagList BuildSamplingTags(IMethodMessage msg)
+    private static TagList BuildSamplingTags(IMethodMessage msg, string fullyQualifiedMethod)
     {
-        var fullyQualifiedMethod = this.GetFullyQualifiedMethod(msg);
-
         var tags = new TagList
         {
             { SemanticConventions.AttributeRpcSystemName, AttributeRpcSystemNameValue },
@@ -326,10 +320,6 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
         }
 
         var options = this.optionsProvider.Options;
-
-        var fullyQualifiedMethod = this.GetFullyQualifiedMethod(msg);
-
-        activity.DisplayName = fullyQualifiedMethod;
 
         try
         {
