@@ -2,6 +2,10 @@
 
 ## Unreleased
 
+* Add the `cloud.resource_id` resource attribute when running on Google Cloud
+  Run services and jobs.
+  ([#6103](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6103))
+
 ## 1.0.0-alpha.10
 
 Released 2026-Nov-11

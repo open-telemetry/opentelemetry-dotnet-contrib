@@ -80,6 +80,13 @@ internal sealed class GcpResourceDetector : IResourceDetector
             new(ResourceSemanticConventions.AttributeFaasVersion, platform.CloudRunDetails.RevisionName),
         ];
 
+        AddCloudResourceId(
+            attributeList,
+            platform.ProjectId,
+            platform.CloudRunDetails.Region,
+            "services",
+            platform.CloudRunDetails.ServiceName);
+
         // For faas.instance, use the GCE instance ID from the metadata service
         // This is the unique ID of the compute instance that the Cloud Run service is running on
         if (platform.GceDetails != null && !string.IsNullOrEmpty(platform.GceDetails.InstanceId))
@@ -116,6 +123,13 @@ internal sealed class GcpResourceDetector : IResourceDetector
             {
                 attributeList.Add(new(ResourceSemanticConventions.AttributeFaasName, jobName));
             }
+
+            AddCloudResourceId(
+                attributeList,
+                platform.ProjectId,
+                details.Region,
+                "jobs",
+                details.JobName);
         }
 
         // https://github.com/open-telemetry/semantic-conventions/blob/v1.44.0/docs/resource/cloud-provider/gcp/cloud-run.md
@@ -162,6 +176,22 @@ internal sealed class GcpResourceDetector : IResourceDetector
         }
 
         return attributeList;
+    }
+
+    private static void AddCloudResourceId(
+        List<KeyValuePair<string, object>> attributeList,
+        string? projectId,
+        string? region,
+        string resourceCollection,
+        string? resourceName)
+    {
+        // https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/resource/cloud.md
+        if (projectId is { Length: > 0 } && region is { Length: > 0 } && resourceName is { Length: > 0 })
+        {
+            attributeList.Add(new(
+                ResourceSemanticConventions.AttributeCloudResourceId,
+                $"//run.googleapis.com/projects/{projectId}/locations/{region}/{resourceCollection}/{resourceName}"));
+        }
     }
 
     private static void AddGceInstanceAttributes(List<KeyValuePair<string, object>> attributeList, string? metadataJson)
