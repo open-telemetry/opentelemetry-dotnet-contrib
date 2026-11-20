@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+* Fixed the span name that samplers see. Spans now start with the
+  `{rpc.method}` name, or with `dotnet.remoting` for a message that is not a
+  method call.
+  ([#6104](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6104))
+
+* Fixed spans that omit `server.port` when the URI uses the default port of its
+  scheme (`80` for `http` and `443` for `https`).
+  ([#6104](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6104))
+
 ## 0.1.0-alpha.8
 
 Released 2026-Nov-11
