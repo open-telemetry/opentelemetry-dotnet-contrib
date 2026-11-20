@@ -9,6 +9,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="$(RepoRoot)\test\Shared\TestSampler.cs" Link="Includes\TestSampler.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="$(RepoRoot)\src\OpenTelemetry.Instrumentation.Remoting\OpenTelemetry.Instrumentation.Remoting.csproj" />
   </ItemGroup>
 
