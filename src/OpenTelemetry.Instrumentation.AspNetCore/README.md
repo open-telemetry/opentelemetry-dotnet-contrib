@@ -82,9 +82,11 @@ for more details about each individual attribute:
 * `server.port`
 * `url.path`
 * `url.query` - By default, the values in the query component are replaced with
-  the text `Redacted`. For example, `?key1=value1&key2=value2` becomes
-  `?key1=Redacted&key2=Redacted`. You can disable this redaction by setting the
-  environment variable
+  the text `Redacted`. For example, `key1=value1&key2=value2` becomes
+  `key1=Redacted&key2=Redacted`. This redacts every value, not only the keys
+  that the semantic conventions list. On .NET 11 the instrumentation replaces
+  the native value, which redacts only the values of some keys. You can
+  disable this redaction by setting the environment variable
   `OTEL_DOTNET_EXPERIMENTAL_ASPNETCORE_DISABLE_URL_QUERY_REDACTION` to `true`.
 * `url.scheme`
 
@@ -315,6 +317,21 @@ options.EnrichWithHttpResponse = (activity, response) =>
 };
 ```
 
+#### Attributes available to samplers
+
+A sampler gets only the attributes that a span has when the sampler runs.
+When ASP.NET Core creates the server span, it adds the HTTP request
+attributes, such as `http.request.method` and `url.path`, in these cases only:
+
+* On .NET 11, by default.
+* On .NET 10, when the
+  `Microsoft.AspNetCore.Hosting.SuppressActivityOpenTelemetryData` `AppContext`
+  switch is `false`. It does not add `url.query`.
+
+In other cases, the instrumentation adds these attributes after the sampler
+runs. When the instrumentation creates the server span itself, it adds them
+before the sampler runs.
+
 #### Enrich
 
 This instrumentation library provides `EnrichWithHttpRequest`,
@@ -447,6 +464,9 @@ appBuilder.Services.AddOpenTelemetry()
  Semantic conventions for RPC are still
  [experimental](https://github.com/open-telemetry/semantic-conventions/tree/main/docs/rpc#semantic-conventions-for-rpc)
  and hence the instrumentation only offers it as an experimental feature.
+
+The instrumentation adds `rpc.method` and `rpc.system.name` when the request
+ends, so a sampler cannot use them.
 
 ## Starting new root spans
 

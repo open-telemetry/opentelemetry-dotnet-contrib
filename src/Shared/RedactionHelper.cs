@@ -68,6 +68,62 @@ internal sealed class RedactionHelper
     }
 
     /// <summary>
+    /// Redacts the values of a query string.
+    /// </summary>
+    /// <param name="query">The query string.</param>
+    /// <returns>The redacted query string, or <see langword="null"/> if it has no value to redact.</returns>
+    public static string? GetRedactedQueryString(ReadOnlySpan<char> query)
+    {
+        var index = query.IndexOf('=');
+
+        if (index == -1)
+        {
+            return null;
+        }
+
+        var length = query.Length;
+
+        // Preallocate some size to avoid re-sizing multiple times.
+        // Since the size will increase, allocating twice as much.
+        using ValueStringBuilder queryBuilder = new(2 * length);
+        queryBuilder.Append(query.Slice(0, index));
+        while (index < query.Length)
+        {
+            // Check if the character is = for redacting value.
+            if (query[index] == '=')
+            {
+                // Append =
+                queryBuilder.Append('=');
+                index++;
+
+                // Append redactedText in place of original value.
+                queryBuilder.Append(RedactedText);
+
+                // Move until end of this key/value pair.
+                while (index < length && query[index] != '&')
+                {
+                    index++;
+                }
+
+                // End of key/value.
+                if (index < length && query[index] == '&')
+                {
+                    queryBuilder.Append(query[index]);
+                }
+            }
+            else
+            {
+                // Keep adding to the result
+                queryBuilder.Append(query[index]);
+            }
+
+            index++;
+        }
+
+        return queryBuilder.ToString();
+    }
+
+    /// <summary>
     /// Redacts the values of the query string found between <paramref name="queryStart"/>
     /// (inclusive) and <paramref name="queryEnd"/> (exclusive) in <paramref name="value"/>.
     /// Any characters before or after the query string are copied verbatim.
