@@ -25,6 +25,8 @@
 
 * Replaced the `job.id` and `job.createdat` span attributes with the workflow attributes `workflow.execution.id` and
   `workflow.execution.creation.time`. ([#6107](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6107))
+* **Breaking Change** Replaced the `job.id` and `job.createdat` span attributes with
+  `workflow.execution.id` and `workflow.execution.creation.time`. ([#6107](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6107))
 
 ## 1.21.0-beta.1
 
