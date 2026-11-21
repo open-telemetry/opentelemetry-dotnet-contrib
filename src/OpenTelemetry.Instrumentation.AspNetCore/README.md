@@ -82,8 +82,10 @@ for more details about each individual attribute:
 * `server.port`
 * `url.path`
 * `url.query` - By default, the values in the query component are replaced with
-  the text `Redacted`. For example, `?key1=value1&key2=value2` becomes
-  `?key1=Redacted&key2=Redacted`. You can disable this redaction by setting the
+  the text `Redacted`. For example, `key1=value1&key2=value2` becomes
+  `key1=Redacted&key2=Redacted`. Every value is redacted, not only the keys the
+  semantic conventions list, and on .NET 11 this replaces the native value,
+  which redacts only some keys. You can disable this redaction by setting the
   environment variable
   `OTEL_DOTNET_EXPERIMENTAL_ASPNETCORE_DISABLE_URL_QUERY_REDACTION` to `true`.
 * `url.scheme`
@@ -315,6 +317,16 @@ options.EnrichWithHttpResponse = (activity, response) =>
 };
 ```
 
+#### Attributes available to samplers
+
+A sampler only sees the attributes a span has when it is created. ASP.NET Core
+adds the HTTP request attributes, such as `http.request.method` and `url.path`,
+at creation on .NET 11 by default, and on .NET 10 when the
+`Microsoft.AspNetCore.Hosting.SuppressActivityOpenTelemetryData` `AppContext`
+switch is `false` (without `url.query`). Otherwise the instrumentation adds
+them after sampling, except on spans it creates itself, such as for a non-W3C
+propagator or a new root span.
+
 #### Enrich
 
 This instrumentation library provides `EnrichWithHttpRequest`,
@@ -447,6 +459,9 @@ appBuilder.Services.AddOpenTelemetry()
  Semantic conventions for RPC are still
  [experimental](https://github.com/open-telemetry/semantic-conventions/tree/main/docs/rpc#semantic-conventions-for-rpc)
  and hence the instrumentation only offers it as an experimental feature.
+
+`rpc.method` and `rpc.system.name` are set when the request ends, so samplers
+cannot use them.
 
 ## Starting new root spans
 

@@ -95,6 +95,21 @@ public class HttpInListenerTests
     }
 
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void OnStartActivitySetsEmptyUrlQueryWhenQueryIsEmpty(bool disableUrlQueryRedaction)
+    {
+        var listener = new HttpInListener(new AspNetCoreTraceInstrumentationOptions { DisableUrlQueryRedaction = disableUrlQueryRedaction });
+        var context = CreateHttpContext("GET", "localhost:5000");
+        context.Request.QueryString = new QueryString("?");
+        using var activity = new Activity(HttpInListener.ActivityOperationName).Start();
+
+        listener.OnStartActivity(activity, context);
+
+        Assert.Equal(string.Empty, activity.GetTagValue(SemanticConventions.AttributeUrlQuery));
+    }
+
+    [Theory]
     [MemberData(nameof(HostValues))]
     public void ServerHostCacheReturnsSameValuesAsHostString(string value, string expectedAddress, int? expectedPort)
     {

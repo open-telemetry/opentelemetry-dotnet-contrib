@@ -1041,35 +1041,37 @@ public sealed class BasicTests
     }
 
     [Theory]
-    [InlineData("?a", "?a", false)]
-    [InlineData("?a=bdjdjh", "?a=Redacted", false)]
-    [InlineData("?a=b&", "?a=Redacted&", false)]
-    [InlineData("?c=b&", "?c=Redacted&", false)]
-    [InlineData("?c=a", "?c=Redacted", false)]
-    [InlineData("?a=b&c", "?a=Redacted&c", false)]
-    [InlineData("?a=b&c=1123456&", "?a=Redacted&c=Redacted&", false)]
-    [InlineData("?a=b&c=1&a1", "?a=Redacted&c=Redacted&a1", false)]
-    [InlineData("?a=ghgjgj&c=1deedd&a1=", "?a=Redacted&c=Redacted&a1=Redacted", false)]
-    [InlineData("?a=b&c=11&a1=&", "?a=Redacted&c=Redacted&a1=Redacted&", false)]
-    [InlineData("?c&c&c&", "?c&c&c&", false)]
-    [InlineData("?a&a&a&a", "?a&a&a&a", false)]
-    [InlineData("?&&&&&&&", "?&&&&&&&", false)]
-    [InlineData("?c", "?c", false)]
-    [InlineData("?a", "?a", true)]
-    [InlineData("?a=bdfdfdf", "?a=bdfdfdf", true)]
-    [InlineData("?a=b&", "?a=b&", true)]
-    [InlineData("?c=b&", "?c=b&", true)]
-    [InlineData("?c=a", "?c=a", true)]
-    [InlineData("?a=b&c", "?a=b&c", true)]
-    [InlineData("?a=b&c=111111&", "?a=b&c=111111&", true)]
-    [InlineData("?a=b&c=1&a1", "?a=b&c=1&a1", true)]
-    [InlineData("?a=b&c=1&a1=", "?a=b&c=1&a1=", true)]
-    [InlineData("?a=b123&c=11&a1=&", "?a=b123&c=11&a1=&", true)]
-    [InlineData("?c&c&c&", "?c&c&c&", true)]
-    [InlineData("?a&a&a&a", "?a&a&a&a", true)]
-    [InlineData("?&&&&&&&", "?&&&&&&&", true)]
-    [InlineData("?c", "?c", true)]
-    [InlineData("?c=%26&", "?c=Redacted&", false)]
+    [InlineData("?a", "a", false)]
+    [InlineData("?a=bdjdjh", "a=Redacted", false)]
+    [InlineData("?a=b&", "a=Redacted&", false)]
+    [InlineData("?c=b&", "c=Redacted&", false)]
+    [InlineData("?c=a", "c=Redacted", false)]
+    [InlineData("?a=b&c", "a=Redacted&c", false)]
+    [InlineData("?a=b&c=1123456&", "a=Redacted&c=Redacted&", false)]
+    [InlineData("?a=b&c=1&a1", "a=Redacted&c=Redacted&a1", false)]
+    [InlineData("?a=ghgjgj&c=1deedd&a1=", "a=Redacted&c=Redacted&a1=Redacted", false)]
+    [InlineData("?a=b&c=11&a1=&", "a=Redacted&c=Redacted&a1=Redacted&", false)]
+    [InlineData("?c&c&c&", "c&c&c&", false)]
+    [InlineData("?a&a&a&a", "a&a&a&a", false)]
+    [InlineData("?&&&&&&&", "&&&&&&&", false)]
+    [InlineData("?c", "c", false)]
+    [InlineData("?a", "a", true)]
+    [InlineData("?a=bdfdfdf", "a=bdfdfdf", true)]
+    [InlineData("?a=b&", "a=b&", true)]
+    [InlineData("?c=b&", "c=b&", true)]
+    [InlineData("?c=a", "c=a", true)]
+    [InlineData("?a=b&c", "a=b&c", true)]
+    [InlineData("?a=b&c=111111&", "a=b&c=111111&", true)]
+    [InlineData("?a=b&c=1&a1", "a=b&c=1&a1", true)]
+    [InlineData("?a=b&c=1&a1=", "a=b&c=1&a1=", true)]
+    [InlineData("?a=b123&c=11&a1=&", "a=b123&c=11&a1=&", true)]
+    [InlineData("?c&c&c&", "c&c&c&", true)]
+    [InlineData("?a&a&a&a", "a&a&a&a", true)]
+    [InlineData("?&&&&&&&", "&&&&&&&", true)]
+    [InlineData("?c", "c", true)]
+    [InlineData("?c=%26&", "c=Redacted&", false)]
+    [InlineData("??a=b", "?a=Redacted", false)]
+    [InlineData("??a=b", "?a=b", true)]
     public async Task ValidateUrlQueryRedaction(string urlQuery, string expectedUrlQuery, bool disableQueryRedaction)
     {
         var exportedItems = new List<Activity>();
@@ -1764,7 +1766,7 @@ public sealed class BasicTests
         Assert.Equal("https", Assert.Contains(SemanticConventions.AttributeUrlScheme, tags));
         Assert.Equal("example.com", Assert.Contains(SemanticConventions.AttributeServerAddress, tags));
         Assert.Equal(8080, Assert.Contains(SemanticConventions.AttributeServerPort, tags));
-        Assert.Equal("?s=Redacted&t=Redacted", Assert.Contains(SemanticConventions.AttributeUrlQuery, tags));
+        Assert.Equal("s=Redacted&t=Redacted", Assert.Contains(SemanticConventions.AttributeUrlQuery, tags));
         Assert.Equal(userAgent, Assert.Contains(SemanticConventions.AttributeUserAgentOriginal, tags));
 
         var activity = Assert.Single(exportedItems);
@@ -1772,6 +1774,75 @@ public sealed class BasicTests
         foreach (var tag in tags)
         {
             Assert.Equal(tag.Value, activity.GetTagItem(tag.Key));
+        }
+    }
+
+    [Fact]
+    public void SiblingSpanIsCreatedWithSamplingRelevantTags()
+    {
+        try
+        {
+            // Arrange
+            var extractedContext = new ActivityContext(ActivityTraceId.CreateRandom(), ActivitySpanId.CreateRandom(), ActivityTraceFlags.Recorded, isRemote: true);
+            Sdk.SetDefaultTextMapPropagator(new ExtractOnlyPropagator(extractedContext, default));
+
+            var sampler = new OpenTelemetry.Tests.TestSampler();
+            var exportedItems = new List<Activity>();
+            using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                .AddSource(ActivitySourceName)
+                .SetSampler(sampler)
+                .AddInMemoryExporter(exportedItems)
+                .Build();
+            using var source = new ActivitySource(ActivitySourceName);
+
+            var userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0";
+            var context = CreateContext();
+            context.Request.Scheme = "https";
+            context.Request.Host = new HostString("example.com", 8080);
+            context.Request.Path = "/webshop/articles/4";
+            context.Request.QueryString = new QueryString("?s=1&t=2");
+            context.Request.Headers.UserAgent = userAgent;
+
+            var listener = CreateListener(options => options.EnableNewRootSpan = false);
+            using var frameworkActivity = StartFrameworkActivity(source);
+
+            // Act
+            listener.OnStartActivity(frameworkActivity, context);
+
+            var sibling = Activity.Current;
+            var samplingParameters = sampler.LatestSamplingParameters;
+
+            listener.OnStopActivity(Activity.Current!, context);
+            frameworkActivity.Stop();
+
+            // Assert
+            Assert.NotNull(sibling);
+            Assert.NotSame(frameworkActivity, sibling);
+            Assert.Equal(extractedContext.SpanId, samplingParameters.ParentContext.SpanId);
+            Assert.NotNull(samplingParameters.Tags);
+
+            var tags = samplingParameters.Tags.ToDictionary(tag => tag.Key, tag => tag.Value);
+
+            Assert.Equal("GET", Assert.Contains(SemanticConventions.AttributeHttpRequestMethod, tags));
+            Assert.Equal("/webshop/articles/4", Assert.Contains(SemanticConventions.AttributeUrlPath, tags));
+            Assert.Equal("https", Assert.Contains(SemanticConventions.AttributeUrlScheme, tags));
+            Assert.Equal("example.com", Assert.Contains(SemanticConventions.AttributeServerAddress, tags));
+            Assert.Equal(8080, Assert.Contains(SemanticConventions.AttributeServerPort, tags));
+            Assert.Equal("s=Redacted&t=Redacted", Assert.Contains(SemanticConventions.AttributeUrlQuery, tags));
+            Assert.Equal(userAgent, Assert.Contains(SemanticConventions.AttributeUserAgentOriginal, tags));
+
+            var activity = Assert.Single(exportedItems);
+
+            Assert.Same(sibling, activity);
+
+            foreach (var tag in tags)
+            {
+                Assert.Equal(tag.Value, activity.GetTagItem(tag.Key));
+            }
+        }
+        finally
+        {
+            Sdk.SetDefaultTextMapPropagator(new CompositeTextMapPropagator([new TraceContextPropagator(), new BaggagePropagator()]));
         }
     }
 
