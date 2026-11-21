@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+* Fixed samplers not seeing request attributes, such as `http.request.method`
+  and `url.path`, when a non-W3C propagator (for example B3) extracts a parent
+  that ASP.NET Core did not see.
+  ([#6105](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6105))
+
+* `url.query` no longer starts with `?`, matching the semantic conventions.
+  For example, `?a=Redacted` is now `a=Redacted`.
+  ([#6105](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6105))
+
 ## 1.21.0
 
 Released 2026-Nov-11
