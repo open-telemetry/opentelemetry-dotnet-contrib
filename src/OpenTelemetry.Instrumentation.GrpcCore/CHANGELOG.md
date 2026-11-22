@@ -6,7 +6,7 @@
   empty method path `//`. They are now `_OTHER` and `grpc`, not
   `unknownservice/unknownmethod` or empty. For the method paths `//other` and
   `/other/`, they are now `other`, not `_OTHER` and `grpc`.
-  ([#PLACEHOLDER](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/PLACEHOLDER))
+  ([#6109](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6109))
 
 ## 1.0.0-beta.20
 

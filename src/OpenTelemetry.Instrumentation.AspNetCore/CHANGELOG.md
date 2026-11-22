@@ -6,7 +6,7 @@
   unimplemented method or service, when gRPC support is on. The span now has
   `rpc.method` set to `_OTHER`, `rpc.method_original` set to the called method,
   the name `grpc` and the status `Error`.
-  ([#PLACEHOLDER](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/PLACEHOLDER))
+  ([#6109](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6109))
 
 ## 1.21.0
 

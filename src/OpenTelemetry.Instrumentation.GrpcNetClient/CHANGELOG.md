@@ -5,7 +5,7 @@
 * Fixed `rpc.method` and the span name for the method paths `//other` and
   `/other/`. They are now `other`, not `_OTHER` and `grpc`. The empty method
   path `//` now sets `rpc.method` to `_OTHER` and the span name to `grpc`.
-  ([#PLACEHOLDER](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/PLACEHOLDER))
+  ([#6109](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6109))
 
 ## 1.21.0-beta.1
 
