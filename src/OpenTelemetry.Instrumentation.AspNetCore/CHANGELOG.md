@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* **Breaking Change**: Fixed missing gRPC attributes on the server span for an
+  unimplemented method or service, when gRPC support is on. The span now has
+  `rpc.method` set to `_OTHER`, `rpc.method_original` set to the called method,
+  the name `grpc` and the status `Error`.
+  ([#PLACEHOLDER](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/PLACEHOLDER))
+
 ## 1.21.0
 
 Released 2026-Nov-11

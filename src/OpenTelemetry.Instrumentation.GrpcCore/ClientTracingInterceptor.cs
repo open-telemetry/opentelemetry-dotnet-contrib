@@ -323,7 +323,7 @@ public class ClientTracingInterceptor : Interceptor
             // gRPC Core just doesn't have the hooks to do this as far as I can tell.
             var parentContext = this.parentActivity?.Context ?? default;
             var rpcActivity = GrpcCoreInstrumentation.ActivitySource.CreateActivity(
-                this.FullServiceName,
+                this.FullServiceName.Length > 0 ? this.FullServiceName : GrpcTagHelper.RpcSystemGrpc,
                 ActivityKind.Client,
                 parentContext,
                 tags: options.AdditionalTags);

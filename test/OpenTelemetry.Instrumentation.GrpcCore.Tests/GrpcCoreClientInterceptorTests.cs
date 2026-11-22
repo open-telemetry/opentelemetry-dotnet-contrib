@@ -328,6 +328,28 @@ public class GrpcCoreClientInterceptorTests(WeaverFixture weaver, ITestOutputHel
     }
 
     /// <summary>
+    /// Validates that a call without a method creates an activity named
+    /// after the RPC system.
+    /// </summary>
+    [Fact]
+    public void BlockingUnaryCallWithoutMethodCreatesActivityNamedGrpc()
+    {
+        var testTags = new TestActivityTags();
+        var interceptor = new ClientTracingInterceptor(new ClientTracingInterceptorOptions { AdditionalTags = testTags.Tags });
+
+        using var activityListener = new InterceptorActivityListener(testTags);
+
+        interceptor.BlockingUnaryCall(
+            new NonProtobufPayload(),
+            default(ClientInterceptorContext<NonProtobufPayload, NonProtobufPayload>),
+            static (request, _) => request);
+
+        var activity = activityListener.Activity;
+        Assert.NotNull(activity);
+        Assert.Equal(GrpcTagHelper.RpcSystemGrpc, activity.OperationName);
+    }
+
+    /// <summary>
     /// Validates the common activity tags.
     /// </summary>
     /// <param name="activity">The activity.</param>

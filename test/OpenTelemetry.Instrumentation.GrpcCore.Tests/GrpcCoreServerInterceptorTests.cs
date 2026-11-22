@@ -189,6 +189,29 @@ public class GrpcCoreServerInterceptorTests(WeaverFixture weaver, ITestOutputHel
     }
 
     /// <summary>
+    /// Validates that a call without a method starts an activity named
+    /// after the RPC system.
+    /// </summary>
+    /// <returns>A task.</returns>
+    [Fact]
+    public async Task UnaryServerHandlerWithoutMethodStartsActivityNamedGrpc()
+    {
+        var testTags = new TestActivityTags();
+        var interceptor = new ServerTracingInterceptor(new ServerTracingInterceptorOptions { AdditionalTags = testTags.Tags });
+
+        using var activityListener = new InterceptorActivityListener(testTags);
+
+        await interceptor.UnaryServerHandler(
+            FoobarService.DefaultRequestMessage,
+            new TestServerCallContext([], method: null),
+            (request, context) => Task.FromResult(FoobarService.DefaultResponseMessage));
+
+        var activity = activityListener.Activity;
+        Assert.NotNull(activity);
+        Assert.Equal(GrpcTagHelper.RpcSystemGrpc, activity.OperationName);
+    }
+
+    /// <summary>
     /// Validates that baggage sent with one RPC is not visible to an RPC that
     /// is already in flight, or to RPCs that start afterwards, when a baggage
     /// holder exists in the execution context the RPCs are started in.

@@ -141,7 +141,7 @@ public class GrpcClientDiagnosticListenerTests
 
     [Theory]
     [InlineData("/greet.Greeter/SayHello", "greet.Greeter/SayHello", "greet.Greeter/SayHello", null)]
-    [InlineData("/other", "grpc", GrpcTagHelper.RpcMethodOther, GrpcTagHelper.GrpcMethodOther)]
+    [InlineData("/other", "other", "other", null)]
     public void RpcMethodIsSetFromGrpcMethod(string grpcMethod, string expectedDisplayName, string expectedRpcMethod, string? expectedRpcMethodOriginal)
     {
         var listener = new GrpcClientDiagnosticListener(new GrpcClientTraceInstrumentationOptions());

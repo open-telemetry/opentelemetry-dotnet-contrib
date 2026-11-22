@@ -11,15 +11,9 @@ internal static class GrpcTagHelper
 {
     public const string RpcSystemGrpc = "grpc";
 
-    // The value used for rpc.method when the gRPC method is not recognized, in which case
-    // the original value is preserved in rpc.method_original.
+    // The value used for rpc.method when the gRPC method is not available or not recognized.
     // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/grpc.md
     public const string RpcMethodOther = "_OTHER";
-
-    // The value used by the gRPC libraries for grpc.method when the method is not recognized.
-    // It maps to the "_OTHER" value used for rpc.method.
-    // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/non-normative/compatibility/grpc.md#attribute-mapping
-    public const string GrpcMethodOther = "other";
 
     // The Grpc.Net.Client library adds its own tags to the activity.
     // These tags are used to source the tags added by the OpenTelemetry instrumentation.
@@ -57,22 +51,18 @@ internal static class GrpcTagHelper
         => grpcMethod.Trim('/');
 
     /// <summary>
-    /// Sets the <c>rpc.method</c> (and, if applicable, <c>rpc.method_original</c>) tags and the
-    /// display name of the activity, and removes the <c>grpc.method</c> tag.
+    /// Sets the <c>rpc.method</c> tag and the display name of the activity, and removes the
+    /// <c>grpc.method</c> tag.
     /// </summary>
     /// <param name="activity">The activity to update.</param>
     /// <param name="trimmedMethod">The gRPC method name as returned by <see cref="TrimGrpcMethod"/>.</param>
     public static void SetTrimmedGrpcMethodAndDisplayName(Activity activity, string trimmedMethod)
     {
-        if (string.Equals(trimmedMethod, GrpcMethodOther, StringComparison.Ordinal))
+        if (trimmedMethod.Length == 0)
         {
-            // The gRPC libraries use "other" when the method is not recognized. This maps to
-            // rpc.method "_OTHER" with the original value preserved in rpc.method_original, and the
-            // span is named after the RPC system as rpc.method is not a usable span name.
-            // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/non-normative/compatibility/grpc.md#attribute-mapping
+            // The RPC semantic conventions indicate the span name should be the RPC system when rpc.method is not available.
             activity.DisplayName = RpcSystemGrpc;
             activity.SetTag(SemanticConventions.AttributeRpcMethod, RpcMethodOther);
-            activity.SetTag(SemanticConventions.AttributeRpcMethodOriginal, trimmedMethod);
         }
         else
         {

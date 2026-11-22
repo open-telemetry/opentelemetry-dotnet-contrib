@@ -86,7 +86,7 @@ public partial class GrpcTests : IAsyncLifetime
             Assert.Equal("greet.Greeter/SayHello", activity.GetTagValue(SemanticConventions.AttributeRpcMethod));
             Assert.Equal("greet.Greeter/SayHello", activity.DisplayName);
             Assert.Contains(activity.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress), clientLoopbackAddresses);
-            Assert.NotEqual(0, activity.GetTagValue(SemanticConventions.AttributeClientPort));
+            Assert.NotEqual(0, Assert.IsType<int>(activity.GetTagValue(SemanticConventions.AttributeNetworkPeerPort)));
             Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcMethodTagName));
             Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcStatusCodeTagName));
             Assert.Equal("OK", activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
@@ -175,7 +175,7 @@ public partial class GrpcTests : IAsyncLifetime
                 Assert.Equal("greet.Greeter/SayHello", activity.GetTagValue(SemanticConventions.AttributeRpcMethod));
                 Assert.Equal("greet.Greeter/SayHello", activity.DisplayName);
                 Assert.Contains(activity.GetTagValue(SemanticConventions.AttributeNetworkPeerAddress), clientLoopbackAddresses);
-                Assert.NotEqual(0, activity.GetTagValue(SemanticConventions.AttributeClientPort));
+                Assert.NotEqual(0, Assert.IsType<int>(activity.GetTagValue(SemanticConventions.AttributeNetworkPeerPort)));
                 Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcMethodTagName));
                 Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcStatusCodeTagName));
                 Assert.Equal("OK", activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
@@ -206,6 +206,43 @@ public partial class GrpcTests : IAsyncLifetime
                 new BaggagePropagator(),
             ]));
         }
+    }
+
+    [Fact]
+    public void GrpcAspNetCoreInstrumentationAddsOtherRpcMethodForUnimplementedService()
+    {
+        var configuration = new ConfigurationBuilder()
+            .AddInMemoryCollection(new Dictionary<string, string?>
+            {
+                ["OTEL_DOTNET_EXPERIMENTAL_ASPNETCORE_ENABLE_GRPC_INSTRUMENTATION"] = "true",
+            })
+            .Build();
+
+        var exportedItems = new List<Activity>();
+        using var tracerProviderBuilder = Sdk.CreateTracerProviderBuilder()
+            .ConfigureServices(services => services.AddSingleton<IConfiguration>(configuration))
+            .AddAspNetCoreInstrumentation()
+            .AddInMemoryExporter(exportedItems)
+            .Build();
+
+        using var channel = GrpcChannel.ForAddress(this.server.Address);
+        var client = new SecondGreeter.SecondGreeterClient(channel);
+        var exception = Assert.Throws<RpcException>(() => client.SayHello(new HelloRequest(), cancellationToken: TestContext.Current.CancellationToken));
+
+        Assert.Equal(global::Grpc.Core.StatusCode.Unimplemented, exception.StatusCode);
+
+        WaitForExporterToReceiveItems(exportedItems, 1);
+
+        var activity = Assert.Single(exportedItems);
+
+        Assert.Equal(ActivityKind.Server, activity.Kind);
+        Assert.Equal("grpc", activity.DisplayName);
+        Assert.Equal(ActivityStatusCode.Error, activity.Status);
+        Assert.Equal("grpc", activity.GetTagValue(SemanticConventions.AttributeRpcSystemName));
+        Assert.Equal("_OTHER", activity.GetTagValue(SemanticConventions.AttributeRpcMethod));
+        Assert.Equal("greet.SecondGreeter/SayHello", activity.GetTagValue(SemanticConventions.AttributeRpcMethodOriginal));
+        Assert.Equal("UNIMPLEMENTED", activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+        Assert.Equal("{unimplementedService}/{unimplementedMethod:grpcunimplemented}", activity.GetTagValue(SemanticConventions.AttributeHttpRoute));
     }
 
     private static void WaitForExporterToReceiveItems(List<Activity> itemsReceived, int itemCount)
