@@ -264,7 +264,46 @@ public class HangfireInstrumentationJobFilterAttributeTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public void OnPerforming_When_Filter_Suppresses_Activity_Should_Dispose_Activity_And_Restore_Parent(bool throwInFilter)
+    public async Task Should_Not_Export_Activities_Started_By_A_Filtered_Job(bool filtered)
+    {
+        // Arrange
+        var exportedItems = new List<Activity>();
+
+        string jobId;
+
+        using (var provider = Sdk.CreateTracerProviderBuilder()
+                                 .AddHangfireInstrumentation(options => options.Filter = _ => !filtered)
+                                 .AddSource(TestJob.ActivitySource.Name)
+                                 .AddInMemoryExporter(exportedItems)
+                                 .Build())
+        {
+            // Act
+            jobId = BackgroundJob.Enqueue<TestJob>(x => x.ExecuteWithChildActivity());
+            await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+
+            provider.ForceFlush();
+        }
+
+        // Assert
+        var childActivities = exportedItems.Where(a => a.Source.Name == TestJob.ActivitySource.Name).ToArray();
+
+        if (filtered)
+        {
+            Assert.Empty(childActivities);
+            Assert.DoesNotContain(exportedItems, a => a.Source.Name == HangfireInstrumentation.ActivitySourceName);
+        }
+        else
+        {
+            var jobActivity = Assert.Single(exportedItems, a => (a.GetTagItem("job.id") as string) == jobId);
+            var childActivity = Assert.Single(childActivities);
+            Assert.Equal(jobActivity.SpanId, childActivity.ParentSpanId);
+        }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Filtered_Job_Activity_Should_Stay_Current_And_Unrecorded_Until_OnPerformed(bool throwInFilter)
     {
         var startedActivities = 0;
         var stoppedActivities = 0;
@@ -306,9 +345,19 @@ public class HangfireInstrumentationJobFilterAttributeTests
 
         filter.OnPerforming(performingContext);
 
-        Assert.Same(parentActivity, Activity.Current);
-        Assert.False(performingContext.Items.ContainsKey(HangfireInstrumentationConstants.ActivityKey));
+        var jobActivity = Activity.Current;
+        Assert.NotNull(jobActivity);
+        Assert.Equal(HangfireInstrumentation.ActivitySourceName, jobActivity.Source.Name);
+        Assert.Equal(parentActivity.SpanId, jobActivity.ParentSpanId);
+        Assert.False(jobActivity.IsAllDataRequested);
+        Assert.False(jobActivity.Recorded);
         Assert.Equal(1, startedActivities);
+        Assert.Equal(0, stoppedActivities);
+
+        filter.OnPerformed(new PerformedContext(performingContext, null, false, null));
+
+        Assert.True(jobActivity.IsStopped);
+        Assert.Same(parentActivity, Activity.Current);
         Assert.Equal(1, stoppedActivities);
     }
 

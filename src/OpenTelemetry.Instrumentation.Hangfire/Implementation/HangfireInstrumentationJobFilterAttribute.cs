@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using Hangfire;
 using Hangfire.Client;
 using Hangfire.Common;
 using Hangfire.Server;
@@ -62,22 +63,18 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
 
             if (activity.IsAllDataRequested)
             {
-                try
+                if (this.IsFilteredOut(filterContext.BackgroundJob))
                 {
-                    if (this.options.Filter?.Invoke(filterContext.BackgroundJob) == false)
-                    {
-                        SuppressAndDisposeActivity(activity);
-                        return;
-                    }
+                    // The activity stays current until OnPerformed, so activities started by the job
+                    // inherit the cleared Recorded flag and are dropped by a parent-based sampler.
+                    activity.IsAllDataRequested = false;
+                    activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
                 }
-                catch (Exception)
+                else
                 {
-                    SuppressAndDisposeActivity(activity);
-                    return;
+                    activity.SetTag(HangfireInstrumentationConstants.JobIdTag, filterContext.BackgroundJob.Id);
+                    activity.SetTag(HangfireInstrumentationConstants.JobCreatedAtTag, filterContext.BackgroundJob.CreatedAt.ToString("O"));
                 }
-
-                activity.SetTag(HangfireInstrumentationConstants.JobIdTag, filterContext.BackgroundJob.Id);
-                activity.SetTag(HangfireInstrumentationConstants.JobCreatedAtTag, filterContext.BackgroundJob.CreatedAt.ToString("O"));
             }
 
             filterContext.Items.Add(HangfireInstrumentationConstants.ActivityKey, activity);
@@ -143,11 +140,16 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
         return telemetryData.TryGetValue(key, out var value) ? [value] : [];
     }
 
-    private static void SuppressAndDisposeActivity(Activity activity)
+    private bool IsFilteredOut(BackgroundJob backgroundJob)
     {
-        activity.IsAllDataRequested = false;
-        activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
-        activity.Dispose();
+        try
+        {
+            return this.options.Filter?.Invoke(backgroundJob) == false;
+        }
+        catch (Exception)
+        {
+            return true;
+        }
     }
 
     private void SetStatusAndRecordException(Activity activity, Exception exception)

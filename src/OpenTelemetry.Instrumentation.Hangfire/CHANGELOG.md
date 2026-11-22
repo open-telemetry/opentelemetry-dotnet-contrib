@@ -2,6 +2,11 @@
 
 ## Unreleased
 
+* Fixed activities started by a job excluded by `Filter` being collected as
+  new root traces. The unrecorded job activity now stays current until the job
+  completes, so a parent-based sampler drops them.
+  ([#TBD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TBD))
+
 ## 1.21.0-beta.1
 
 Released 2026-Nov-11

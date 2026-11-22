@@ -40,7 +40,9 @@ public class HangfireInstrumentationOptions
     /// <item>If filter returns <see langword="true" />, the command is
     /// collected.</item>
     /// <item>If filter returns <see langword="false" /> or throws an
-    /// exception, the command is <b>NOT</b> collected.</item>
+    /// exception, the command is <b>NOT</b> collected. Activities started
+    /// while the job runs inherit the unrecorded trace flags, so a
+    /// parent-based sampler does not collect them either.</item>
     /// </list></item>
     /// </list>
     /// </remarks>
