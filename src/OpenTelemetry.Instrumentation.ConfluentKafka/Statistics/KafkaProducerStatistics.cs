@@ -7,8 +7,7 @@ internal sealed class KafkaProducerStatistics
 {
     public KafkaProducerStatistics(
         long? timestamp,
-        long? records,
-        long? bytes,
+        IReadOnlyList<PartitionCounters> partitions,
         long? requestsInFlight,
         long? bufferTotalBytes,
         long? bufferAvailableBytes,
@@ -19,8 +18,7 @@ internal sealed class KafkaProducerStatistics
         double? throttleTimeMax)
     {
         this.Timestamp = timestamp;
-        this.Records = records;
-        this.Bytes = bytes;
+        this.Partitions = partitions;
         this.RequestsInFlight = requestsInFlight;
         this.BufferTotalBytes = bufferTotalBytes;
         this.BufferAvailableBytes = bufferAvailableBytes;
@@ -33,9 +31,7 @@ internal sealed class KafkaProducerStatistics
 
     public long? Timestamp { get; }
 
-    public long? Records { get; }
-
-    public long? Bytes { get; }
+    public IReadOnlyList<PartitionCounters> Partitions { get; }
 
     public long? RequestsInFlight { get; }
 
@@ -52,4 +48,15 @@ internal sealed class KafkaProducerStatistics
     public double ThrottleTimeCount { get; }
 
     public double? ThrottleTimeMax { get; }
+
+    internal readonly record struct PartitionCounters(string Topic, int Partition, long? Records, long? Bytes)
+    {
+        public string Topic { get; } = Topic;
+
+        public int Partition { get; } = Partition;
+
+        public long? Records { get; } = Records;
+
+        public long? Bytes { get; } = Bytes;
+    }
 }

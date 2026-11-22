@@ -20,13 +20,7 @@ internal static class KafkaProducerStatisticsHandler
             ConfluentKafkaInstrumentationEventSource.Log.StatisticsHandlerFailed(ex);
         }
 
-        try
-        {
-            userHandler?.Invoke(producer, json);
-        }
-        catch (Exception ex)
-        {
-            ConfluentKafkaInstrumentationEventSource.Log.StatisticsHandlerFailed(ex);
-        }
+        // Confluent reports application callback failures through its error handler.
+        userHandler?.Invoke(producer, json);
     };
 }

@@ -53,19 +53,18 @@ public sealed class InstrumentedProducerBuilder<TKey, TValue> : ProducerBuilder<
     /// <returns>an <see cref="IProducer{TKey,TValue}"/>.</returns>
     public override IProducer<TKey, TValue> Build()
     {
-        var bootstrapServers = this.Config.LastOrDefault(pair => string.Equals(pair.Key, "bootstrap.servers", StringComparison.Ordinal)).Value;
         if (!this.options.ClientMetrics)
         {
+            var bootstrapServers = GetBootstrapServers(this.Config);
             return new InstrumentedProducer<TKey, TValue>(base.Build(), this.options, bootstrapServers);
         }
 
-        var config = this.Config.ToList();
-        if (!config.Any(pair => string.Equals(pair.Key, "statistics.interval.ms", StringComparison.Ordinal)))
+        var nativeConfig = this.Config.ToList();
+        if (!nativeConfig.Any(pair => string.Equals(pair.Key, "statistics.interval.ms", StringComparison.Ordinal)))
         {
-            config.Add(new KeyValuePair<string, string>(
+            nativeConfig.Add(new KeyValuePair<string, string>(
                 "statistics.interval.ms",
                 ((int)this.options.StatisticsInterval.TotalMilliseconds).ToString(System.Globalization.CultureInfo.InvariantCulture)));
-            this.Config = config;
         }
 
         var userHandler = this.StatisticsHandler;
@@ -73,7 +72,8 @@ public sealed class InstrumentedProducerBuilder<TKey, TValue> : ProducerBuilder<
         try
         {
             var handler = KafkaProducerStatisticsHandler.Create(registration.Enqueue, userHandler);
-            var producer = new InstrumentedProducer<TKey, TValue>(this.BuildNativeProducer(handler), this.options, bootstrapServers, registration);
+            var producer = new InstrumentedProducer<TKey, TValue>(
+                this.BuildNativeProducer(nativeConfig, handler), this.options, GetBootstrapServers(nativeConfig), registration);
             registration = null;
             return producer;
         }
@@ -85,10 +85,15 @@ public sealed class InstrumentedProducerBuilder<TKey, TValue> : ProducerBuilder<
 
     private static KafkaProducerMetricsRegistration CreateMetricsRegistration() => new KafkaProducerMetricsRegistration();
 
-    private IProducer<TKey, TValue> BuildNativeProducer(Action<IProducer<TKey, TValue>, string> statisticsHandler)
+    private static string? GetBootstrapServers(IEnumerable<KeyValuePair<string, string>> config)
+        => config.LastOrDefault(pair => string.Equals(pair.Key, "bootstrap.servers", StringComparison.Ordinal)).Value;
+
+    private IProducer<TKey, TValue> BuildNativeProducer(
+        IEnumerable<KeyValuePair<string, string>> config,
+        Action<IProducer<TKey, TValue>, string> statisticsHandler)
     {
         // Confluent.Kafka callbacks read their builder's handlers dynamically. Each client needs its own builder.
-        var builder = new InstrumentedProducerBuilder<TKey, TValue>(this.Config)
+        var builder = new InstrumentedProducerBuilder<TKey, TValue>(config)
         {
             LogHandler = this.LogHandler,
             ErrorHandler = this.ErrorHandler,

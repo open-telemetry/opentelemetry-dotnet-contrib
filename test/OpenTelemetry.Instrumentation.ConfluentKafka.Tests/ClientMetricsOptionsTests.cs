@@ -32,7 +32,7 @@ public class ClientMetricsOptionsTests
     [InlineData(-1)]
     [InlineData(0)]
     [InlineData(0.5)]
-    [InlineData(2147483648)]
+    [InlineData(86400000.0001)]
     public void InvalidStatisticsIntervalsAreRejected(double milliseconds)
     {
         var options = new ConfluentKafkaInstrumentedProducerBuilderOptions();
@@ -46,7 +46,7 @@ public class ClientMetricsOptionsTests
     [Theory]
     [InlineData(1)]
     [InlineData(1000)]
-    [InlineData(int.MaxValue)]
+    [InlineData(86400000)]
     public void ValidStatisticsIntervalsAreAccepted(int milliseconds)
     {
         var options = new ConfluentKafkaInstrumentedProducerBuilderOptions
@@ -57,14 +57,13 @@ public class ClientMetricsOptionsTests
     }
 
     [Theory]
-    [InlineData(null, true, "2000")]
-    [InlineData("0", true, "0")]
-    [InlineData("1500", true, "1500")]
-    [InlineData(null, false, null)]
-    public void BuildRespectsExplicitConfigurationAndOptIn(string? configured, bool enabled, string? expected)
+    [InlineData(null, true)]
+    [InlineData("0", true)]
+    [InlineData("1500", true)]
+    [InlineData(null, false)]
+    public void FailedBuildDoesNotChangeConfigurationOrHandler(string? configured, bool enabled)
     {
         // Invalid native configuration stops Build before creating a client or contacting a broker.
-        // The statistics configuration and handler restoration happen before that failure.
         var config = new List<KeyValuePair<string, string>> { new("invalid.option", "true") };
         if (configured != null)
         {
@@ -82,7 +81,8 @@ public class ClientMetricsOptionsTests
 
         Assert.Throws<InvalidOperationException>(() => builder.Build());
         var actual = builder.GetInternalConfig()!.FirstOrDefault(pair => pair.Key == "statistics.interval.ms").Value;
-        Assert.Equal(expected, actual);
+        Assert.Same(config, builder.GetInternalConfig());
+        Assert.Equal(configured, actual);
         Assert.Same(userHandler, builder.GetInternalStatisticsHandler());
 
         Assert.Throws<InvalidOperationException>(() => builder.Build());
@@ -113,18 +113,37 @@ public class ClientMetricsOptionsTests
         using var producer = builder.Build();
         Assert.IsType<InstrumentedProducer<string, string>>(producer);
         var actual = builder.GetInternalConfig()!.FirstOrDefault(pair => pair.Key == "statistics.interval.ms").Value;
-        var expected = explicitInterval ? "0" : enableClientMetrics ? "1000" : null;
+        var expected = explicitInterval ? "0" : null;
         Assert.Equal(expected, actual);
     }
 
     [Fact]
-    public async Task NativeStatisticsReachMetricsWithoutAConnectedBroker()
+    public void ReusedBuilderReadsChangesToOriginalConfiguration()
+    {
+        var config = new ProducerConfig();
+        var builder = new ProducerBuilder<string, string>(config).AsInstrumentedProducerBuilder(
+            new ConfluentKafkaInstrumentedProducerBuilderOptions { EnableClientMetrics = true });
+        builder.SetLogHandler((_, _) => { });
+
+        using (builder.Build())
+        {
+            Assert.Null(config.StatisticsIntervalMs);
+        }
+
+        // The explicit value must be passed through rather than replaced by the default.
+        config.StatisticsIntervalMs = 86400001;
+        var exception = Assert.Throws<ArgumentException>(() => builder.Build());
+        Assert.Contains("statistics.interval.ms", exception.Message);
+    }
+
+    [Fact]
+    public async Task NativeStatisticsReachMetricsAndApplicationFailuresReachErrorHandler()
     {
         var observed = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         using var listener = new MeterListener();
         listener.InstrumentPublished = (instrument, meterListener) =>
         {
-            if (instrument.Meter.Name == ConfluentKafkaCommon.Meter.Name && instrument.Name == "kafka.producer.record_send_total")
+            if (instrument.Meter.Name == ConfluentKafkaCommon.Meter.Name && instrument.Name == "kafka.producer.buffer_total_bytes")
             {
                 meterListener.EnableMeasurementEvents(instrument);
             }
@@ -139,15 +158,28 @@ public class ClientMetricsOptionsTests
                 StatisticsInterval = TimeSpan.FromMilliseconds(100),
             });
         builder.SetLogHandler((_, _) => { });
-        var callbacks = 0;
-        Action<IProducer<string, string>, string> userHandler = (_, _) => Interlocked.Increment(ref callbacks);
+        var reported = new TaskCompletionSource<Error>(TaskCreationOptions.RunContinuationsAsynchronously);
+        builder.SetErrorHandler((_, error) =>
+        {
+            if (error.Code == ErrorCode.Local_Application)
+            {
+                reported.TrySetResult(error);
+            }
+        });
+        Action<IProducer<string, string>, string> userHandler = (_, _) => throw new InvalidOperationException("application statistics failure");
         builder.SetStatisticsHandler(userHandler);
 
         using var producer = builder.Build();
         Assert.Same(userHandler, builder.GetInternalStatisticsHandler());
-        var completed = await Task.WhenAny(observed.Task, Task.Delay(TimeSpan.FromSeconds(10), TestContext.Current.CancellationToken));
-        Assert.Same(observed.Task, completed);
-        Assert.True(SpinWait.SpinUntil(() => Volatile.Read(ref callbacks) > 0, TimeSpan.FromSeconds(1)));
+        await KafkaProducerStatisticsProcessorTests.WaitForAsync(reported.Task);
+        Assert.Contains("application statistics failure", (await reported.Task).Reason);
+        Assert.True(SpinWait.SpinUntil(
+            () =>
+            {
+                listener.RecordObservableInstruments();
+                return observed.Task.IsCompleted;
+            },
+            TimeSpan.FromSeconds(10)));
     }
 
     [Fact]
@@ -181,15 +213,15 @@ public class ClientMetricsOptionsTests
     }
 
     [Fact]
-    public void UserCallbackFailuresCannotEscapeOrDisableFutureUpdates()
+    public void UserCallbackFailuresPropagateAfterEnqueuingStatistics()
     {
         var updates = 0;
         var handler = KafkaProducerStatisticsHandler.Create<string, string>(
             _ => updates++,
             (_, _) => throw new InvalidOperationException("application failure"));
 
-        handler(null!, "first");
-        handler(null!, "second");
+        Assert.Throws<InvalidOperationException>(() => handler(null!, "first"));
+        Assert.Throws<InvalidOperationException>(() => handler(null!, "second"));
         Assert.Equal(2, updates);
     }
 }

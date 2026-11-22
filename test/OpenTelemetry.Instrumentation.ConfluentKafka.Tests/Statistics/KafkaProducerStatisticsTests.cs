@@ -11,12 +11,12 @@ namespace OpenTelemetry.Instrumentation.ConfluentKafka.Tests;
 public class KafkaProducerStatisticsTests
 {
     [Fact]
-    public void ActiveFixtureUsesClientTotalsAndSampleWeightedMilliseconds()
+    public void ActiveFixtureUsesPartitionCountersAndSampleWeightedMilliseconds()
     {
         var snapshot = KafkaProducerStatisticsParser.Parse(ReadFixture("active"));
 
-        Assert.Equal(10, snapshot.Records);
-        Assert.Equal(1000, snapshot.Bytes);
+        var partition = Assert.Single(snapshot.Partitions);
+        Assert.Equal(new KafkaProducerStatistics.PartitionCounters("example", 0, 10, 1000), partition);
         Assert.Equal(3, snapshot.RequestsInFlight);
         Assert.Equal(1000, snapshot.BufferTotalBytes);
         Assert.Equal(900, snapshot.BufferAvailableBytes);
@@ -32,7 +32,7 @@ public class KafkaProducerStatisticsTests
     {
         using var document = JsonDocument.Parse(ReadFixture(state));
         var root = document.RootElement;
-        foreach (var field in new[] { "type", "ts", "txmsgs", "txmsg_bytes", "msg_size", "msg_size_max", "brokers" })
+        foreach (var field in new[] { "type", "ts", "msg_size", "msg_size_max", "brokers", "topics" })
         {
             Assert.True(root.TryGetProperty(field, out _), $"Missing mapped field {field}.");
         }
@@ -53,13 +53,12 @@ public class KafkaProducerStatisticsTests
 
     [Theory]
     [InlineData("{\"type\":\"producer\"}")]
-    [InlineData("{\"type\":\"producer\",\"txmsgs\":-1,\"txmsg_bytes\":\"bad\",\"msg_size_max\":null,\"brokers\":[]}")]
+    [InlineData("{\"type\":\"producer\",\"msg_size_max\":null,\"brokers\":[],\"topics\":{\"example\":{\"partitions\":{\"0\":{\"txmsgs\":-1,\"txbytes\":\"bad\"}}}}}")]
     public void MissingOrInvalidFieldsDoNotBecomeZero(string json)
     {
         var snapshot = KafkaProducerStatisticsParser.Parse(json);
 
-        Assert.Null(snapshot.Records);
-        Assert.Null(snapshot.Bytes);
+        Assert.Empty(snapshot.Partitions);
         Assert.Null(snapshot.RequestsInFlight);
         Assert.Null(snapshot.BufferTotalBytes);
         Assert.Null(snapshot.BufferAvailableBytes);
@@ -192,18 +191,47 @@ public class KafkaProducerStatisticsTests
         using var listener = new MetricsListener();
         using (var registration = new KafkaProducerMetricsRegistration())
         {
-            registration.Update("{\"type\":\"producer\",\"txmsgs\":10,\"txmsg_bytes\":100}");
-            registration.Update("{\"type\":\"producer\",\"txmsgs\":10,\"txmsg_bytes\":100}");
+            registration.Update(PartitionSnapshot(1, 10, 100));
+            registration.Update(PartitionSnapshot(2, 10, 100));
             registration.Update("{\"type\":\"producer\"}");
-            registration.Update("{\"type\":\"producer\",\"txmsgs\":15,\"txmsg_bytes\":150}");
-            registration.Update("{\"type\":\"producer\",\"txmsgs\":2,\"txmsg_bytes\":20}");
-            registration.Update("{\"type\":\"producer\",\"txmsgs\":4,\"txmsg_bytes\":40}");
+            registration.Update(PartitionSnapshot(3, 15));
+            registration.Update(PartitionSnapshot(4, 15, 150));
+            registration.Update(PartitionSnapshot(5, 2, 20));
+            registration.Update(PartitionSnapshot(6, 4, 40));
         }
 
         using var recreated = new KafkaProducerMetricsRegistration();
-        recreated.Update("{\"type\":\"producer\",\"txmsgs\":3,\"txmsg_bytes\":30}");
+        recreated.Update(PartitionSnapshot(1, 3, 30));
         Assert.Equal(22, listener.Total("kafka.producer.record_send_total"));
         Assert.Equal(220, listener.Total("kafka.producer.byte_total"));
+    }
+
+    [Theory]
+    [InlineData(60)]
+    [InlineData(160)]
+    public void PartitionDisappearanceDoesNotHideGrowthOrRecountSurvivingPartitions(int survivingRecords)
+    {
+        using var listener = new MetricsListener();
+        using var registration = new KafkaProducerMetricsRegistration();
+        registration.Update("""
+            {
+              "type":"producer","ts":1,"txmsgs":150,"txmsg_bytes":1500,
+              "topics":{"other":{"partitions":{"0":{"txmsgs":100,"txbytes":1000}}},
+                        "example":{"partitions":{"0":{"txmsgs":50,"txbytes":500}}}}
+            }
+            """);
+        registration.Update(PartitionSnapshot(2, survivingRecords, survivingRecords * 10));
+        Assert.Equal(100 + survivingRecords, listener.Total("kafka.producer.record_send_total"));
+        Assert.Equal(1000 + (survivingRecords * 10), listener.Total("kafka.producer.byte_total"));
+
+        registration.Update("""
+            {
+              "type":"producer","ts":3,
+              "topics":{"other":{"partitions":{"0":{"txmsgs":105,"txbytes":1050}}}}
+            }
+            """);
+        Assert.Equal(105 + survivingRecords, listener.Total("kafka.producer.record_send_total"));
+        Assert.Equal(1050 + (survivingRecords * 10), listener.Total("kafka.producer.byte_total"));
     }
 
     [Fact]
@@ -211,9 +239,9 @@ public class KafkaProducerStatisticsTests
     {
         using var listener = new MetricsListener();
         using var registration = new KafkaProducerMetricsRegistration();
-        registration.Update("{\"type\":\"producer\",\"ts\":2,\"txmsgs\":10}");
-        registration.Update("{\"type\":\"producer\",\"ts\":1,\"txmsgs\":3}");
-        registration.Update("{\"type\":\"producer\",\"ts\":3,\"txmsgs\":12}");
+        registration.Update(PartitionSnapshot(2, 10));
+        registration.Update(PartitionSnapshot(1, 3));
+        registration.Update(PartitionSnapshot(3, 12));
         Assert.Equal(12, listener.Total("kafka.producer.record_send_total"));
     }
 
@@ -251,24 +279,24 @@ public class KafkaProducerStatisticsTests
         var started = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         var processed = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
         var caughtUp = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
-        const string First = "{\"type\":\"producer\",\"ts\":1,\"txmsgs\":10}";
-        const string Second = "{\"type\":\"producer\",\"ts\":2,\"txmsgs\":20}";
-        const string Dropped = "{\"type\":\"producer\",\"ts\":3,\"txmsgs\":30}";
-        const string Latest = "{\"type\":\"producer\",\"ts\":4,\"txmsgs\":40}";
+        var first = PartitionSnapshot(1, 10);
+        var second = PartitionSnapshot(2, 20);
+        var dropped = PartitionSnapshot(3, 30);
+        var latest = PartitionSnapshot(4, 40);
         Action<string> update = json =>
         {
-            if (json == First)
+            if (json == first)
             {
                 started.TrySetResult(true);
                 release.Wait(TestContext.Current.CancellationToken);
             }
 
             registration.Update(json);
-            if (json == Second)
+            if (json == second)
             {
                 processed.TrySetResult(true);
             }
-            else if (json == Latest)
+            else if (json == latest)
             {
                 caughtUp.TrySetResult(true);
             }
@@ -277,13 +305,13 @@ public class KafkaProducerStatisticsTests
 
         try
         {
-            Assert.True(processor.TryEnqueue(First));
+            Assert.True(processor.TryEnqueue(first));
             await KafkaProducerStatisticsProcessorTests.WaitForAsync(started.Task);
-            Assert.True(processor.TryEnqueue(Second));
-            Assert.False(processor.TryEnqueue(Dropped));
+            Assert.True(processor.TryEnqueue(second));
+            Assert.False(processor.TryEnqueue(dropped));
             release.Set();
             await KafkaProducerStatisticsProcessorTests.WaitForAsync(processed.Task);
-            Assert.True(processor.TryEnqueue(Latest));
+            Assert.True(processor.TryEnqueue(latest));
             await KafkaProducerStatisticsProcessorTests.WaitForAsync(caughtUp.Task);
             Assert.Equal(40, listener.Total("kafka.producer.record_send_total"));
         }
@@ -303,6 +331,20 @@ public class KafkaProducerStatisticsTests
         using var reader = new StreamReader(stream);
         return reader.ReadToEnd();
     }
+
+    private static string PartitionSnapshot(int timestamp, int records, int? bytes = null) =>
+        JsonSerializer.Serialize(new
+        {
+            type = "producer",
+            ts = timestamp,
+            topics = new
+            {
+                example = new
+                {
+                    partitions = new Dictionary<string, object> { ["0"] = new { txmsgs = records, txbytes = bytes } },
+                },
+            },
+        });
 
     private sealed class MetricsListener : IDisposable
     {

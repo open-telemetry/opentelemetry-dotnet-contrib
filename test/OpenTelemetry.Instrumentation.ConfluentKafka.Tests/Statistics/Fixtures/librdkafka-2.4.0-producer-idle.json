@@ -14,5 +14,6 @@
       "int_latency": { "sum": 0, "avg": 0, "cnt": 0 },
       "throttle": { "sum": 0, "avg": 0, "max": 0, "cnt": 0 }
     }
-  }
+  },
+  "topics": {}
 }

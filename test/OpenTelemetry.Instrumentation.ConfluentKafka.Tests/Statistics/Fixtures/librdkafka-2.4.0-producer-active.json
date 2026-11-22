@@ -27,6 +27,13 @@
       "throttle": { "sum": 10, "avg": 10, "max": 12, "cnt": 1 }
     }
   },
-  "topics": { "ignored": { "partitions": { "0": { "txmsgs": 999, "txbytes": 999 } } } },
+  "topics": {
+    "example": {
+      "partitions": {
+        "0": { "txmsgs": 10, "txbytes": 1000 },
+        "-1": { "txmsgs": 999, "txbytes": 999 }
+      }
+    }
+  },
   "unknown_field": true
 }

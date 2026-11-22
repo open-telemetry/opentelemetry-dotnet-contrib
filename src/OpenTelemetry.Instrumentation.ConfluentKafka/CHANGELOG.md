@@ -16,6 +16,11 @@
   per-producer disposal cleanup.
   ([#5508](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5508))
 
+* Track producer transmission deltas per partition, preserve configuration and
+  callback error handling on instrumented builds, and enforce the native
+  one-day statistics interval limit.
+  ([#5508](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5508))
+
 ## 0.6.0-alpha.1
 
 Released 2026-Nov-11

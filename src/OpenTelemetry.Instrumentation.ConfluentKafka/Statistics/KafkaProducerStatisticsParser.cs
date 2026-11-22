@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Globalization;
 using System.Text.Json;
 
 namespace OpenTelemetry.Instrumentation.ConfluentKafka;
@@ -63,8 +64,7 @@ internal static class KafkaProducerStatisticsParser
 
         return new KafkaProducerStatistics(
             GetNonNegativeInteger(root, "ts"),
-            GetNonNegativeInteger(root, "txmsgs"),
-            GetNonNegativeInteger(root, "txmsg_bytes"),
+            ReadPartitionCounters(root),
             requests,
             totalBytes,
             availableBytes,
@@ -73,6 +73,44 @@ internal static class KafkaProducerStatisticsParser
             throttleSum,
             throttleCount,
             throttleMax);
+    }
+
+    private static List<KafkaProducerStatistics.PartitionCounters> ReadPartitionCounters(JsonElement root)
+    {
+        var result = new List<KafkaProducerStatistics.PartitionCounters>();
+        if (!root.TryGetProperty("topics", out var topics) || topics.ValueKind != JsonValueKind.Object)
+        {
+            return result;
+        }
+
+        foreach (var topic in topics.EnumerateObject())
+        {
+            if (topic.Value.ValueKind != JsonValueKind.Object
+                || !topic.Value.TryGetProperty("partitions", out var partitions)
+                || partitions.ValueKind != JsonValueKind.Object)
+            {
+                continue;
+            }
+
+            foreach (var partition in partitions.EnumerateObject())
+            {
+                // The unassigned partition (-1) is not included in native transmission totals.
+                if (partition.Value.ValueKind != JsonValueKind.Object
+                    || !int.TryParse(partition.Name, NumberStyles.None, CultureInfo.InvariantCulture, out var id))
+                {
+                    continue;
+                }
+
+                var records = GetNonNegativeInteger(partition.Value, "txmsgs");
+                var bytes = GetNonNegativeInteger(partition.Value, "txbytes");
+                if (records.HasValue || bytes.HasValue)
+                {
+                    result.Add(new(topic.Name, id, records, bytes));
+                }
+            }
+        }
+
+        return result;
     }
 
     private static long? GetNonNegativeInteger(JsonElement element, string name) =>

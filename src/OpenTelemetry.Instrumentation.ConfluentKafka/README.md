@@ -162,12 +162,12 @@ using var producer = instrumentedBuilder.Build();
 
 `EnableClientMetrics` defaults to `false` and is independent of `EnableMetrics`
 (the existing application-operation metrics). `StatisticsInterval` defaults to
-ten seconds and accepts one to `Int32.MaxValue` milliseconds. Fractional
+ten seconds and accepts one millisecond to one day. Fractional
 milliseconds are truncated when configuring librdkafka. An explicitly configured
 `statistics.interval.ms` always takes precedence, including `0`, which disables
-statistics callbacks. An existing application statistics handler is preserved;
-instrumentation and handler failures are reported through EventSource without
-escaping into Kafka processing.
+statistics callbacks. An existing application statistics handler is preserved.
+Instrumentation failures are reported through EventSource; application callback
+failures follow Confluent.Kafka's normal error-handler behavior.
 
 Statistics JSON is processed asynchronously using a bounded channel, adapting
 the approach from [Aspire's Kafka integration][aspire-kafka-metrics]. Each opted-in
@@ -179,8 +179,9 @@ Applications must still avoid blocking their own handler.
 
 If the queue is full, the new payload is dropped and an EventSource warning is
 reported without logging its contents. A later cumulative snapshot can recover
-counter increments unless the native counter resets or the producer is disposed
-before that snapshot is processed. Dropped timing windows cannot be recovered.
+counter increments for partitions still reported, provided their native counters
+have not reset and the producer has not been disposed. Dropped timing windows
+cannot be recovered.
 Metric observations may lag the native callback while accepted payloads are
 processed in order.
 
@@ -194,8 +195,8 @@ a metric series. Existing `messaging.client.*` metrics are unchanged.
 
 | Name | Instrument type | Unit | librdkafka source |
 | --- | --- | --- | --- |
-| `kafka.producer.record_send_total` | Counter | `{record}` | Top-level `txmsgs` |
-| `kafka.producer.byte_total` | Counter | `By` | Top-level `txmsg_bytes` |
+| `kafka.producer.record_send_total` | Counter | `{record}` | Sum of partition `txmsgs` deltas |
+| `kafka.producer.byte_total` | Counter | `By` | Sum of partition `txbytes` deltas |
 | `kafka.producer.requests_in_flight` | Observable gauge | `{request}` | Sum of broker `waitresp_cnt` |
 | `kafka.producer.buffer_total_bytes` | Observable gauge | `By` | Sum of producer `msg_size_max` |
 | `kafka.producer.buffer_available_bytes` | Observable gauge | `By` | Sum of producer `max(0, msg_size_max - msg_size)` |
@@ -206,13 +207,16 @@ a metric series. Existing `messaging.client.*` metrics are unchanged.
 Transmitted records are native client transmissions, not application send
 attempts or guaranteed successful deliveries. Transmitted message bytes include
 message and batch framing, so they are not strictly equivalent to Java's record
-byte measurements. Client totals are used directly rather than counting topic or
-partition totals again. Bootstrap broker requests are included in process totals.
+byte measurements. The top-level transmission totals and the unassigned
+partition are not used. Bootstrap broker requests are included in process totals.
 
-Each producer records deltas from its own cumulative counters; the first snapshot
-contributes its total, and a decrease starts a new counter epoch. Duplicate
-`client.id` values do not require special handling. Disposing a producer removes
-its gauge observations without subtracting previously recorded counter values.
+Each producer retains a baseline per observed topic partition for its lifetime.
+An absent partition contributes nothing; its baseline is reused if it returns.
+The first observation or a decrease contributes the reported value. If a
+partition is recreated and its counters already exceed the old baseline by the
+next snapshot, the reset cannot be detected and the delta can undercount.
+Duplicate `client.id` values do not require special handling. Disposing a producer
+removes its gauge observations without subtracting previously recorded counter values.
 Disposal closes the queue and discards pending payloads without waiting for the
 background reader. An update already being processed may finish recording its
 counters, but cannot restore disposed gauge observations. Counter rates can be

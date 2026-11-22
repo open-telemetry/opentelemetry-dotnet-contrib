@@ -230,7 +230,7 @@ public class KafkaProducerStatisticsProcessorTests
         {
             registration.Enqueue("{");
             registration.Enqueue(KafkaProducerStatisticsTests.ReadFixture("active"));
-            Assert.True(SpinWait.SpinUntil(() => registration.Snapshot?.Records == 10, TimeSpan.FromSeconds(10)));
+            Assert.True(SpinWait.SpinUntil(() => registration.Snapshot?.BufferTotalBytes == 1000, TimeSpan.FromSeconds(10)));
         }
         finally
         {
