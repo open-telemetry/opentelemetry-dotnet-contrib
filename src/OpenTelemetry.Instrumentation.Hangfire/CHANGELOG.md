@@ -9,7 +9,7 @@
 
 * Fixed the job activity being left running, and the job's baggage left
   current, when `OnPerforming` throws after the activity is started.
-  ([#TBD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TBD))
+  ([#6111](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6111))
 
 ## 1.21.0-beta.1
 
