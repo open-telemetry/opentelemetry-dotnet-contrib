@@ -7,6 +7,10 @@
   completes, so the default sampler drops them.
   ([#6110](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6110))
 
+* Fixed the job activity being left running, and the job's baggage left
+  current, when `OnPerforming` throws after the activity is started.
+  ([#TBD](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/TBD))
+
 ## 1.21.0-beta.1
 
 Released 2026-Nov-11

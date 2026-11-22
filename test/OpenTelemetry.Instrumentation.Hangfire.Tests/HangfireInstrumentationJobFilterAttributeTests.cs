@@ -448,6 +448,58 @@ public class HangfireInstrumentationJobFilterAttributeTests
     }
 
     [Fact]
+    public void OnPerforming_Should_Stop_Activity_And_Restore_Baggage_When_It_Throws_After_Starting_The_Activity()
+    {
+        var startedActivities = new ConcurrentQueue<Activity>();
+
+        using var listener = new ActivityListener
+        {
+            ShouldListenTo = _ => true,
+            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            SampleUsingParentId = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            ActivityStarted = activity =>
+            {
+                if (activity.Source.Name == HangfireInstrumentation.ActivitySourceName)
+                {
+                    startedActivities.Enqueue(activity);
+                }
+            },
+        };
+        ActivitySource.AddActivityListener(listener);
+
+        using var parentSource = new ActivitySource(nameof(HangfireInstrumentationJobFilterAttributeTests));
+        using var parentActivity = parentSource.StartActivity("parent");
+        Assert.NotNull(parentActivity);
+
+        var storage = new MemoryStorage();
+        using var connection = storage.GetConnection();
+
+        var filter = new HangfireInstrumentationJobFilterAttribute(new HangfireInstrumentationOptions
+        {
+            DisplayNameFunc = _ => throw new InvalidOperationException("DisplayNameFunc throws exception"),
+        });
+        var performingContext = CreatePerformingContext(storage, connection);
+        Baggage.Current = Baggage.Create(new Dictionary<string, string>
+        {
+            ["previous-key"] = "previous-value",
+        });
+
+        try
+        {
+            Assert.Throws<InvalidOperationException>(() => filter.OnPerforming(performingContext));
+
+            var jobActivity = Assert.Single(startedActivities, a => a.ParentSpanId == parentActivity.SpanId);
+            Assert.True(jobActivity.IsStopped);
+            Assert.Same(parentActivity, Activity.Current);
+            Assert.Equal("previous-value", Baggage.Current.GetBaggage("previous-key"));
+        }
+        finally
+        {
+            Baggage.Current = default;
+        }
+    }
+
+    [Fact]
     public async Task Should_Not_Inject_Invalid_Context()
     {
         // Arrange

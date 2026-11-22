@@ -42,46 +42,61 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
         filterContext.Items[HangfireInstrumentationConstants.PreviousBaggageKey] = RuntimeContext.GetValue(HangfireInstrumentationConstants.BaggageSlotName);
         RuntimeContext.SetValue(HangfireInstrumentationConstants.BaggageSlotName, null);
 
-        ActivityContext parentContext = default;
-        Baggage.Current = default;
+        Activity? activity = null;
 
-        if (activityContextData is not null)
+        try
         {
-            var propagationContext = Propagators.DefaultTextMapPropagator.Extract(default, activityContextData, ExtractActivityProperties);
-            parentContext = propagationContext.ActivityContext;
-            Baggage.Current = propagationContext.Baggage;
-        }
+            ActivityContext parentContext = default;
+            Baggage.Current = default;
 
-        // Created, not started: Activity.Id caches the trace flags on first read, so a filtered activity
-        // must have Recorded cleared before Start lets listeners see it.
-        var activity = HangfireInstrumentation.ActivitySource
-            .CreateActivity(HangfireInstrumentationConstants.ActivityName, ActivityKind.Internal, parentContext);
-
-        if (activity != null)
-        {
-            if (activity.IsAllDataRequested)
+            if (activityContextData is not null)
             {
-                if (this.IsFilteredOut(filterContext.BackgroundJob))
-                {
-                    // The activity stays current until OnPerformed, so activities started by the job
-                    // inherit the cleared Recorded flag and are dropped by a parent-based sampler.
-                    activity.IsAllDataRequested = false;
-                    activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
-                }
-                else
-                {
-                    activity.SetTag(HangfireInstrumentationConstants.JobIdTag, filterContext.BackgroundJob.Id);
-                    activity.SetTag(HangfireInstrumentationConstants.JobCreatedAtTag, filterContext.BackgroundJob.CreatedAt.ToString("O"));
-                }
+                var propagationContext = Propagators.DefaultTextMapPropagator.Extract(default, activityContextData, ExtractActivityProperties);
+                parentContext = propagationContext.ActivityContext;
+                Baggage.Current = propagationContext.Baggage;
             }
 
-            activity.Start();
+            // Created, not started: Activity.Id caches the trace flags on first read, so a filtered activity
+            // must have Recorded cleared before Start lets listeners see it.
+            activity = HangfireInstrumentation.ActivitySource
+                .CreateActivity(HangfireInstrumentationConstants.ActivityName, ActivityKind.Internal, parentContext);
 
-            var displayNameFunc = this.options.DisplayNameFunc ?? HangfireInstrumentation.DefaultDisplayNameFunc;
+            if (activity != null)
+            {
+                if (activity.IsAllDataRequested)
+                {
+                    if (this.IsFilteredOut(filterContext.BackgroundJob))
+                    {
+                        // The activity stays current until OnPerformed, so activities started by the job
+                        // inherit the cleared Recorded flag and are dropped by a parent-based sampler.
+                        activity.IsAllDataRequested = false;
+                        activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+                    }
+                    else
+                    {
+                        activity.SetTag(HangfireInstrumentationConstants.JobIdTag, filterContext.BackgroundJob.Id);
+                        activity.SetTag(HangfireInstrumentationConstants.JobCreatedAtTag, filterContext.BackgroundJob.CreatedAt.ToString("O"));
+                    }
+                }
 
-            activity.DisplayName = displayNameFunc(filterContext.BackgroundJob);
+                activity.Start();
 
-            filterContext.Items.Add(HangfireInstrumentationConstants.ActivityKey, activity);
+                var displayNameFunc = this.options.DisplayNameFunc ?? HangfireInstrumentation.DefaultDisplayNameFunc;
+
+                activity.DisplayName = displayNameFunc(filterContext.BackgroundJob);
+
+                filterContext.Items.Add(HangfireInstrumentationConstants.ActivityKey, activity);
+            }
+        }
+        catch (Exception)
+        {
+            // OnPerformed is not called when OnPerforming throws, so nothing else would stop the activity
+            // or restore the baggage.
+            activity?.Dispose();
+            RuntimeContext.SetValue(
+                HangfireInstrumentationConstants.BaggageSlotName,
+                filterContext.Items[HangfireInstrumentationConstants.PreviousBaggageKey]);
+            throw;
         }
     }
 
