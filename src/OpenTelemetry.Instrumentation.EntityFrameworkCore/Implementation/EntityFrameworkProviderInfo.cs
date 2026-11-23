@@ -67,6 +67,22 @@ internal static class EntityFrameworkProviderInfo
         };
 
     /// <summary>
+    /// Returns whether the data source of the given provider or command name is a SQL Server style
+    /// <c>server[\instance][,port]</c> address from which a server address can be parsed.
+    /// </summary>
+    /// <param name="providerOrCommandName">The provider or command name.</param>
+    /// <returns>
+    /// <see langword="false"/> if the data source is not an address, such as the path to the database file
+    /// of an embedded database like SQLite; otherwise, <see langword="true"/>.
+    /// </returns>
+    public static bool HasServerAddressDataSource(string? providerOrCommandName)
+    {
+        (_, var dbSystemName) = GetDbSystemNames(providerOrCommandName);
+
+        return dbSystemName is not DbSystemNames.Sqlite;
+    }
+
+    /// <summary>
     /// Returns whether the given provider or command name uses a SQL-like query language.
     /// </summary>
     /// <param name="providerOrCommandName">The provider or command name.</param>

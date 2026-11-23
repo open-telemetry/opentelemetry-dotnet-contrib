@@ -121,7 +121,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.SignalR.Client" Version="10.0.15" />
     <PackageVersion Include="Microsoft.AspNetCore.TestHost" Version="10.0.15" />
     <PackageVersion Include="Microsoft.Azure.Kusto.Data" Version="14.2.4" />
-    <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.1.1" />
+    <PackageVersion Include="Microsoft.Data.SqlClient" Version="7.1.2" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.15" />
     <PackageVersion Include="Microsoft.EntityFrameworkCore.SqlServer" Version="10.0.15" />
     <PackageVersion Include="Microsoft.Extensions.Configuration.Json" Version="10.0.15" />
@@ -136,7 +136,7 @@
     <PackageVersion Include="Newtonsoft.Json.Schema" Version="4.0.2" />
     <PackageVersion Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="10.0.3" />
     <PackageVersion Include="ServiceFabric.Mocks" Version="8.1.3" />
-    <PackageVersion Include="Swashbuckle.AspNetCore" Version="10.3.1" />
+    <PackageVersion Include="Swashbuckle.AspNetCore" Version="11.0.1" />
     <PackageVersion Include="System.Reactive.Core" Version="6.1.0" />
     <PackageVersion Include="System.Reflection.DispatchProxy" Version="4.8.2" />
     <PackageVersion Include="System.Runtime.CompilerServices.Unsafe" Version="6.1.2" />

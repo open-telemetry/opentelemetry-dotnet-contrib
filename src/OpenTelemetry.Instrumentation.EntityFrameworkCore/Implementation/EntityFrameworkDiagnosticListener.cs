@@ -118,8 +118,13 @@ internal sealed class EntityFrameworkDiagnosticListener : ListenerHandler
 
                         this.AddDbSystemNameTag(activity, providerOrCommandName);
 
+                        // The data source of an embedded database, such as SQLite, is the path to its file
+                        // rather than a server address, so parsing it would yield a meaningless value (e.g. the
+                        // first directory of the path). The Semantic Conventions say to omit server.address
+                        // when a safe, stable value cannot be determined from the client configuration.
                         var dataSource = (string)this.dataSourceFetcher.Fetch(connection);
-                        if (!string.IsNullOrEmpty(dataSource))
+                        if (!string.IsNullOrEmpty(dataSource) &&
+                            EntityFrameworkProviderInfo.HasServerAddressDataSource(providerOrCommandName))
                         {
                             var connectionDetails = SqlConnectionDetails.ParseFromDataSource(dataSource);
 
