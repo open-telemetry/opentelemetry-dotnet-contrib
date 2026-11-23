@@ -2,6 +2,15 @@
 
 ## Unreleased
 
+* Add the `aws.step_functions.state_machine.arn` and
+  `aws.step_functions.activity.arn` attributes to Step Functions spans when
+  `SemanticConventionVersion.V1_40_0` or later is used.
+  ([#6113](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6113))
+
+* An attribute taken from a request is no longer removed when the response
+  omits the same value.
+  ([#6113](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6113))
+
 ## 1.21.0
 
 Released 2026-Nov-11
