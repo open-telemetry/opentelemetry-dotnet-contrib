@@ -17,6 +17,7 @@ body:
       multiple: false
       options:
         - OpenTelemetry.DynamicControl
+        - OpenTelemetry.Exporter.AzureDataExplorer
         - OpenTelemetry.Exporter.Geneva
         - OpenTelemetry.Exporter.InfluxDB
         - OpenTelemetry.Exporter.OneCollector

@@ -23,6 +23,7 @@
       .github\workflows\ci.yml so that it runs for the project(s) being added.
     -->
     <TrimmerRootAssembly Include="OpenTelemetry.DynamicControl" />
+    <TrimmerRootAssembly Include="OpenTelemetry.Exporter.AzureDataExplorer" />
     <TrimmerRootAssembly Include="OpenTelemetry.Exporter.Geneva" />
     <TrimmerRootAssembly Include="OpenTelemetry.Exporter.OneCollector" />
     <TrimmerRootAssembly Include="OpenTelemetry.Extensions" />

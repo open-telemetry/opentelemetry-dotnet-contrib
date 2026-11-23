@@ -5,6 +5,8 @@
 components:
   src/OpenTelemetry.DynamicControl/:
     - stevejgordon
+  src/OpenTelemetry.Exporter.AzureDataExplorer/:
+    - DamianEdwards
   src/OpenTelemetry.Exporter.Geneva/:
     - rajkumar-rangaraj
     - xiang17
@@ -97,6 +99,8 @@ components:
     - normj
   test/OpenTelemetry.DynamicControl.Tests/:
     - stevejgordon
+  test/OpenTelemetry.Exporter.AzureDataExplorer.Tests/:
+    - DamianEdwards
   test/OpenTelemetry.Exporter.Geneva.Benchmarks/:
     - rajkumar-rangaraj
     - xiang17

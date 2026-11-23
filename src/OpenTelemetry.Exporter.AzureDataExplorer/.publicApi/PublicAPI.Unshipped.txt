@@ -1,0 +1,58 @@
+#nullable enable
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.ApplicationId.get -> string?
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.ApplicationId.set -> void
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.ApplicationKey.get -> string?
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.ApplicationKey.set -> void
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.AzureDataExplorerExporterOptions() -> void
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.ClusterUri.get -> System.Uri?
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.ClusterUri.set -> void
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.DatabaseName.get -> string!
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.DatabaseName.set -> void
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.ExportTimeout.get -> System.TimeSpan
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.ExportTimeout.set -> void
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.HttpClientFactory.get -> System.Func<System.Net.Http.HttpClient!>!
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.HttpClientFactory.set -> void
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.IngestionType.get -> OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerIngestionType
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.IngestionType.set -> void
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.LogsTableJsonMapping.get -> string?
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.LogsTableJsonMapping.set -> void
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.LogsTableName.get -> string!
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.LogsTableName.set -> void
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.ManagedIdentityId.get -> string?
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.ManagedIdentityId.set -> void
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.MetricsTableJsonMapping.get -> string?
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.MetricsTableJsonMapping.set -> void
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.MetricsTableName.get -> string!
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.MetricsTableName.set -> void
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.RetryInitialInterval.get -> System.TimeSpan
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.RetryInitialInterval.set -> void
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.RetryMaxInterval.get -> System.TimeSpan
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.RetryMaxInterval.set -> void
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.RetryOnFailure.get -> bool
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.RetryOnFailure.set -> void
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.TenantId.get -> string?
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.TenantId.set -> void
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.TokenCredential.get -> Azure.Core.TokenCredential?
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.TokenCredential.set -> void
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.TracesTableJsonMapping.get -> string?
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.TracesTableJsonMapping.set -> void
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.TracesTableName.get -> string!
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.TracesTableName.set -> void
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.UseAzureAuth.get -> bool
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions.UseAzureAuth.set -> void
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerIngestionType
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerIngestionType.Managed = 1 -> OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerIngestionType
+OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerIngestionType.Queued = 0 -> OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerIngestionType
+OpenTelemetry.Logs.AzureDataExplorerLogExporterExtensions
+OpenTelemetry.Metrics.AzureDataExplorerMetricExporterExtensions
+OpenTelemetry.Trace.AzureDataExplorerTraceExporterExtensions
+static OpenTelemetry.Logs.AzureDataExplorerLogExporterExtensions.AddAzureDataExplorerExporter(this OpenTelemetry.Logs.LoggerProviderBuilder! builder, string? name, System.Action<OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions!>? configure) -> OpenTelemetry.Logs.LoggerProviderBuilder!
+static OpenTelemetry.Logs.AzureDataExplorerLogExporterExtensions.AddAzureDataExplorerExporter(this OpenTelemetry.Logs.LoggerProviderBuilder! builder, System.Action<OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions!>! configure) -> OpenTelemetry.Logs.LoggerProviderBuilder!
+static OpenTelemetry.Logs.AzureDataExplorerLogExporterExtensions.AddAzureDataExplorerExporter(this OpenTelemetry.Logs.LoggerProviderBuilder! builder) -> OpenTelemetry.Logs.LoggerProviderBuilder!
+static OpenTelemetry.Metrics.AzureDataExplorerMetricExporterExtensions.AddAzureDataExplorerExporter(this OpenTelemetry.Metrics.MeterProviderBuilder! builder, string? name, System.Action<OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions!>? configure) -> OpenTelemetry.Metrics.MeterProviderBuilder!
+static OpenTelemetry.Metrics.AzureDataExplorerMetricExporterExtensions.AddAzureDataExplorerExporter(this OpenTelemetry.Metrics.MeterProviderBuilder! builder, System.Action<OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions!>! configure) -> OpenTelemetry.Metrics.MeterProviderBuilder!
+static OpenTelemetry.Metrics.AzureDataExplorerMetricExporterExtensions.AddAzureDataExplorerExporter(this OpenTelemetry.Metrics.MeterProviderBuilder! builder) -> OpenTelemetry.Metrics.MeterProviderBuilder!
+static OpenTelemetry.Trace.AzureDataExplorerTraceExporterExtensions.AddAzureDataExplorerExporter(this OpenTelemetry.Trace.TracerProviderBuilder! builder, string? name, System.Action<OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions!>? configure) -> OpenTelemetry.Trace.TracerProviderBuilder!
+static OpenTelemetry.Trace.AzureDataExplorerTraceExporterExtensions.AddAzureDataExplorerExporter(this OpenTelemetry.Trace.TracerProviderBuilder! builder, System.Action<OpenTelemetry.Exporter.AzureDataExplorer.AzureDataExplorerExporterOptions!>! configure) -> OpenTelemetry.Trace.TracerProviderBuilder!
+static OpenTelemetry.Trace.AzureDataExplorerTraceExporterExtensions.AddAzureDataExplorerExporter(this OpenTelemetry.Trace.TracerProviderBuilder! builder) -> OpenTelemetry.Trace.TracerProviderBuilder!
