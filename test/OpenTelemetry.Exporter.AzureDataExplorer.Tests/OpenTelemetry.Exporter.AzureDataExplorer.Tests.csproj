@@ -5,10 +5,14 @@
     <TargetFrameworks>$(SupportedNetTargets)</TargetFrameworks>
     <TargetFrameworks Condition="'$(OS)' == 'Windows_NT'">$(TargetFrameworks);net48;net472</TargetFrameworks>
     <Description>Unit test project for Azure Data Explorer Exporter for OpenTelemetry.</Description>
+    <!-- Kusto.Cloud.Platform (used by the test query client) publicly exposes polyfill attributes which conflict with linked shared sources. -->
+    <NoWarn>$(NoWarn);CS0436</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Azure.Kusto.Data" />
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" />
+    <PackageReference Include="Testcontainers.Kusto" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,6 +23,17 @@
   <ItemGroup>
     <Compile Include="$(RepoRoot)\test\Shared\EventSourceTestHelper.cs" Link="Includes\EventSourceTestHelper.cs" />
     <Compile Include="$(RepoRoot)\test\Shared\InMemoryEventListener.cs" Link="Includes\InMemoryEventListener.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\ContainerFixture.cs" Link="Includes\ContainerFixture.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\ContainerFixture{T}.cs" Link="Includes\ContainerFixture{T}.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\DockerHelper.cs" Link="Includes\DockerHelper.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\DockerPlatform.cs" Link="Includes\DockerPlatform.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\EnabledOnDockerPlatformFactAttribute.cs" Link="Includes\EnabledOnDockerPlatformFactAttribute.cs" />
+    <Compile Include="$(RepoRoot)\test\Shared\SkipUnlessEnvVarFoundTheoryAttribute.cs" Link="Includes\SkipUnlessEnvVarFoundTheoryAttribute.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <EmbeddedResource Include="kusto.Dockerfile" LogicalName="kusto.Dockerfile" />
+    <EmbeddedResource Include="$(RepoRoot)\src\OpenTelemetry.Exporter.AzureDataExplorer\README.md" LogicalName="README.md" />
   </ItemGroup>
 
 </Project>
