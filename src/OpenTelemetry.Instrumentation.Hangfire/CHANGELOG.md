@@ -4,7 +4,7 @@
 
 * Fixed activities started by a job excluded by `Filter` being collected as
   new root traces. The unrecorded job activity now stays current until the job
-  completes, so a parent-based sampler drops them.
+  completes, so the default sampler drops them.
   ([#6110](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6110))
 
 ## 1.21.0-beta.1
