@@ -373,6 +373,68 @@ public class HangfireInstrumentationJobFilterAttributeTests
         Assert.Equal(1, stoppedActivities);
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void OnPerformed_Should_Record_Exception_Only_For_Recorded_Job_And_Always_Stop_The_Activity(bool filtered)
+    {
+        var recordedExceptions = 0;
+
+        using var listener = new ActivityListener
+        {
+            ShouldListenTo = _ => true,
+            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            SampleUsingParentId = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            ExceptionRecorder = (Activity activity, Exception exception, ref TagList tags) =>
+            {
+                if (activity.Source.Name == HangfireInstrumentation.ActivitySourceName)
+                {
+                    recordedExceptions++;
+                    throw new InvalidOperationException("ExceptionRecorder throws exception");
+                }
+            },
+        };
+        ActivitySource.AddActivityListener(listener);
+
+        using var parentSource = new ActivitySource(nameof(HangfireInstrumentationJobFilterAttributeTests));
+        using var parentActivity = parentSource.StartActivity("parent");
+        Assert.NotNull(parentActivity);
+
+        var storage = new MemoryStorage();
+        using var connection = storage.GetConnection();
+
+        var filter = new HangfireInstrumentationJobFilterAttribute(new HangfireInstrumentationOptions
+        {
+            RecordException = true,
+            Filter = _ => !filtered,
+        });
+        var performingContext = CreatePerformingContext(storage, connection);
+
+        filter.OnPerforming(performingContext);
+
+        var jobActivity = Activity.Current;
+        Assert.NotNull(jobActivity);
+
+        var performedContext = new PerformedContext(performingContext, null, false, new InvalidOperationException("Job failed"));
+
+        if (filtered)
+        {
+            filter.OnPerformed(performedContext);
+
+            Assert.Equal(0, recordedExceptions);
+            Assert.Equal(ActivityStatusCode.Unset, jobActivity.Status);
+        }
+        else
+        {
+            Assert.Throws<InvalidOperationException>(() => filter.OnPerformed(performedContext));
+
+            Assert.Equal(1, recordedExceptions);
+        }
+
+        Assert.True(jobActivity.IsStopped);
+        Assert.Same(parentActivity, Activity.Current);
+    }
+
     [Fact]
     public async Task Should_Not_Inject_Invalid_Context()
     {

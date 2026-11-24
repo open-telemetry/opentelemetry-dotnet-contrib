@@ -93,12 +93,17 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
             if (filterContext.Items.TryGetValue(HangfireInstrumentationConstants.ActivityKey, out var value)
                 && value is Activity activity)
             {
-                if (filterContext.Exception != null)
+                try
                 {
-                    this.SetStatusAndRecordException(activity, filterContext.Exception);
+                    if (filterContext.Exception != null && activity.IsAllDataRequested)
+                    {
+                        this.SetStatusAndRecordException(activity, filterContext.Exception);
+                    }
                 }
-
-                activity.Dispose();
+                finally
+                {
+                    activity.Dispose();
+                }
             }
         }
         finally
