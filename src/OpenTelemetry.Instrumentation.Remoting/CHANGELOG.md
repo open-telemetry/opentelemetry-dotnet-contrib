@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+* Updated Semantic Conventions version to `1.45.0`.
+  ([#6071](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6071))
+
 * Fixed the span name that samplers see. Spans now start with the
   `{rpc.method}` name, or with `dotnet.remoting` for a message that is not a
   method call.
