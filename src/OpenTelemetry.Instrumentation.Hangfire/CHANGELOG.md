@@ -11,6 +11,10 @@
   current, when `OnPerforming` throws after the activity is started.
   ([#6111](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6111))
 
+* Fixed a `DisplayNameFunc` that throws or returns `null` failing the job. The
+  default display name is used instead.
+  ([#6111](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6111))
+
 ## 1.21.0-beta.1
 
 Released 2026-Nov-11

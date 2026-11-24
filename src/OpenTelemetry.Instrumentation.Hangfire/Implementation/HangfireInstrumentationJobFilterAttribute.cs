@@ -81,9 +81,7 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
 
                 activity.Start();
 
-                var displayNameFunc = this.options.DisplayNameFunc ?? HangfireInstrumentation.DefaultDisplayNameFunc;
-
-                activity.DisplayName = displayNameFunc(filterContext.BackgroundJob);
+                activity.DisplayName = this.GetDisplayName(filterContext.BackgroundJob);
 
                 filterContext.Items.Add(HangfireInstrumentationConstants.ActivityKey, activity);
             }
@@ -166,6 +164,22 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
     private static IEnumerable<string> ExtractActivityProperties(Dictionary<string, string> telemetryData, string key)
     {
         return telemetryData.TryGetValue(key, out var value) ? [value] : [];
+    }
+
+    private string GetDisplayName(BackgroundJob backgroundJob)
+    {
+        try
+        {
+            if (this.options.DisplayNameFunc?.Invoke(backgroundJob) is { } displayName)
+            {
+                return displayName;
+            }
+        }
+        catch (Exception)
+        {
+        }
+
+        return HangfireInstrumentation.DefaultDisplayNameFunc(backgroundJob);
     }
 
     private bool IsFilteredOut(BackgroundJob backgroundJob)

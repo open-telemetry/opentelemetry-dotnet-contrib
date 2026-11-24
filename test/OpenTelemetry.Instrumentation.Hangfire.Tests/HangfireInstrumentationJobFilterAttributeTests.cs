@@ -229,6 +229,33 @@ public class HangfireInstrumentationJobFilterAttributeTests
     }
 
     [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task Should_Fall_Back_To_Default_DisplayName_When_DisplayNameFunc_Fails(bool throwInDisplayNameFunc)
+    {
+        var exportedItems = new List<Activity>();
+        Func<BackgroundJob, string> displayNameFunc = throwInDisplayNameFunc
+            ? _ => throw new InvalidOperationException("DisplayNameFunc throws exception")
+            : _ => null!;
+
+        using (var provider = Sdk.CreateTracerProviderBuilder()
+                                 .AddHangfireInstrumentation(options => options.DisplayNameFunc = displayNameFunc)
+                                 .AddInMemoryExporter(exportedItems)
+                                 .SetSampler<AlwaysOnSampler>()
+                                 .Build())
+        {
+            var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
+            await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+
+            provider.ForceFlush();
+
+            var activity = Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
+            Assert.Equal("JOB TestJob.Execute", activity.DisplayName);
+            Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+        }
+    }
+
+    [Theory]
     [InlineData("null", true)]
     [InlineData("true", true)]
     [InlineData("false", false)]
@@ -474,11 +501,11 @@ public class HangfireInstrumentationJobFilterAttributeTests
         var storage = new MemoryStorage();
         using var connection = storage.GetConnection();
 
-        var filter = new HangfireInstrumentationJobFilterAttribute(new HangfireInstrumentationOptions
-        {
-            DisplayNameFunc = _ => throw new InvalidOperationException("DisplayNameFunc throws exception"),
-        });
+        var filter = new HangfireInstrumentationJobFilterAttribute(new HangfireInstrumentationOptions());
         var performingContext = CreatePerformingContext(storage, connection);
+
+        // Makes storing the started activity in Items throw.
+        performingContext.Items[HangfireInstrumentationConstants.ActivityKey] = null;
         Baggage.Current = Baggage.Create(new Dictionary<string, string>
         {
             ["previous-key"] = "previous-value",
@@ -486,7 +513,7 @@ public class HangfireInstrumentationJobFilterAttributeTests
 
         try
         {
-            Assert.Throws<InvalidOperationException>(() => filter.OnPerforming(performingContext));
+            Assert.Throws<ArgumentException>(() => filter.OnPerforming(performingContext));
 
             var jobActivity = Assert.Single(startedActivities, a => a.ParentSpanId == parentActivity.SpanId);
             Assert.True(jobActivity.IsStopped);

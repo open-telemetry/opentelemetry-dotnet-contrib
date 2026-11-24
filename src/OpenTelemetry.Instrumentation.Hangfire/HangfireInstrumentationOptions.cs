@@ -24,6 +24,8 @@ public class HangfireInstrumentationOptions
     /// </summary>
     /// <remarks>
     /// Defaults to <c>{backgroundJob.Job.Type.Name}.{backgroundJob.Job.Method.Name}</c>.
+    /// The default is also used when the delegate throws an exception or
+    /// returns <see langword="null" />.
     /// </remarks>
     public Func<BackgroundJob, string> DisplayNameFunc { get; set; } = HangfireInstrumentation.DefaultDisplayNameFunc;
 
