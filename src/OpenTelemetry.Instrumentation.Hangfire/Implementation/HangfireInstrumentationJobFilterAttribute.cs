@@ -52,8 +52,10 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
             Baggage.Current = propagationContext.Baggage;
         }
 
+        // Created, not started: Activity.Id caches the trace flags on first read, so a filtered activity
+        // must have Recorded cleared before Start lets listeners see it.
         var activity = HangfireInstrumentation.ActivitySource
-            .StartActivity(HangfireInstrumentationConstants.ActivityName, ActivityKind.Internal, parentContext);
+            .CreateActivity(HangfireInstrumentationConstants.ActivityName, ActivityKind.Internal, parentContext);
 
         if (activity != null)
         {
@@ -77,6 +79,7 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
                 }
             }
 
+            activity.Start();
             filterContext.Items.Add(HangfireInstrumentationConstants.ActivityKey, activity);
         }
     }

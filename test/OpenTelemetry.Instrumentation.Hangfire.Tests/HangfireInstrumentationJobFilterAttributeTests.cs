@@ -255,10 +255,17 @@ public class HangfireInstrumentationJobFilterAttributeTests
         }
 
         // Assert
-        var activity = Assert.Single(processedItems);
+        if (shouldRecord)
+        {
+            var activity = Assert.Single(processedItems);
 
-        Assert.Equal(shouldRecord, activity.IsAllDataRequested);
-        Assert.Equal(shouldRecord, activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
+            Assert.True(activity.IsAllDataRequested);
+            Assert.True(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
+        }
+        else
+        {
+            Assert.Empty(processedItems);
+        }
     }
 
     [Theory]
@@ -307,6 +314,7 @@ public class HangfireInstrumentationJobFilterAttributeTests
     {
         var startedActivities = 0;
         var stoppedActivities = 0;
+        string? idSeenOnStart = null;
 
         using var listener = new ActivityListener
         {
@@ -318,6 +326,7 @@ public class HangfireInstrumentationJobFilterAttributeTests
                 if (activity.Source.Name == HangfireInstrumentation.ActivitySourceName)
                 {
                     startedActivities++;
+                    idSeenOnStart = activity.Id;
                 }
             },
             ActivityStopped = activity =>
@@ -353,6 +362,9 @@ public class HangfireInstrumentationJobFilterAttributeTests
         Assert.False(jobActivity.Recorded);
         Assert.Equal(1, startedActivities);
         Assert.Equal(0, stoppedActivities);
+        Assert.NotNull(idSeenOnStart);
+        Assert.Equal(jobActivity.Id, idSeenOnStart);
+        Assert.False(ActivityContext.Parse(idSeenOnStart, null).TraceFlags.HasFlag(ActivityTraceFlags.Recorded));
 
         filter.OnPerformed(new PerformedContext(performingContext, null, false, null));
 
