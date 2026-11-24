@@ -90,7 +90,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
         // Tags added by the library then removed from the instrumentation
         Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcMethodTagName));
         Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcStatusCodeTagName));
-        Assert.Equal("OK", activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+        Assert.Equal("OK", activity.GetTagValue(SemanticConventions.AttributeRpcStatusCode));
 
         if (shouldEnrich)
         {
@@ -316,7 +316,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
         // The gRPC semantic conventions specify that, for client spans, all status codes
         // other than OK are errors. A cancelled call (status code CANCELLED) therefore has
         // its span status set to Error and the error.type attribute set to the status code name.
-        // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/grpc.md
+        // See https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/rpc/grpc.md
         var uri = new UriBuilder("http://localhost") { Port = 1234 }.Uri;
 
         using var httpClient = ClientTestHelpers.CreateTestClient(async request =>
@@ -347,7 +347,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
 
         var activity = Assert.Single(exportedItems);
 
-        Assert.Equal("CANCELLED", activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+        Assert.Equal("CANCELLED", activity.GetTagValue(SemanticConventions.AttributeRpcStatusCode));
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
         Assert.Equal("CANCELLED", activity.GetTagValue(SemanticConventions.AttributeErrorType));
     }
@@ -395,7 +395,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
         var activity = Assert.Single(exportedItems);
 
         // The status code attribute is still recorded as required by the semantic conventions...
-        Assert.Equal("CANCELLED", activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+        Assert.Equal("CANCELLED", activity.GetTagValue(SemanticConventions.AttributeRpcStatusCode));
 
         // ...but the application's processor has cleared the error signal.
         Assert.Equal(ActivityStatusCode.Unset, activity.Status);
@@ -449,7 +449,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
 
         ValidateGrpcActivity(grpcSpan);
         Assert.Equal($"greet.Greeter/SayHello", grpcSpan.DisplayName);
-        Assert.Equal("OK", grpcSpan.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+        Assert.Equal("OK", grpcSpan.GetTagValue(SemanticConventions.AttributeRpcStatusCode));
         Assert.Equal("POST", httpSpan.DisplayName);
         Assert.Equal(grpcSpan.SpanId, httpSpan.ParentSpanId);
 
@@ -502,19 +502,19 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
 
         ValidateGrpcActivity(grpcSpan1);
         Assert.Equal($"greet.Greeter/SayHello", grpcSpan1.DisplayName);
-        Assert.Equal("OK", grpcSpan1.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+        Assert.Equal("OK", grpcSpan1.GetTagValue(SemanticConventions.AttributeRpcStatusCode));
 
         ValidateGrpcActivity(grpcSpan2);
         Assert.Equal($"greet.Greeter/SayHello", grpcSpan2.DisplayName);
-        Assert.Equal("OK", grpcSpan2.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+        Assert.Equal("OK", grpcSpan2.GetTagValue(SemanticConventions.AttributeRpcStatusCode));
 
         ValidateGrpcActivity(grpcSpan3);
         Assert.Equal($"greet.Greeter/SayHello", grpcSpan3.DisplayName);
-        Assert.Equal("OK", grpcSpan3.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+        Assert.Equal("OK", grpcSpan3.GetTagValue(SemanticConventions.AttributeRpcStatusCode));
 
         ValidateGrpcActivity(grpcSpan4);
         Assert.Equal($"greet.Greeter/SayHello", grpcSpan4.DisplayName);
-        Assert.Equal("OK", grpcSpan4.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+        Assert.Equal("OK", grpcSpan4.GetTagValue(SemanticConventions.AttributeRpcStatusCode));
     }
 
     [Fact]
@@ -567,7 +567,7 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
             Assert.Equal($"greet.Greeter/SayHello", clientActivity.DisplayName);
             Assert.Equal($"POST /greet.Greeter/SayHello", serverActivity.DisplayName);
             Assert.Equal(clientActivity.TraceId, serverActivity.TraceId);
-            Assert.Equal("OK", clientActivity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+            Assert.Equal("OK", clientActivity.GetTagValue(SemanticConventions.AttributeRpcStatusCode));
             Assert.Equal("customValue", serverActivity.GetCustomProperty("customField") as string);
             Assert.Equal(clientActivity.SpanId, serverActivity.ParentSpanId);
         }
@@ -804,8 +804,8 @@ public partial class GrpcTests(WeaverFixture weaver, ITestOutputHelper outputHel
         {
             // The application knows a CANCELLED result is the result of a deliberate
             // cancellation rather than a failure, so the error signal is cleared while
-            // leaving the rpc.response.status_code attribute in place.
-            if ((data.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode) as string) == "CANCELLED")
+            // leaving the rpc.status_code attribute in place.
+            if ((data.GetTagValue(SemanticConventions.AttributeRpcStatusCode) as string) == "CANCELLED")
             {
                 data.SetStatus(ActivityStatusCode.Unset);
                 data.SetTag(SemanticConventions.AttributeErrorType, null);

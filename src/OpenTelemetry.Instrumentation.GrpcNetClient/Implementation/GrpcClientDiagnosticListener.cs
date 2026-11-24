@@ -14,7 +14,7 @@ namespace OpenTelemetry.Instrumentation.GrpcNetClient.Implementation;
 
 internal sealed class GrpcClientDiagnosticListener : ListenerHandler
 {
-    internal static readonly Version SemanticConventionsVersion = new(1, 42, 0);
+    internal static readonly Version SemanticConventionsVersion = new(1, 45, 0);
     internal static readonly ActivitySource ActivitySource = ActivitySourceFactory.Create<GrpcClientDiagnosticListener>(SemanticConventionsVersion);
 
     private const string OnStartEvent = "Grpc.Net.Client.GrpcOut.Start";
@@ -177,12 +177,12 @@ internal sealed class GrpcClientDiagnosticListener : ListenerHandler
             }
 
             var grpcStatusName = GrpcTagHelper.GetGrpcStatusCodeName(status);
-            activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, grpcStatusName);
+            activity.SetTag(SemanticConventions.AttributeRpcStatusCode, grpcStatusName);
 
             // error.type is conditionally required when the operation failed. For gRPC client
             // spans all status codes other than OK are considered errors, and error.type is set
             // to the status code name.
-            // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/grpc.md
+            // See https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/rpc/grpc.md
             if (spanStatus == ActivityStatusCode.Error)
             {
                 activity.SetTag(SemanticConventions.AttributeErrorType, grpcStatusName);

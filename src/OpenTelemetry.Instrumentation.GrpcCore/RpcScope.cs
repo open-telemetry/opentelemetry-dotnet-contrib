@@ -231,12 +231,12 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
         }
 
         var grpcStatusName = GrpcTagHelper.GetGrpcStatusCodeName(statusCode);
-        this.activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, grpcStatusName);
+        this.activity.SetTag(SemanticConventions.AttributeRpcStatusCode, grpcStatusName);
 
         // Resolve the span status from the gRPC status code using the rules for the span kind:
         // client spans treat every non-OK status as an error, whereas server spans only treat a
         // subset of status codes as errors.
-        // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/grpc.md
+        // See https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/rpc/grpc.md
         var spanStatus = this.activity.Kind == ActivityKind.Client
             ? GrpcTagHelper.ResolveSpanStatusForGrpcStatusCodeOnClient(statusCode)
             : GrpcTagHelper.ResolveSpanStatusForGrpcStatusCodeOnServer(statusCode);
