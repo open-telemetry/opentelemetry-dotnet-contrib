@@ -100,6 +100,10 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
                         this.SetStatusAndRecordException(activity, filterContext.Exception);
                     }
                 }
+                catch (Exception ex)
+                {
+                    HangfireInstrumentationEventSource.Log.RecordJobExceptionFailed(ex);
+                }
                 finally
                 {
                     activity.Dispose();

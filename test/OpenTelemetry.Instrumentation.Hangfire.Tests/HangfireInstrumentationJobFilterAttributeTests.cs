@@ -12,6 +12,7 @@ using Hangfire.States;
 using Hangfire.Storage;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Instrumentation.Hangfire.Implementation;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Tests;
@@ -415,20 +416,24 @@ public class HangfireInstrumentationJobFilterAttributeTests
         var jobActivity = Activity.Current;
         Assert.NotNull(jobActivity);
 
-        var performedContext = new PerformedContext(performingContext, null, false, new InvalidOperationException("Job failed"));
+        using var eventListener = new InMemoryEventListener(HangfireInstrumentationEventSource.Log, EventLevel.Warning);
+
+        filter.OnPerformed(new PerformedContext(performingContext, null, false, new InvalidOperationException("Job failed")));
+
+        var recorderFailures = eventListener.Events
+            .Where(e => e.EventId == 3 && ((string?)e.Payload?[0])?.Contains("ExceptionRecorder throws exception") == true);
 
         if (filtered)
         {
-            filter.OnPerformed(performedContext);
-
             Assert.Equal(0, recordedExceptions);
             Assert.Equal(ActivityStatusCode.Unset, jobActivity.Status);
+            Assert.Empty(recorderFailures);
         }
         else
         {
-            Assert.Throws<InvalidOperationException>(() => filter.OnPerformed(performedContext));
-
             Assert.Equal(1, recordedExceptions);
+            Assert.Equal(ActivityStatusCode.Error, jobActivity.Status);
+            Assert.Single(recorderFailures);
         }
 
         Assert.True(jobActivity.IsStopped);
