@@ -161,6 +161,7 @@ public class TestAWSClientInstrumentation : IDisposable
             {
                 TableName = "SampleProduct",
                 AttributesToGet = ["Id", "Name"],
+                Limit = 1,
             };
 
             try
@@ -186,6 +187,7 @@ public class TestAWSClientInstrumentation : IDisposable
         this.ValidateDynamoActivityTags(awssdk_activity);
 
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
+        Assert.Equal(1L, Utils.GetTagValue(awssdk_activity, "aws.dynamodb.limit"));
         Assert.Equal(ActivityStatusCode.Error, awssdk_activity.Status);
         Assert.Equal("Exception of type 'Amazon.Runtime.AmazonServiceException' was thrown.", awssdk_activity.StatusDescription);
         Assert.Equal("exception", awssdk_activity.Events.First().Name);

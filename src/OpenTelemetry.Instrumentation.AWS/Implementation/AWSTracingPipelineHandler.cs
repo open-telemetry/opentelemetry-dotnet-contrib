@@ -64,7 +64,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         "IL2080",
         Justification = "The reflected properties were already used by the AWS SDK's marshallers so the properties could not have been trimmed.")]
 #endif
-    private static PropertyInfo? GetCachedProperty(Type type, string propertyName)
+    internal static PropertyInfo? GetCachedProperty(Type type, string propertyName)
         => PropertyCache.GetOrAdd((type, propertyName), static key => key.Type.GetProperty(key.PropertyName));
 
     private static void AddPropagationDataToRequest(Activity? activity, IRequestContext requestContext)
@@ -156,6 +156,11 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
                     // See https://github.com/open-telemetry/opentelemetry-dotnet-contrib/issues/1543#issuecomment-1907667722.
                 }
             }
+        }
+
+        if (AWSServiceType.IsDynamoDbService(service))
+        {
+            DynamoDbAttributes.AddResponseAttributes(activity, AWSServiceHelper.GetAWSOperationName(executionContext.RequestContext), responseContext.Response);
         }
 
         // The number of messages received is only known once the response has been received.
@@ -253,6 +258,7 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         if (AWSServiceType.IsDynamoDbService(service))
         {
             this.awsSemanticConventions.TagBuilder.SetTagAttributeDbSystemToDynamoDb(activity);
+            DynamoDbAttributes.AddRequestAttributes(activity, AWSServiceHelper.GetAWSOperationName(requestContext), requestContext.OriginalRequest);
         }
         else if (AWSServiceType.IsBedrockRuntimeService(service))
         {
