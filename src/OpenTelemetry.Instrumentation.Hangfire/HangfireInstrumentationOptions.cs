@@ -41,8 +41,9 @@ public class HangfireInstrumentationOptions
     /// collected.</item>
     /// <item>If filter returns <see langword="false" /> or throws an
     /// exception, the command is <b>NOT</b> collected. Activities started
-    /// while the job runs inherit the unrecorded trace flags, so a
-    /// parent-based sampler does not collect them either.</item>
+    /// while the job runs inherit the unrecorded trace flags, so the
+    /// default sampler (<c>ParentBased(AlwaysOn)</c>) does not collect them
+    /// either.</item>
     /// </list></item>
     /// </list>
     /// </remarks>

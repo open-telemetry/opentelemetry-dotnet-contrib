@@ -164,8 +164,8 @@ to be collected, and `false` if it should not.
 
 The activity of a filtered job stays current, unrecorded, while the job runs.
 Activities started by the job, and by downstream services the trace context is
-propagated to, inherit its unrecorded trace flags, so a parent-based sampler
-(the default) does not collect them either.
+propagated to, inherit its unrecorded trace flags, so the default sampler
+(`ParentBased(AlwaysOn)`) does not collect them either.
 
 The following code snippet shows how to use `Filter` to filter out traces for
 job with a specified job id.
