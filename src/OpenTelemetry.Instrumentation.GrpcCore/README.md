@@ -20,7 +20,7 @@ For ASP.NET Core gRPC server instrumentation is bundled within the AspNetCore
 instrumentation.
 
 Each inbound or outbound gRPC call will generate a Span which follows the
-[semantic RPC specification](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/rpc/rpc-spans.md).
+[semantic RPC specification](https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/rpc/rpc-spans.md).
 
 ## Installation
 
