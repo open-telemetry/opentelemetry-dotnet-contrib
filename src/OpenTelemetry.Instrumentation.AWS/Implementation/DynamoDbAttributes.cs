@@ -10,7 +10,7 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 
 /// <summary>
 /// Adds the <c>aws.dynamodb.*</c> attributes the semantic conventions define per DynamoDB operation.
-/// See https://github.com/open-telemetry/semantic-conventions/blob/main/docs/db/dynamodb.md.
+/// See https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/db/dynamodb.md.
 /// <para/>
 /// <c>aws.dynamodb.table_names</c> from <c>TableName</c> is set by the generic request parameter mapping.
 /// </summary>
