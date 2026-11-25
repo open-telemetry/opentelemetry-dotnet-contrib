@@ -47,6 +47,15 @@ internal sealed class HangfireInstrumentationEventSource : EventSource
         }
     }
 
+    [NonEvent]
+    public void StopJobActivityFailed(Exception ex)
+    {
+        if (this.IsEnabled(EventLevel.Warning, (EventKeywords)(-1)))
+        {
+            this.StopJobActivityFailed(ex.ToInvariantString());
+        }
+    }
+
     [Event(1, Message = "Enrich threw exception. Exception {0}.", Level = EventLevel.Warning)]
     public void EnrichmentException(string exception) => this.WriteEvent(1, exception);
 
@@ -61,4 +70,7 @@ internal sealed class HangfireInstrumentationEventSource : EventSource
 
     [Event(5, Message = "DisplayNameFunc threw exception, the default display name is used. Exception {0}.", Level = EventLevel.Warning)]
     public void DisplayNameFuncFailed(string exception) => this.WriteEvent(5, exception);
+
+    [Event(6, Message = "Stopping the job activity threw exception. Exception {0}.", Level = EventLevel.Warning)]
+    public void StopJobActivityFailed(string exception) => this.WriteEvent(6, exception);
 }

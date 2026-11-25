@@ -42,6 +42,9 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
         filterContext.Items[HangfireInstrumentationConstants.PreviousBaggageKey] = RuntimeContext.GetValue(HangfireInstrumentationConstants.BaggageSlotName);
         RuntimeContext.SetValue(HangfireInstrumentationConstants.BaggageSlotName, null);
 
+        var previousActivity = Activity.Current;
+        filterContext.Items[HangfireInstrumentationConstants.PreviousActivityKey] = previousActivity;
+
         Activity? activity = null;
 
         try
@@ -88,10 +91,14 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
         }
         catch (Exception ex)
         {
+            HangfireInstrumentationEventSource.Log.StartJobActivityFailed(ex);
+
             // The activity is not in Items, so OnPerformed would not stop it. OnPerformed still restores
             // the baggage after the job.
-            activity?.Dispose();
-            HangfireInstrumentationEventSource.Log.StartJobActivityFailed(ex);
+            if (activity != null)
+            {
+                StopActivity(activity, previousActivity);
+            }
         }
     }
 
@@ -115,10 +122,9 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
                 {
                     HangfireInstrumentationEventSource.Log.RecordJobExceptionFailed(ex);
                 }
-                finally
-                {
-                    activity.Dispose();
-                }
+
+                filterContext.Items.TryGetValue(HangfireInstrumentationConstants.PreviousActivityKey, out var previousActivity);
+                StopActivity(activity, previousActivity as Activity);
             }
         }
         finally
@@ -161,6 +167,25 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
     private static IEnumerable<string> ExtractActivityProperties(Dictionary<string, string> telemetryData, string key)
     {
         return telemetryData.TryGetValue(key, out var value) ? [value] : [];
+    }
+
+    private static void StopActivity(Activity activity, Activity? previousActivity)
+    {
+        try
+        {
+            activity.Dispose();
+        }
+        catch (Exception ex)
+        {
+            HangfireInstrumentationEventSource.Log.StopJobActivityFailed(ex);
+        }
+
+        // Activity.Stop notifies listeners before it restores Activity.Current, so a throwing
+        // ActivityStopped listener leaves the stopped job activity current on the worker.
+        if (Activity.Current == activity)
+        {
+            Activity.Current = previousActivity;
+        }
     }
 
     private string GetDisplayName(BackgroundJob backgroundJob)

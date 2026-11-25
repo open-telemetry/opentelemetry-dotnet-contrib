@@ -7,9 +7,10 @@
   completes, so the default sampler drops them.
   ([#6110](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6110))
 
-* Fixed a failure while starting the job activity, such as a throwing
-  propagator or `ActivityStarted` listener, failing the job and leaving the
-  activity running. The failure is now logged and the job runs untraced.
+* Fixed a failure while starting or stopping the job activity, such as a
+  throwing propagator, `ActivityStarted` or `ActivityStopped` listener, failing
+  the job and leaving the activity running or current. The failure is now
+  logged instead, and a job whose activity fails to start runs untraced.
   ([#6111](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6111))
 
 * Fixed a `DisplayNameFunc` that throws or returns `null` failing the job. The
