@@ -35,6 +35,9 @@ public class HangfireInstrumentationOptions
     /// <b>Notes:</b>
     /// <list type="bullet">
     /// <item>The first parameter passed to the filter function is <see cref="BackgroundJob"/> being executed.</item>
+    /// <item>The filter runs before the job activity starts, so
+    /// <see cref="System.Diagnostics.Activity.Current"/> is not the job
+    /// activity yet.</item>
     /// <item>The return value for the filter:
     /// <list type="number">
     /// <item>If filter returns <see langword="true" />, the command is

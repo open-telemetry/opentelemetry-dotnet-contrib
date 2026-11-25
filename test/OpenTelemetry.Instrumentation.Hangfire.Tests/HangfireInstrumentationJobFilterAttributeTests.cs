@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Text.Json;
@@ -177,11 +178,16 @@ public class HangfireInstrumentationJobFilterAttributeTests
     {
         // Arrange
         var exportedItems = new List<Activity>();
+        var currentActivityInDisplayNameFunc = new ConcurrentDictionary<string, Activity?>();
 
         string jobId;
 
         using (var provider = Sdk.CreateTracerProviderBuilder()
-                                 .AddHangfireInstrumentation(options => options.DisplayNameFunc = backgroundJob => $"JOB {backgroundJob.Id}")
+                                 .AddHangfireInstrumentation(options => options.DisplayNameFunc = backgroundJob =>
+                                 {
+                                     currentActivityInDisplayNameFunc[backgroundJob.Id] = Activity.Current;
+                                     return $"JOB {backgroundJob.Id}";
+                                 })
                                  .AddInMemoryExporter(exportedItems)
                                  .SetSampler<AlwaysOnSampler>()
                                  .Build())
@@ -198,6 +204,7 @@ public class HangfireInstrumentationJobFilterAttributeTests
 
         Assert.Contains($"JOB {jobId}", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
+        Assert.Same(activity, currentActivityInDisplayNameFunc[jobId]);
     }
 
     [Fact]

@@ -59,10 +59,6 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
 
         if (activity != null)
         {
-            var displayNameFunc = this.options.DisplayNameFunc ?? HangfireInstrumentation.DefaultDisplayNameFunc;
-
-            activity.DisplayName = displayNameFunc(filterContext.BackgroundJob);
-
             if (activity.IsAllDataRequested)
             {
                 if (this.IsFilteredOut(filterContext.BackgroundJob))
@@ -80,6 +76,11 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
             }
 
             activity.Start();
+
+            var displayNameFunc = this.options.DisplayNameFunc ?? HangfireInstrumentation.DefaultDisplayNameFunc;
+
+            activity.DisplayName = displayNameFunc(filterContext.BackgroundJob);
+
             filterContext.Items.Add(HangfireInstrumentationConstants.ActivityKey, activity);
         }
     }
