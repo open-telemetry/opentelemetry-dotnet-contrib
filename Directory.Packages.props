@@ -96,7 +96,7 @@
     <PackageVersion Include="AWSSDK.BedrockAgentRuntime" Version="4.1.0.2" />
     <PackageVersion Include="AWSSDK.BedrockRuntime" Version="4.1.1" />
     <PackageVersion Include="AWSSDK.DynamoDBv2" Version="4.1.0.3" />
-    <PackageVersion Include="AWSSDK.S3" Version="4.1.2" />
+    <PackageVersion Include="AWSSDK.S3" Version="4.1.2.1" />
     <PackageVersion Include="AWSSDK.SimpleNotificationService" Version="4.1.0.2" />
     <PackageVersion Include="AWSSDK.SQS" Version="4.1.0.2" />
     <PackageVersion Include="BenchmarkDotNet" Version="0.16.0-preview.2" />
