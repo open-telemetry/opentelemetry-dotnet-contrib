@@ -163,4 +163,23 @@ public class GrpcClientDiagnosticListenerTests
             Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcMethodTagName));
         }
     }
+
+    [Theory]
+    [InlineData("0", "OK")]
+    [InlineData("4", "DEADLINE_EXCEEDED")]
+    [InlineData("14", "UNAVAILABLE")]
+    [InlineData("99", "99")]
+    public void RpcStatusCodeIsSetFromGrpcStatusCode(string grpcStatusCode, string expectedRpcStatusCode)
+    {
+        var listener = new GrpcClientDiagnosticListener(new GrpcClientTraceInstrumentationOptions());
+
+        using var activity = new Activity("Grpc.Net.Client.GrpcOut");
+        activity.SetTag(GrpcTagHelper.GrpcStatusCodeTagName, grpcStatusCode);
+        activity.Start();
+
+        listener.OnStopActivity(activity, null);
+
+        Assert.Equal(expectedRpcStatusCode, activity.GetTagValue(SemanticConventions.AttributeRpcStatusCode));
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+    }
 }

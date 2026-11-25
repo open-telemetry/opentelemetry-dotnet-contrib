@@ -15,10 +15,8 @@ and collects traces about outgoing gRPC requests.
 
 > [!CAUTION]
 > This component is based on the OpenTelemetry semantic conventions for
-[traces](https://github.com/open-telemetry/semantic-conventions/blob/main/docs/rpc/rpc-spans.md).
-These conventions are
-[in Development](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/document-status.md),
-and hence, this package is a [pre-release](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/VERSIONING.md#pre-releases).
+[traces](https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/rpc/rpc-spans.md).
+This package is a [pre-release](https://github.com/open-telemetry/opentelemetry-dotnet/tree/main/VERSIONING.md#pre-releases).
 Until a [stable
 version](https://github.com/open-telemetry/opentelemetry-specification/blob/main/specification/telemetry-stability.md)
 is released, there can be breaking changes.

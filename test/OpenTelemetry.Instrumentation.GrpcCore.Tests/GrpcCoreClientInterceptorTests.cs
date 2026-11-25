@@ -461,11 +461,11 @@ public class GrpcCoreClientInterceptorTests(WeaverFixture weaver, ITestOutputHel
         Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcSystemName && (string?)t.Value == "grpc");
         Assert.DoesNotContain(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcService);
         Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcMethod && (string?)t.Value == expectedRpcMethod);
-        Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcResponseStatusCode && (string?)t.Value == expectedResponseStatusCode);
+        Assert.Contains(activity.TagObjects, t => t.Key == SemanticConventions.AttributeRpcStatusCode && (string?)t.Value == expectedResponseStatusCode);
 
         // Client spans treat every non-OK status as an error, whereas server spans only treat a
         // subset of status codes as errors.
-        // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/grpc.md
+        // See https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/rpc/grpc.md
         var expectedStatus = activity.Kind == ActivityKind.Client
             ? GrpcTagHelper.ResolveSpanStatusForGrpcStatusCodeOnClient((int)expectedStatusCode)
             : GrpcTagHelper.ResolveSpanStatusForGrpcStatusCodeOnServer((int)expectedStatusCode);
