@@ -6,6 +6,7 @@ using System.Collections.Concurrent;
 using System.Globalization;
 using System.Reflection;
 using System.Text;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using Amazon.Runtime;
 
@@ -18,6 +19,10 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 internal static class AwsSdkModelJsonSerializer
 {
     private const int MaxDepth = 16;
+
+    // The output is only used as span attribute values, never embedded in HTML, so readable
+    // characters such as non-ASCII letters, '+' and '&' are left unescaped.
+    private static readonly JsonWriterOptions WriterOptions = new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
 
     private static readonly ConcurrentDictionary<Type, PropertyInfo[]> PropertiesCache = new();
 
@@ -34,7 +39,7 @@ internal static class AwsSdkModelJsonSerializer
         }
 
         using var stream = new MemoryStream();
-        using (var writer = new Utf8JsonWriter(stream))
+        using (var writer = new Utf8JsonWriter(stream, WriterOptions))
         {
             Write(writer, value, 0);
         }

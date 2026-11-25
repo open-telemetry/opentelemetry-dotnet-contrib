@@ -59,6 +59,14 @@ public class AwsSdkModelJsonSerializerTests
     }
 
     [Fact]
+    public void DoesNotEscapeNonAsciiOrHtmlSensitiveCharacters()
+    {
+        var value = new AttributeValue { S = "user+1@é.com & <x>" };
+
+        Assert.Equal("{\"S\":\"user+1@é.com & <x>\"}", AwsSdkModelJsonSerializer.Serialize(value));
+    }
+
+    [Fact]
     public void ReturnsNullForNullAndEmptyObject()
     {
         Assert.Null(AwsSdkModelJsonSerializer.Serialize(null));
