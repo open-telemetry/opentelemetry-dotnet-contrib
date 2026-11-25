@@ -10,7 +10,8 @@
 * Fixed a failure while starting or stopping the job activity, such as a
   throwing propagator, `ActivityStarted` or `ActivityStopped` listener, failing
   the job and leaving the activity running or current. The failure is now
-  logged instead, and a job whose activity fails to start runs untraced.
+  logged instead. A job whose activity fails to start runs without one, and
+  the failed activity is not exported.
   ([#6111](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6111))
 
 * Fixed a `DisplayNameFunc` that throws or returns `null` failing the job. The

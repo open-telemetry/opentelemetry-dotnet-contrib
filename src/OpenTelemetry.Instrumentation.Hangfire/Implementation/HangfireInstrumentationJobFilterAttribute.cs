@@ -97,6 +97,9 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
             // the baggage after the job.
             if (activity != null)
             {
+                // Otherwise the half-started activity is exported with the placeholder name while the job runs.
+                activity.IsAllDataRequested = false;
+                activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
                 StopActivity(activity, previousActivity);
             }
         }

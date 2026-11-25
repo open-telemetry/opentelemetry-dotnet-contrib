@@ -567,6 +567,49 @@ public class HangfireInstrumentationJobFilterAttributeTests
     }
 
     [Fact]
+    public void OnPerforming_Should_Not_Export_The_Activity_When_It_Throws_After_Starting_The_Activity()
+    {
+        var exportedItems = new List<Activity>();
+        using var parentSource = new ActivitySource(nameof(this.OnPerforming_Should_Not_Export_The_Activity_When_It_Throws_After_Starting_The_Activity));
+
+        using (var provider = Sdk.CreateTracerProviderBuilder()
+                                 .AddSource(HangfireInstrumentation.ActivitySourceName, parentSource.Name)
+                                 .AddInMemoryExporter(exportedItems)
+                                 .SetSampler<AlwaysOnSampler>()
+                                 .Build())
+        {
+            using var parentActivity = parentSource.StartActivity("parent");
+            Assert.NotNull(parentActivity);
+
+            var storage = new MemoryStorage();
+            using var connection = storage.GetConnection();
+
+            var filter = new HangfireInstrumentationJobFilterAttribute(new HangfireInstrumentationOptions());
+            var performingContext = CreatePerformingContext(storage, connection);
+
+            // Makes storing the started activity in Items throw.
+            performingContext.Items[HangfireInstrumentationConstants.ActivityKey] = null;
+
+            try
+            {
+                filter.OnPerforming(performingContext);
+                filter.OnPerformed(new PerformedContext(performingContext, null, false, null));
+            }
+            finally
+            {
+                Baggage.Current = default;
+            }
+
+            Assert.Same(parentActivity, Activity.Current);
+            parentActivity.Stop();
+            provider.ForceFlush();
+
+            Assert.DoesNotContain(exportedItems, a => a.ParentSpanId == parentActivity.SpanId);
+            Assert.Contains(exportedItems, a => a.SpanId == parentActivity.SpanId);
+        }
+    }
+
+    [Fact]
     public void OnPerformed_Should_Restore_Context_And_Log_When_Stopping_The_Activity_Throws()
     {
         ActivitySpanId? throwingParentSpanId = null;
