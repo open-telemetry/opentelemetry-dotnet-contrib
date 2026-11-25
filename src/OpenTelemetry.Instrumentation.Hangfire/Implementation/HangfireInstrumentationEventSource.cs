@@ -39,20 +39,20 @@ internal sealed class HangfireInstrumentationEventSource : EventSource
     }
 
     [NonEvent]
-    public void DisplayNameFuncFailed(Exception ex)
-    {
-        if (this.IsEnabled(EventLevel.Warning, (EventKeywords)(-1)))
-        {
-            this.DisplayNameFuncFailed(ex.ToInvariantString());
-        }
-    }
-
-    [NonEvent]
     public void StopJobActivityFailed(Exception ex)
     {
         if (this.IsEnabled(EventLevel.Warning, (EventKeywords)(-1)))
         {
             this.StopJobActivityFailed(ex.ToInvariantString());
+        }
+    }
+
+    [NonEvent]
+    public void DisplayNameFuncFailed(Exception ex)
+    {
+        if (this.IsEnabled(EventLevel.Warning, (EventKeywords)(-1)))
+        {
+            this.DisplayNameFuncFailed(ex.ToInvariantString());
         }
     }
 
@@ -65,12 +65,12 @@ internal sealed class HangfireInstrumentationEventSource : EventSource
     [Event(3, Message = "Recording the job exception on the activity threw exception. Exception {0}.", Level = EventLevel.Warning)]
     public void RecordJobExceptionFailed(string exception) => this.WriteEvent(3, exception);
 
-    [Event(4, Message = "Starting the job activity threw exception, the job runs untraced. Exception {0}.", Level = EventLevel.Warning)]
+    [Event(4, Message = "Starting the job activity threw exception, the job runs without a job activity. Exception {0}.", Level = EventLevel.Warning)]
     public void StartJobActivityFailed(string exception) => this.WriteEvent(4, exception);
 
-    [Event(5, Message = "DisplayNameFunc threw exception, the default display name is used. Exception {0}.", Level = EventLevel.Warning)]
-    public void DisplayNameFuncFailed(string exception) => this.WriteEvent(5, exception);
+    [Event(5, Message = "Stopping the job activity threw exception. Exception {0}.", Level = EventLevel.Warning)]
+    public void StopJobActivityFailed(string exception) => this.WriteEvent(5, exception);
 
-    [Event(6, Message = "Stopping the job activity threw exception. Exception {0}.", Level = EventLevel.Warning)]
-    public void StopJobActivityFailed(string exception) => this.WriteEvent(6, exception);
+    [Event(6, Message = "DisplayNameFunc threw exception, the default display name is used. Exception {0}.", Level = EventLevel.Warning)]
+    public void DisplayNameFuncFailed(string exception) => this.WriteEvent(6, exception);
 }

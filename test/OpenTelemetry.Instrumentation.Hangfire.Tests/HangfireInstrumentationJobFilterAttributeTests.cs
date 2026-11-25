@@ -257,7 +257,7 @@ public class HangfireInstrumentationJobFilterAttributeTests
         }
 
         var displayNameFuncFailures = eventListener.Events
-            .Where(e => e.EventId == 5 && ((string?)e.Payload?[0])?.Contains("DisplayNameFunc throws exception") == true);
+            .Where(e => e.EventId == 6 && ((string?)e.Payload?[0])?.Contains("DisplayNameFunc throws exception") == true);
 
         if (throwInDisplayNameFunc)
         {
@@ -553,7 +553,7 @@ public class HangfireInstrumentationJobFilterAttributeTests
             Assert.Single(eventListener.Events, e => e.EventId == 4 && ((string?)e.Payload?[0])?.Contains(nameof(ArgumentException)) == true);
             Assert.Equal(
                 throwInActivityStopped ? 1 : 0,
-                eventListener.Events.Count(e => e.EventId == 6 && ((string?)e.Payload?[0])?.Contains("ActivityStopped throws exception") == true));
+                eventListener.Events.Count(e => e.EventId == 5 && ((string?)e.Payload?[0])?.Contains("ActivityStopped throws exception") == true));
 
             filter.OnPerformed(new PerformedContext(performingContext, null, false, null));
 
@@ -728,7 +728,7 @@ public class HangfireInstrumentationJobFilterAttributeTests
             Assert.True(jobActivity.IsStopped);
             Assert.Same(parentActivity, Activity.Current);
             Assert.Equal("previous-value", Baggage.Current.GetBaggage("previous-key"));
-            Assert.Single(eventListener.Events, e => e.EventId == 6 && ((string?)e.Payload?[0])?.Contains("ActivityStopped throws exception") == true);
+            Assert.Single(eventListener.Events, e => e.EventId == 5 && ((string?)e.Payload?[0])?.Contains("ActivityStopped throws exception") == true);
         }
         finally
         {
