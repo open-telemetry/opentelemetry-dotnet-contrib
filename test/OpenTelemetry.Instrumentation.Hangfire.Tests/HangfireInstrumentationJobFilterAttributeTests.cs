@@ -610,6 +610,75 @@ public class HangfireInstrumentationJobFilterAttributeTests
     }
 
     [Fact]
+    public void OnPerforming_Should_Not_Fail_The_Job_Or_Export_The_Activity_When_An_ActivityStarted_Listener_Throws()
+    {
+        var exportedItems = new List<Activity>();
+        using var parentSource = new ActivitySource(nameof(this.OnPerforming_Should_Not_Fail_The_Job_Or_Export_The_Activity_When_An_ActivityStarted_Listener_Throws));
+        ActivitySpanId? throwingParentSpanId = null;
+
+        using var throwingListener = new ActivityListener
+        {
+            ShouldListenTo = source => source.Name == HangfireInstrumentation.ActivitySourceName,
+            Sample = (ref _) => ActivitySamplingResult.None,
+            SampleUsingParentId = (ref _) => ActivitySamplingResult.None,
+            ActivityStarted = activity =>
+            {
+                if (activity.ParentSpanId == throwingParentSpanId)
+                {
+                    throw new InvalidOperationException("ActivityStarted throws exception");
+                }
+            },
+        };
+        ActivitySource.AddActivityListener(throwingListener);
+
+        using (var provider = Sdk.CreateTracerProviderBuilder()
+                                 .AddSource(HangfireInstrumentation.ActivitySourceName, parentSource.Name)
+                                 .AddInMemoryExporter(exportedItems)
+                                 .SetSampler<AlwaysOnSampler>()
+                                 .Build())
+        {
+            using var parentActivity = parentSource.StartActivity("parent");
+            Assert.NotNull(parentActivity);
+            throwingParentSpanId = parentActivity.SpanId;
+
+            var storage = new MemoryStorage();
+            using var connection = storage.GetConnection();
+
+            var filter = new HangfireInstrumentationJobFilterAttribute(new HangfireInstrumentationOptions());
+            var performingContext = CreatePerformingContext(storage, connection);
+            Baggage.Current = Baggage.Create(new Dictionary<string, string>
+            {
+                ["previous-key"] = "previous-value",
+            });
+
+            using var eventListener = new InMemoryEventListener(HangfireInstrumentationEventSource.Log, EventLevel.Warning);
+
+            try
+            {
+                filter.OnPerforming(performingContext);
+
+                Assert.Same(parentActivity, Activity.Current);
+                Assert.Single(eventListener.Events, e => e.EventId == 4 && ((string?)e.Payload?[0])?.Contains("ActivityStarted throws exception") == true);
+
+                filter.OnPerformed(new PerformedContext(performingContext, null, false, null));
+
+                Assert.Same(parentActivity, Activity.Current);
+                Assert.Equal("previous-value", Baggage.Current.GetBaggage("previous-key"));
+            }
+            finally
+            {
+                Baggage.Current = default;
+            }
+
+            parentActivity.Stop();
+            provider.ForceFlush();
+
+            Assert.DoesNotContain(exportedItems, a => a.ParentSpanId == parentActivity.SpanId);
+            Assert.Contains(exportedItems, a => a.SpanId == parentActivity.SpanId);
+        }
+    }
+
+    [Fact]
     public void OnPerformed_Should_Restore_Context_And_Log_When_Stopping_The_Activity_Throws()
     {
         ActivitySpanId? throwingParentSpanId = null;
