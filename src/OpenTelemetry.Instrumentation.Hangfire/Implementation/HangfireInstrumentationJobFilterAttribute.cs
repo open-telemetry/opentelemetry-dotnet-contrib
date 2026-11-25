@@ -86,15 +86,12 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
                 filterContext.Items.Add(HangfireInstrumentationConstants.ActivityKey, activity);
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
-            // OnPerformed is not called when OnPerforming throws, so nothing else would stop the activity
-            // or restore the baggage.
+            // The activity is not in Items, so OnPerformed would not stop it. OnPerformed still restores
+            // the baggage after the job.
             activity?.Dispose();
-            RuntimeContext.SetValue(
-                HangfireInstrumentationConstants.BaggageSlotName,
-                filterContext.Items[HangfireInstrumentationConstants.PreviousBaggageKey]);
-            throw;
+            HangfireInstrumentationEventSource.Log.StartJobActivityFailed(ex);
         }
     }
 

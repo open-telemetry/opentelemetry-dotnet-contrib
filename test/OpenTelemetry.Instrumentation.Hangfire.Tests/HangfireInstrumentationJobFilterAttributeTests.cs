@@ -475,7 +475,7 @@ public class HangfireInstrumentationJobFilterAttributeTests
     }
 
     [Fact]
-    public void OnPerforming_Should_Stop_Activity_And_Restore_Baggage_When_It_Throws_After_Starting_The_Activity()
+    public void OnPerforming_Should_Stop_Activity_And_Log_Instead_Of_Failing_The_Job_When_It_Throws_After_Starting_The_Activity()
     {
         var startedActivities = new ConcurrentQueue<Activity>();
 
@@ -511,12 +511,20 @@ public class HangfireInstrumentationJobFilterAttributeTests
             ["previous-key"] = "previous-value",
         });
 
+        using var eventListener = new InMemoryEventListener(HangfireInstrumentationEventSource.Log, EventLevel.Warning);
+
         try
         {
-            Assert.Throws<ArgumentException>(() => filter.OnPerforming(performingContext));
+            filter.OnPerforming(performingContext);
 
             var jobActivity = Assert.Single(startedActivities, a => a.ParentSpanId == parentActivity.SpanId);
             Assert.True(jobActivity.IsStopped);
+            Assert.Same(parentActivity, Activity.Current);
+            Assert.Null(Baggage.Current.GetBaggage("previous-key"));
+            Assert.Single(eventListener.Events, e => e.EventId == 4 && ((string?)e.Payload?[0])?.Contains(nameof(ArgumentException)) == true);
+
+            filter.OnPerformed(new PerformedContext(performingContext, null, false, null));
+
             Assert.Same(parentActivity, Activity.Current);
             Assert.Equal("previous-value", Baggage.Current.GetBaggage("previous-key"));
         }

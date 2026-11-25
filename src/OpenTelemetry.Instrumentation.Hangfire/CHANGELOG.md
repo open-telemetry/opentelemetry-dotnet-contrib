@@ -7,8 +7,9 @@
   completes, so the default sampler drops them.
   ([#6110](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6110))
 
-* Fixed the job activity being left running, and the job's baggage left
-  current, when `OnPerforming` throws after the activity is started.
+* Fixed a failure while starting the job activity, such as a throwing
+  propagator or `ActivityStarted` listener, failing the job and leaving the
+  activity running. The failure is now logged and the job runs untraced.
   ([#6111](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6111))
 
 * Fixed a `DisplayNameFunc` that throws or returns `null` failing the job. The
