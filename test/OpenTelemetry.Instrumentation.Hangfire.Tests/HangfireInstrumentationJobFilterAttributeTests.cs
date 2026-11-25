@@ -968,7 +968,7 @@ public class HangfireInstrumentationJobFilterAttributeTests
     }
 
     [Fact]
-    public void OnPerforming_Should_Not_Change_Baggage_When_Reading_Job_Parameters_Fails()
+    public void OnPerforming_Should_Start_A_New_Trace_And_Log_When_Reading_Job_Parameters_Fails()
     {
         using var listener = CreateHangfireActivityListener();
         var storage = new MemoryStorage();
@@ -986,10 +986,23 @@ public class HangfireInstrumentationJobFilterAttributeTests
             HangfireInstrumentationConstants.ActivityContextKey,
             "{ not valid json");
 
+        using var eventListener = new InMemoryEventListener(HangfireInstrumentationEventSource.Log, EventLevel.Warning);
+
         try
         {
-            Assert.ThrowsAny<Exception>(() => filter.OnPerforming(performingContext));
+            filter.OnPerforming(performingContext);
 
+            var jobActivity = Activity.Current;
+            Assert.NotNull(jobActivity);
+            Assert.Equal(HangfireInstrumentation.ActivitySourceName, jobActivity.Source.Name);
+            Assert.Equal(default, jobActivity.ParentSpanId);
+            Assert.Null(Baggage.Current.GetBaggage("previous-key"));
+            Assert.Contains(eventListener.Events, e => e.EventId == 7);
+
+            filter.OnPerformed(new PerformedContext(performingContext, null, false, null));
+
+            Assert.True(jobActivity.IsStopped);
+            Assert.Null(Activity.Current);
             Assert.Equal("previous-value", Baggage.Current.GetBaggage("previous-key"));
         }
         finally

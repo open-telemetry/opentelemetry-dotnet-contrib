@@ -56,6 +56,15 @@ internal sealed class HangfireInstrumentationEventSource : EventSource
         }
     }
 
+    [NonEvent]
+    public void ReadActivityContextFailed(Exception ex)
+    {
+        if (this.IsEnabled(EventLevel.Warning, (EventKeywords)(-1)))
+        {
+            this.ReadActivityContextFailed(ex.ToInvariantString());
+        }
+    }
+
     [Event(1, Message = "Enrich threw exception. Exception {0}.", Level = EventLevel.Warning)]
     public void EnrichmentException(string exception) => this.WriteEvent(1, exception);
 
@@ -73,4 +82,7 @@ internal sealed class HangfireInstrumentationEventSource : EventSource
 
     [Event(6, Message = "DisplayNameFunc threw exception, the default display name is used. Exception {0}.", Level = EventLevel.Warning)]
     public void DisplayNameFuncFailed(string exception) => this.WriteEvent(6, exception);
+
+    [Event(7, Message = "Reading the propagated context from the job parameters threw exception, the job activity starts a new trace. Exception {0}.", Level = EventLevel.Warning)]
+    public void ReadActivityContextFailed(string exception) => this.WriteEvent(7, exception);
 }

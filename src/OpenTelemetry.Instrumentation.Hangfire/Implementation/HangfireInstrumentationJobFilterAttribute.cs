@@ -31,8 +31,7 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
             return;
         }
 
-        // Read first: if this throws, OnPerformed is not called, so the baggage must not have been changed yet.
-        var activityContextData = filterContext.GetJobParameter<Dictionary<string, string>>(HangfireInstrumentationConstants.ActivityContextKey);
+        var activityContextData = ReadActivityContextData(filterContext);
 
         // Assigning Baggage.Current writes into the holder already present in the execution context, which
         // on a long-lived Hangfire worker thread is shared with work started by earlier jobs. Detach the
@@ -160,6 +159,19 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
 
     public void OnCreated(CreatedContext filterContext)
     {
+    }
+
+    private static Dictionary<string, string>? ReadActivityContextData(PerformingContext filterContext)
+    {
+        try
+        {
+            return filterContext.GetJobParameter<Dictionary<string, string>>(HangfireInstrumentationConstants.ActivityContextKey);
+        }
+        catch (Exception ex)
+        {
+            HangfireInstrumentationEventSource.Log.ReadActivityContextFailed(ex);
+            return null;
+        }
     }
 
     private static void InjectActivityProperties(IDictionary<string, string> jobParams, string key, string value)

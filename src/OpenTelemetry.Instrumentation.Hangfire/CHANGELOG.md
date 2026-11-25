@@ -18,6 +18,11 @@
   default display name is used instead.
   ([#6111](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6111))
 
+* Fixed a propagated context that cannot be read from the job parameters
+  failing the job. The failure is now logged and the job activity starts a new
+  trace.
+  ([#6111](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6111))
+
 ## 1.21.0-beta.1
 
 Released 2026-Nov-11
