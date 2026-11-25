@@ -160,7 +160,13 @@ $"JOB {BackgroundJob.Job.Type.Name}.{BackgroundJob.Job.Method.Name}"
 
 This option can be used to filter out activities based on the `BackgroundJob`
 being executed. The `Filter` function should return `true` if the telemetry is
-to be collected, and `false` if it should not.
+to be collected, and `false` if it should not. The filter runs before the job
+activity starts, so `Activity.Current` is not the job activity yet.
+
+The activity of a filtered job stays current, unrecorded, while the job runs.
+Activities started by the job, and by downstream services the trace context is
+propagated to, inherit its unrecorded trace flags, so the default sampler
+(`ParentBased(AlwaysOn)`) does not collect them either.
 
 The following code snippet shows how to use `Filter` to filter out traces for
 job with a specified job id.

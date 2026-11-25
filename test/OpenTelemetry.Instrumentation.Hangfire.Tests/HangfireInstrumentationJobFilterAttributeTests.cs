@@ -1,6 +1,7 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Diagnostics.Tracing;
 using System.Text.Json;
@@ -12,6 +13,7 @@ using Hangfire.States;
 using Hangfire.Storage;
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Instrumentation.Hangfire.Implementation;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Hangfire.Tests;
@@ -176,11 +178,16 @@ public class HangfireInstrumentationJobFilterAttributeTests
     {
         // Arrange
         var exportedItems = new List<Activity>();
+        var currentActivityInDisplayNameFunc = new ConcurrentDictionary<string, Activity?>();
 
         string jobId;
 
         using (var provider = Sdk.CreateTracerProviderBuilder()
-                                 .AddHangfireInstrumentation(options => options.DisplayNameFunc = backgroundJob => $"JOB {backgroundJob.Id}")
+                                 .AddHangfireInstrumentation(options => options.DisplayNameFunc = backgroundJob =>
+                                 {
+                                     currentActivityInDisplayNameFunc[backgroundJob.Id] = Activity.Current;
+                                     return $"JOB {backgroundJob.Id}";
+                                 })
                                  .AddInMemoryExporter(exportedItems)
                                  .SetSampler<AlwaysOnSampler>()
                                  .Build())
@@ -197,6 +204,7 @@ public class HangfireInstrumentationJobFilterAttributeTests
 
         Assert.Contains($"JOB {jobId}", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
+        Assert.Same(activity, currentActivityInDisplayNameFunc[jobId]);
     }
 
     [Fact]
@@ -255,19 +263,66 @@ public class HangfireInstrumentationJobFilterAttributeTests
         }
 
         // Assert
-        var activity = Assert.Single(processedItems);
+        if (shouldRecord)
+        {
+            var activity = Assert.Single(processedItems);
 
-        Assert.Equal(shouldRecord, activity.IsAllDataRequested);
-        Assert.Equal(shouldRecord, activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
+            Assert.True(activity.IsAllDataRequested);
+            Assert.True(activity.ActivityTraceFlags.HasFlag(ActivityTraceFlags.Recorded));
+        }
+        else
+        {
+            Assert.Empty(processedItems);
+        }
     }
 
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
-    public void OnPerforming_When_Filter_Suppresses_Activity_Should_Dispose_Activity_And_Restore_Parent(bool throwInFilter)
+    public async Task Should_Not_Export_Activities_Started_By_A_Filtered_Job(bool filtered)
+    {
+        // Arrange
+        var exportedItems = new List<Activity>();
+
+        string jobId;
+
+        using (var provider = Sdk.CreateTracerProviderBuilder()
+                                 .AddHangfireInstrumentation(options => options.Filter = _ => !filtered)
+                                 .AddSource(TestJob.ActivitySource.Name)
+                                 .AddInMemoryExporter(exportedItems)
+                                 .Build())
+        {
+            // Act
+            jobId = BackgroundJob.Enqueue<TestJob>(x => x.ExecuteWithChildActivity());
+            await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+
+            provider.ForceFlush();
+        }
+
+        // Assert
+        var childActivities = exportedItems.Where(a => a.Source.Name == TestJob.ActivitySource.Name).ToArray();
+
+        if (filtered)
+        {
+            Assert.Empty(childActivities);
+            Assert.DoesNotContain(exportedItems, a => a.Source.Name == HangfireInstrumentation.ActivitySourceName);
+        }
+        else
+        {
+            var jobActivity = Assert.Single(exportedItems, a => (a.GetTagItem("job.id") as string) == jobId);
+            var childActivity = Assert.Single(childActivities);
+            Assert.Equal(jobActivity.SpanId, childActivity.ParentSpanId);
+        }
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Filtered_Job_Activity_Should_Stay_Current_And_Unrecorded_Until_OnPerformed(bool throwInFilter)
     {
         var startedActivities = 0;
         var stoppedActivities = 0;
+        string? idSeenOnStart = null;
 
         using var listener = new ActivityListener
         {
@@ -279,6 +334,7 @@ public class HangfireInstrumentationJobFilterAttributeTests
                 if (activity.Source.Name == HangfireInstrumentation.ActivitySourceName)
                 {
                     startedActivities++;
+                    idSeenOnStart = activity.Id;
                 }
             },
             ActivityStopped = activity =>
@@ -306,10 +362,89 @@ public class HangfireInstrumentationJobFilterAttributeTests
 
         filter.OnPerforming(performingContext);
 
-        Assert.Same(parentActivity, Activity.Current);
-        Assert.False(performingContext.Items.ContainsKey(HangfireInstrumentationConstants.ActivityKey));
+        var jobActivity = Activity.Current;
+        Assert.NotNull(jobActivity);
+        Assert.Equal(HangfireInstrumentation.ActivitySourceName, jobActivity.Source.Name);
+        Assert.Equal(parentActivity.SpanId, jobActivity.ParentSpanId);
+        Assert.False(jobActivity.IsAllDataRequested);
+        Assert.False(jobActivity.Recorded);
         Assert.Equal(1, startedActivities);
+        Assert.Equal(0, stoppedActivities);
+        Assert.NotNull(idSeenOnStart);
+        Assert.Equal(jobActivity.Id, idSeenOnStart);
+        Assert.False(ActivityContext.Parse(idSeenOnStart, null).TraceFlags.HasFlag(ActivityTraceFlags.Recorded));
+
+        filter.OnPerformed(new PerformedContext(performingContext, null, false, null));
+
+        Assert.True(jobActivity.IsStopped);
+        Assert.Same(parentActivity, Activity.Current);
         Assert.Equal(1, stoppedActivities);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void OnPerformed_Should_Record_Exception_Only_For_Recorded_Job_And_Always_Stop_The_Activity(bool filtered)
+    {
+        var recordedExceptions = 0;
+
+        using var listener = new ActivityListener
+        {
+            ShouldListenTo = _ => true,
+            Sample = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            SampleUsingParentId = (ref _) => ActivitySamplingResult.AllDataAndRecorded,
+            ExceptionRecorder = (Activity activity, Exception exception, ref TagList tags) =>
+            {
+                if (activity.Source.Name == HangfireInstrumentation.ActivitySourceName)
+                {
+                    recordedExceptions++;
+                    throw new InvalidOperationException("ExceptionRecorder throws exception");
+                }
+            },
+        };
+        ActivitySource.AddActivityListener(listener);
+
+        using var parentSource = new ActivitySource(nameof(HangfireInstrumentationJobFilterAttributeTests));
+        using var parentActivity = parentSource.StartActivity("parent");
+        Assert.NotNull(parentActivity);
+
+        var storage = new MemoryStorage();
+        using var connection = storage.GetConnection();
+
+        var filter = new HangfireInstrumentationJobFilterAttribute(new HangfireInstrumentationOptions
+        {
+            RecordException = true,
+            Filter = _ => !filtered,
+        });
+        var performingContext = CreatePerformingContext(storage, connection);
+
+        filter.OnPerforming(performingContext);
+
+        var jobActivity = Activity.Current;
+        Assert.NotNull(jobActivity);
+
+        using var eventListener = new InMemoryEventListener(HangfireInstrumentationEventSource.Log, EventLevel.Warning);
+
+        filter.OnPerformed(new PerformedContext(performingContext, null, false, new InvalidOperationException("Job failed")));
+
+        var recorderFailures = eventListener.Events
+            .Where(e => e.EventId == 3 && ((string?)e.Payload?[0])?.Contains("ExceptionRecorder throws exception") == true);
+
+        if (filtered)
+        {
+            Assert.Equal(0, recordedExceptions);
+            Assert.Equal(ActivityStatusCode.Unset, jobActivity.Status);
+            Assert.Empty(recorderFailures);
+        }
+        else
+        {
+            Assert.Equal(1, recordedExceptions);
+            Assert.Equal(ActivityStatusCode.Error, jobActivity.Status);
+            Assert.Single(recorderFailures);
+        }
+
+        Assert.True(jobActivity.IsStopped);
+        Assert.Same(parentActivity, Activity.Current);
     }
 
     [Fact]
