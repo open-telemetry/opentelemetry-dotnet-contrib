@@ -15,7 +15,7 @@ internal static class HangfireMetrics
     /// Follows OpenTelemetry workflow semantic conventions.
     /// </summary>
     public static readonly Counter<long> ExecutionOutcome =
-        Meter!.CreateCounter<long>(
+        Meter.CreateCounter<long>(
             WorkflowMetricNames.ExecutionOutcome,
             unit: "{executions}",
             description: "The number of task executions which have been initiated.");

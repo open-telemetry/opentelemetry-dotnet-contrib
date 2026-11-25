@@ -156,6 +156,9 @@ If not configured the default is
 $"JOB {BackgroundJob.Job.Type.Name}.{BackgroundJob.Job.Method.Name}"
 ```
 
+The default is also used when `DisplayNameFunc` throws an exception or returns
+`null`, so the job still runs.
+
 ### Filter
 
 This option can be used to filter out activities based on the `BackgroundJob`
