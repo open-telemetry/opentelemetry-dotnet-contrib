@@ -172,8 +172,9 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
                 return displayName;
             }
         }
-        catch (Exception)
+        catch (Exception ex)
         {
+            HangfireInstrumentationEventSource.Log.DisplayNameFuncFailed(ex);
         }
 
         return HangfireInstrumentation.DefaultDisplayNameFunc(backgroundJob);

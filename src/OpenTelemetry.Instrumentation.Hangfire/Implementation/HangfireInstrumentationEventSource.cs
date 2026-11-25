@@ -38,6 +38,15 @@ internal sealed class HangfireInstrumentationEventSource : EventSource
         }
     }
 
+    [NonEvent]
+    public void DisplayNameFuncFailed(Exception ex)
+    {
+        if (this.IsEnabled(EventLevel.Warning, (EventKeywords)(-1)))
+        {
+            this.DisplayNameFuncFailed(ex.ToInvariantString());
+        }
+    }
+
     [Event(1, Message = "Enrich threw exception. Exception {0}.", Level = EventLevel.Warning)]
     public void EnrichmentException(string exception) => this.WriteEvent(1, exception);
 
@@ -49,4 +58,7 @@ internal sealed class HangfireInstrumentationEventSource : EventSource
 
     [Event(4, Message = "Starting the job activity threw exception, the job runs untraced. Exception {0}.", Level = EventLevel.Warning)]
     public void StartJobActivityFailed(string exception) => this.WriteEvent(4, exception);
+
+    [Event(5, Message = "DisplayNameFunc threw exception, the default display name is used. Exception {0}.", Level = EventLevel.Warning)]
+    public void DisplayNameFuncFailed(string exception) => this.WriteEvent(5, exception);
 }

@@ -238,6 +238,8 @@ public class HangfireInstrumentationJobFilterAttributeTests
             ? _ => throw new InvalidOperationException("DisplayNameFunc throws exception")
             : _ => null!;
 
+        using var eventListener = new InMemoryEventListener(HangfireInstrumentationEventSource.Log, EventLevel.Warning);
+
         using (var provider = Sdk.CreateTracerProviderBuilder()
                                  .AddHangfireInstrumentation(options => options.DisplayNameFunc = displayNameFunc)
                                  .AddInMemoryExporter(exportedItems)
@@ -252,6 +254,18 @@ public class HangfireInstrumentationJobFilterAttributeTests
             var activity = Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
             Assert.Equal("JOB TestJob.Execute", activity.DisplayName);
             Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+        }
+
+        var displayNameFuncFailures = eventListener.Events
+            .Where(e => e.EventId == 5 && ((string?)e.Payload?[0])?.Contains("DisplayNameFunc throws exception") == true);
+
+        if (throwInDisplayNameFunc)
+        {
+            Assert.Single(displayNameFuncFailures);
+        }
+        else
+        {
+            Assert.Empty(displayNameFuncFailures);
         }
     }
 
