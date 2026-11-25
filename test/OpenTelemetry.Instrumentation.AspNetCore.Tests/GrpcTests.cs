@@ -35,7 +35,7 @@ public class GrpcTests
         AssertTag(activity, SemanticConventions.AttributeNetworkPeerPort, 4317);
         AssertTag(activity, SemanticConventions.AttributeRpcMethod, "package.Service/Method");
         AssertTag(activity, SemanticConventions.AttributeRpcMethodOriginal, null);
-        AssertTag(activity, SemanticConventions.AttributeRpcResponseStatusCode, "INTERNAL");
+        AssertTag(activity, SemanticConventions.AttributeRpcStatusCode, "INTERNAL");
         AssertTag(activity, SemanticConventions.AttributeErrorType, "INTERNAL");
     }
 
@@ -74,7 +74,7 @@ public class GrpcTests
         // Assert
         Assert.Equal(ActivityStatusCode.Unset, activity.Status);
 
-        AssertTag(activity, SemanticConventions.AttributeRpcResponseStatusCode, "OK");
+        AssertTag(activity, SemanticConventions.AttributeRpcStatusCode, "OK");
         AssertTag(activity, SemanticConventions.AttributeErrorType, null);
     }
 
@@ -106,7 +106,7 @@ public class GrpcTests
         AssertTag(activity, SemanticConventions.AttributeNetworkPeerPort, 4317);
         AssertTag(activity, SemanticConventions.AttributeRpcMethod, "_OTHER");
         AssertTag(activity, SemanticConventions.AttributeRpcMethodOriginal, expectedRpcMethodOriginal);
-        AssertTag(activity, SemanticConventions.AttributeRpcResponseStatusCode, "UNIMPLEMENTED");
+        AssertTag(activity, SemanticConventions.AttributeRpcStatusCode, "UNIMPLEMENTED");
         AssertTag(activity, SemanticConventions.AttributeErrorType, "UNIMPLEMENTED");
     }
 
@@ -129,7 +129,7 @@ public class GrpcTests
         Assert.Equal(ActivityStatusCode.Unset, activity.Status);
 
         AssertTag(activity, SemanticConventions.AttributeRpcMethod, "_OTHER");
-        AssertTag(activity, SemanticConventions.AttributeRpcResponseStatusCode, "NOT_FOUND");
+        AssertTag(activity, SemanticConventions.AttributeRpcStatusCode, "NOT_FOUND");
         AssertTag(activity, SemanticConventions.AttributeErrorType, null);
     }
 

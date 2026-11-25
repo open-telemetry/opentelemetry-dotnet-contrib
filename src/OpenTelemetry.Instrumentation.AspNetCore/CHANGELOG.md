@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* **Breaking Change**: Update Semantic Conventions for RPC/gRPC to version
+  [1.45.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/rpc/README.md).
+  When the experimental gRPC support is on, the `rpc.response.status_code`
+  attribute is renamed to `rpc.status_code`.
+  ([#6071](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6071))
+
 * **Breaking Change**: Fixed missing gRPC attributes on the server span for an
   unimplemented method or service, when gRPC support is on. The span now has
   `rpc.method` set to `_OTHER`, `rpc.method_original` set to the called method,

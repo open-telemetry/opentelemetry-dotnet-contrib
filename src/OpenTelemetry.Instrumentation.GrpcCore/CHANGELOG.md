@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* **Breaking Change**: Update to version
+  [1.45.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/rpc/grpc.md)
+  of the Semantic Conventions for gRPC. The `rpc.response.status_code`
+  attribute is renamed to `rpc.status_code`.
+  ([#6071](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6071))
+
 * Fixed `rpc.method` and the span name for a call with no method or with the
   empty method path `//`. They are now `_OTHER` and `grpc`, not
   `unknownservice/unknownmethod` or empty. For the method paths `//other` and

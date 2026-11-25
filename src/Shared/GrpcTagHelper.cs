@@ -12,12 +12,12 @@ internal static class GrpcTagHelper
     public const string RpcSystemGrpc = "grpc";
 
     // The value used for rpc.method when the gRPC method is not available or not recognized.
-    // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/grpc.md
+    // See https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/rpc/grpc.md
     public const string RpcMethodOther = "_OTHER";
 
     // The Grpc.Net.Client library adds its own tags to the activity.
     // These tags are used to source the tags added by the OpenTelemetry instrumentation.
-    // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/non-normative/compatibility/grpc.md#attribute-mapping
+    // See https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/non-normative/compatibility/grpc.md#attribute-mapping
     public const string GrpcMethodTagName = "grpc.method";
     public const string GrpcStatusTagName = "grpc.status";
     public const string GrpcStatusCodeTagName = "grpc.status_code";
@@ -85,7 +85,7 @@ internal static class GrpcTagHelper
 
     /// <summary>
     /// Helper method that populates span properties from RPC status code according
-    /// to https://github.com/open-telemetry/semantic-conventions/blob/main/docs/rpc/grpc.md#client.
+    /// to https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/rpc/grpc.md#client.
     /// This method is for client spans where all non-OK status codes are considered errors.
     /// </summary>
     /// <param name="statusCode">RPC status code.</param>
@@ -124,7 +124,7 @@ internal static class GrpcTagHelper
 
     /// <summary>
     /// Helper method that populates span properties from RPC status code according
-    /// to https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/grpc.md.
+    /// to https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/rpc/grpc.md.
     /// This method is for server spans where only specific status codes are considered errors:
     /// UNKNOWN, DEADLINE_EXCEEDED, UNIMPLEMENTED, INTERNAL, UNAVAILABLE, and DATA_LOSS.
     /// </summary>
@@ -154,11 +154,11 @@ internal static class GrpcTagHelper
 
     /// <summary>
     /// Gets the string representation of a gRPC status code to use for the
-    /// <c>rpc.response.status_code</c> and <c>error.type</c> attributes.
+    /// <c>rpc.status_code</c> and <c>error.type</c> attributes.
     /// </summary>
     /// <remarks>
     /// See https://github.com/grpc/grpc/blob/v1.81.1/doc/statuscodes.md and
-    /// https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/grpc.md.
+    /// https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/rpc/grpc.md.
     /// </remarks>
     /// <param name="statusCode">The numeric gRPC status code.</param>
     /// <returns>The canonical gRPC status code name (e.g. <c>OK</c>, <c>DEADLINE_EXCEEDED</c>),

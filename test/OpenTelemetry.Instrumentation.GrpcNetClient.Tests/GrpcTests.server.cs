@@ -89,7 +89,7 @@ public partial class GrpcTests : IAsyncLifetime
             Assert.NotEqual(0, Assert.IsType<int>(activity.GetTagValue(SemanticConventions.AttributeNetworkPeerPort)));
             Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcMethodTagName));
             Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcStatusCodeTagName));
-            Assert.Equal("OK", activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+            Assert.Equal("OK", activity.GetTagValue(SemanticConventions.AttributeRpcStatusCode));
         }
         else
         {
@@ -178,7 +178,7 @@ public partial class GrpcTests : IAsyncLifetime
                 Assert.NotEqual(0, Assert.IsType<int>(activity.GetTagValue(SemanticConventions.AttributeNetworkPeerPort)));
                 Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcMethodTagName));
                 Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcStatusCodeTagName));
-                Assert.Equal("OK", activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+                Assert.Equal("OK", activity.GetTagValue(SemanticConventions.AttributeRpcStatusCode));
             }
             else
             {
@@ -241,7 +241,7 @@ public partial class GrpcTests : IAsyncLifetime
         Assert.Equal("grpc", activity.GetTagValue(SemanticConventions.AttributeRpcSystemName));
         Assert.Equal("_OTHER", activity.GetTagValue(SemanticConventions.AttributeRpcMethod));
         Assert.Equal("greet.SecondGreeter/SayHello", activity.GetTagValue(SemanticConventions.AttributeRpcMethodOriginal));
-        Assert.Equal("UNIMPLEMENTED", activity.GetTagValue(SemanticConventions.AttributeRpcResponseStatusCode));
+        Assert.Equal("UNIMPLEMENTED", activity.GetTagValue(SemanticConventions.AttributeRpcStatusCode));
         Assert.Equal("{unimplementedService}/{unimplementedMethod:grpcunimplemented}", activity.GetTagValue(SemanticConventions.AttributeHttpRoute));
     }
 
