@@ -500,7 +500,7 @@ internal class HttpInListener : ListenerHandler
         bool validStatusCode)
     {
         // See the specs for semantic conventions.
-        // https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/rpc/rpc-spans.md
+        // https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/rpc/rpc-spans.md
         GrpcTagHelper.SetGrpcSystemName(activity);
         GrpcTagHelper.SetGrpcMethodAndDisplayNameFromActivity(activity, grpcMethod);
 
@@ -521,17 +521,17 @@ internal class HttpInListener : ListenerHandler
         }
 
         // The grpc.method tag has now been mapped to rpc.method, so the source tag can be removed.
-        // See https://github.com/open-telemetry/semantic-conventions/blob/v1.42.0/docs/non-normative/compatibility/grpc.md#attribute-mapping
+        // See https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/non-normative/compatibility/grpc.md#attribute-mapping
         activity.SetTag(GrpcTagHelper.GrpcMethodTagName, null);
         activity.SetTag(GrpcTagHelper.GrpcTargetTagName, null);
 
         if (validStatusCode)
         {
-            // rpc.response.status_code is the string representation of the gRPC status code, e.g. "OK".
+            // rpc.status_code is the string representation of the gRPC status code, e.g. "OK".
             var grpcStatusName = GrpcTagHelper.GetGrpcStatusCodeName(grpcStatusCode);
-            activity.SetTag(SemanticConventions.AttributeRpcResponseStatusCode, grpcStatusName);
+            activity.SetTag(SemanticConventions.AttributeRpcStatusCode, grpcStatusName);
 
-            // The grpc.status/grpc.status_code tags have now been mapped to rpc.response.status_code, so they can be removed.
+            // The grpc.status/grpc.status_code tags have now been mapped to rpc.status_code, so they can be removed.
             // The source tags are only removed once mapped so that an unrecognized status code is not silently dropped.
             activity.SetTag(GrpcTagHelper.GrpcStatusTagName, null);
             activity.SetTag(GrpcTagHelper.GrpcStatusCodeTagName, null);

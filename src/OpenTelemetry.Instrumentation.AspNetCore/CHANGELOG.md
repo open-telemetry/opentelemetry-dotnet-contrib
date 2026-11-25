@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* **Breaking Change**: Update Semantic Conventions for RPC/gRPC to version
+  [1.45.0](https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/rpc/README.md).
+  When the experimental gRPC support is on, the `rpc.response.status_code`
+  attribute is renamed to `rpc.status_code`.
+  ([#6071](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6071))
+
 * Fixed samplers not seeing request attributes, such as `http.request.method`
   and `url.path`, when a non-W3C propagator (for example B3) extracts a parent
   that ASP.NET Core did not see.

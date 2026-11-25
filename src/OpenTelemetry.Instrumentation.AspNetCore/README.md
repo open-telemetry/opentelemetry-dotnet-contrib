@@ -456,9 +456,8 @@ appBuilder.Services.AddOpenTelemetry()
     .AddAspNetCoreInstrumentation());
 ```
 
- Semantic conventions for RPC are still
- [experimental](https://github.com/open-telemetry/semantic-conventions/tree/main/docs/rpc#semantic-conventions-for-rpc)
- and hence the instrumentation only offers it as an experimental feature.
+The gRPC support follows the
+[semantic conventions for RPC](https://github.com/open-telemetry/semantic-conventions/tree/v1.45.0/docs/rpc#semantic-conventions-for-rpc).
 
 `rpc.method` and `rpc.system.name` are set when the request ends, so samplers
 cannot use them.
