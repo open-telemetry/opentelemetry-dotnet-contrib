@@ -18,6 +18,28 @@ internal class AWSServiceHelper
             semanticConventions
                 .ParameterMappingBuilder
                 .AddAttributeAWSDynamoTableName("TableName")
+                .AddAttributeAWSDynamoTableName("RequestItems")
+                .AddAttributeAWSDynamoAttributeDefinitions("AttributeDefinitions")
+                .AddAttributeAWSDynamoAttributesToGet("AttributesToGet")
+                .AddAttributeAWSDynamoConsistentRead("ConsistentRead")
+                .AddAttributeAWSDynamoConsumedCapacity("ConsumedCapacity")
+                .AddAttributeAWSDynamoCount("Count")
+                .AddAttributeAWSDynamoExclusiveStartTable("ExclusiveStartTableName")
+                .AddAttributeAWSDynamoGlobalSecondaryIndexUpdates("GlobalSecondaryIndexUpdates")
+                .AddAttributeAWSDynamoGlobalSecondaryIndexes("GlobalSecondaryIndexes")
+                .AddAttributeAWSDynamoIndexName("IndexName")
+                .AddAttributeAWSDynamoItemCollectionMetrics("ItemCollectionMetrics")
+                .AddAttributeAWSDynamoLimit("Limit")
+                .AddAttributeAWSDynamoLocalSecondaryIndexes("LocalSecondaryIndexes")
+                .AddAttributeAWSDynamoProjection("ProjectionExpression")
+                .AddAttributeAWSDynamoProvisionedReadCapacity("ProvisionedThroughput.ReadCapacityUnits")
+                .AddAttributeAWSDynamoProvisionedWriteCapacity("ProvisionedThroughput.WriteCapacityUnits")
+                .AddAttributeAWSDynamoScanForward("ScanIndexForward")
+                .AddAttributeAWSDynamoScannedCount("ScannedCount")
+                .AddAttributeAWSDynamoSegment("Segment")
+                .AddAttributeAWSDynamoSelect("Select")
+                .AddAttributeAWSDynamoTableCount("TableNames")
+                .AddAttributeAWSDynamoTotalSegments("TotalSegments")
                 .AddAttributeAWSSNSTopicArn("TopicArn")
                 .AddAttributeAWSSQSQueueUrl("QueueUrl")
                 .AddAttributeGenAiModelId("ModelId")
@@ -51,6 +73,15 @@ internal class AWSServiceHelper
         { AWSServiceType.SNSService, ["MessageId", "TopicArn"] },
         { AWSServiceType.SQSService, ["MessageId", "QueueUrl"] },
     };
+
+    // The DynamoDB request and response parameters recorded for each operation the semantic conventions define.
+    // aws.dynamodb.table_names from TableName is recorded through ServiceRequestParameterMap.
+    // See https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/db/dynamodb.md.
+    internal static IReadOnlyDictionary<string, DynamoDbParameter[]> DynamoDbRequestParameterMap { get; } =
+        BuildDynamoDbRequestParameterMap();
+
+    internal static IReadOnlyDictionary<string, DynamoDbParameter[]> DynamoDbResponseParameterMap { get; } =
+        BuildDynamoDbResponseParameterMap();
 
     internal static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> MessagingOperationTypeMap { get; } = new Dictionary<string, IReadOnlyDictionary<string, string>>(2)
     {
@@ -135,6 +166,84 @@ internal class AWSServiceHelper
         var suffix = "Request";
         var operationName = Utils.RemoveSuffix(completeRequestName, suffix);
         return operationName;
+    }
+
+    private static Dictionary<string, DynamoDbParameter[]> BuildDynamoDbRequestParameterMap() =>
+        new(8, StringComparer.Ordinal)
+        {
+            ["BatchGetItem"] = [new("RequestItems", DynamoDbValueKind.Keys)],
+            ["BatchWriteItem"] = [new("RequestItems", DynamoDbValueKind.Keys)],
+            ["CreateTable"] =
+            [
+                new("GlobalSecondaryIndexes", DynamoDbValueKind.StringArray),
+                new("LocalSecondaryIndexes", DynamoDbValueKind.StringArray),
+                new("ProvisionedThroughput.ReadCapacityUnits", DynamoDbValueKind.Double),
+                new("ProvisionedThroughput.WriteCapacityUnits", DynamoDbValueKind.Double),
+            ],
+            ["GetItem"] =
+            [
+                new("ConsistentRead", DynamoDbValueKind.Bool),
+                new("ProjectionExpression", DynamoDbValueKind.String),
+            ],
+            ["ListTables"] =
+            [
+                new("ExclusiveStartTableName", DynamoDbValueKind.String),
+                new("Limit", DynamoDbValueKind.Long),
+            ],
+            ["Query"] =
+            [
+                new("AttributesToGet", DynamoDbValueKind.StringArray),
+                new("ConsistentRead", DynamoDbValueKind.Bool),
+                new("IndexName", DynamoDbValueKind.String),
+                new("Limit", DynamoDbValueKind.Long),
+                new("ProjectionExpression", DynamoDbValueKind.String),
+                new("ScanIndexForward", DynamoDbValueKind.Bool),
+                new("Select", DynamoDbValueKind.String),
+            ],
+            ["Scan"] =
+            [
+                new("AttributesToGet", DynamoDbValueKind.StringArray),
+                new("ConsistentRead", DynamoDbValueKind.Bool),
+                new("IndexName", DynamoDbValueKind.String),
+                new("Limit", DynamoDbValueKind.Long),
+                new("ProjectionExpression", DynamoDbValueKind.String),
+                new("Segment", DynamoDbValueKind.Long),
+                new("Select", DynamoDbValueKind.String),
+                new("TotalSegments", DynamoDbValueKind.Long),
+            ],
+            ["UpdateTable"] =
+            [
+                new("AttributeDefinitions", DynamoDbValueKind.StringArray),
+                new("GlobalSecondaryIndexUpdates", DynamoDbValueKind.StringArray),
+                new("ProvisionedThroughput.ReadCapacityUnits", DynamoDbValueKind.Double),
+                new("ProvisionedThroughput.WriteCapacityUnits", DynamoDbValueKind.Double),
+            ],
+        };
+
+    private static Dictionary<string, DynamoDbParameter[]> BuildDynamoDbResponseParameterMap()
+    {
+        var consumedCapacity = new DynamoDbParameter("ConsumedCapacity", DynamoDbValueKind.StringArray);
+        var itemCollectionMetrics = new DynamoDbParameter("ItemCollectionMetrics", DynamoDbValueKind.Json);
+
+        return new Dictionary<string, DynamoDbParameter[]>(11, StringComparer.Ordinal)
+        {
+            ["BatchGetItem"] = [consumedCapacity],
+            ["BatchWriteItem"] = [consumedCapacity, itemCollectionMetrics],
+            ["CreateTable"] = [consumedCapacity, itemCollectionMetrics],
+            ["DeleteItem"] = [consumedCapacity, itemCollectionMetrics],
+            ["GetItem"] = [consumedCapacity],
+            ["ListTables"] = [new("TableNames", DynamoDbValueKind.Count)],
+            ["PutItem"] = [consumedCapacity, itemCollectionMetrics],
+            ["Query"] = [consumedCapacity],
+            ["Scan"] =
+            [
+                consumedCapacity,
+                new("Count", DynamoDbValueKind.Long),
+                new("ScannedCount", DynamoDbValueKind.Long),
+            ],
+            ["UpdateItem"] = [consumedCapacity, itemCollectionMetrics],
+            ["UpdateTable"] = [consumedCapacity],
+        };
     }
 
     private static Dictionary<string, string> BuildOperationNameToResourceMap()

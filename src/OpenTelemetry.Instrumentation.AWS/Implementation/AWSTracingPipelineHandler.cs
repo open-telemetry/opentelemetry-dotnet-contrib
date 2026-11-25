@@ -160,7 +160,12 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
 
         if (AWSServiceType.IsDynamoDbService(service))
         {
-            DynamoDbAttributes.AddResponseAttributes(activity, AWSServiceHelper.GetAWSOperationName(executionContext.RequestContext), responseContext.Response);
+            DynamoDbAttributeHelper.AddAttributes(
+                activity,
+                AWSServiceHelper.DynamoDbResponseParameterMap,
+                AWSServiceHelper.GetAWSOperationName(executionContext.RequestContext),
+                responseContext.Response,
+                this.awsServiceHelper.ParameterAttributeMap);
         }
 
         // The number of messages received is only known once the response has been received.
@@ -258,7 +263,12 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
         if (AWSServiceType.IsDynamoDbService(service))
         {
             this.awsSemanticConventions.TagBuilder.SetTagAttributeDbSystemToDynamoDb(activity);
-            DynamoDbAttributes.AddRequestAttributes(activity, AWSServiceHelper.GetAWSOperationName(requestContext), requestContext.OriginalRequest);
+            DynamoDbAttributeHelper.AddAttributes(
+                activity,
+                AWSServiceHelper.DynamoDbRequestParameterMap,
+                AWSServiceHelper.GetAWSOperationName(requestContext),
+                requestContext.OriginalRequest,
+                this.awsServiceHelper.ParameterAttributeMap);
         }
         else if (AWSServiceType.IsBedrockRuntimeService(service))
         {

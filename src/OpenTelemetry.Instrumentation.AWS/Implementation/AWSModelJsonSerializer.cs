@@ -3,7 +3,6 @@
 
 using System.Collections;
 using System.Collections.Concurrent;
-using System.Globalization;
 using System.Reflection;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -14,15 +13,16 @@ namespace OpenTelemetry.Instrumentation.AWS.Implementation;
 
 /// <summary>
 /// Serializes AWS SDK model objects to JSON using their PascalCase property names, which
-/// match the AWS wire format, without referencing the service-specific SDK packages.
+/// match the AWS wire format.
 /// </summary>
-internal static class AwsSdkModelJsonSerializer
+internal static class AWSModelJsonSerializer
 {
-    private const int MaxDepth = 16;
-
-    // The output is only used as span attribute values, never embedded in HTML, so readable
-    // characters such as non-ASCII letters, '+' and '&' are left unescaped.
-    private static readonly JsonWriterOptions WriterOptions = new() { Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping };
+    // The output is only used as span attribute values, so readable characters such as
+    // non-ASCII letters, '+' and '&' are left unescaped.
+    private static readonly JsonWriterOptions WriterOptions = new()
+    {
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+    };
 
     private static readonly ConcurrentDictionary<Type, PropertyInfo[]> PropertiesCache = new();
 
@@ -30,7 +30,10 @@ internal static class AwsSdkModelJsonSerializer
     /// Serializes <paramref name="value"/> to JSON.
     /// </summary>
     /// <param name="value">The value to serialize.</param>
-    /// <returns>The JSON, or <see langword="null"/> if the value is <see langword="null"/> or serializes to an empty object or array.</returns>
+    /// <returns>
+    /// The JSON, or <see langword="null"/> if the value is <see langword="null"/>
+    /// or serializes to an empty object or array.
+    /// </returns>
     internal static string? Serialize(object? value)
     {
         if (value == null)
@@ -41,16 +44,16 @@ internal static class AwsSdkModelJsonSerializer
         using var stream = new MemoryStream();
         using (var writer = new Utf8JsonWriter(stream, WriterOptions))
         {
-            Write(writer, value, 0);
+            Write(writer, value);
         }
 
         var json = Encoding.UTF8.GetString(stream.ToArray());
         return json is "{}" or "[]" ? null : json;
     }
 
-    private static void Write(Utf8JsonWriter writer, object? value, int depth)
+    private static void Write(Utf8JsonWriter writer, object? value)
     {
-        if (value == null || depth > MaxDepth)
+        if (value == null)
         {
             writer.WriteNullValue();
             return;
@@ -70,24 +73,18 @@ internal static class AwsSdkModelJsonSerializer
             case MemoryStream memoryStream:
                 writer.WriteBase64StringValue(memoryStream.ToArray());
                 break;
-            case DateTime dateTime:
-                writer.WriteStringValue(dateTime);
+            case long l:
+                writer.WriteNumberValue(l);
                 break;
-            case Enum:
-                writer.WriteStringValue(value.ToString());
-                break;
-            case int or long or short or byte or sbyte or ushort or uint or ulong:
-                writer.WriteNumberValue(Convert.ToInt64(value, CultureInfo.InvariantCulture));
-                break;
-            case double or float or decimal:
-                writer.WriteNumberValue(Convert.ToDouble(value, CultureInfo.InvariantCulture));
+            case double d:
+                writer.WriteNumberValue(d);
                 break;
             case IDictionary dictionary:
                 writer.WriteStartObject();
                 foreach (DictionaryEntry entry in dictionary)
                 {
-                    writer.WritePropertyName(Convert.ToString(entry.Key, CultureInfo.InvariantCulture) ?? string.Empty);
-                    Write(writer, entry.Value, depth + 1);
+                    writer.WritePropertyName((string)entry.Key);
+                    Write(writer, entry.Value);
                 }
 
                 writer.WriteEndObject();
@@ -96,18 +93,18 @@ internal static class AwsSdkModelJsonSerializer
                 writer.WriteStartArray();
                 foreach (var item in enumerable)
                 {
-                    Write(writer, item, depth + 1);
+                    Write(writer, item);
                 }
 
                 writer.WriteEndArray();
                 break;
             default:
-                WriteObject(writer, value, depth);
+                WriteObject(writer, value);
                 break;
         }
     }
 
-    private static void WriteObject(Utf8JsonWriter writer, object value, int depth)
+    private static void WriteObject(Utf8JsonWriter writer, object value)
     {
         writer.WriteStartObject();
         foreach (var property in GetProperties(value.GetType()))
@@ -119,7 +116,7 @@ internal static class AwsSdkModelJsonSerializer
             }
 
             writer.WritePropertyName(property.Name);
-            Write(writer, propertyValue, depth + 1);
+            Write(writer, propertyValue);
         }
 
         writer.WriteEndObject();
@@ -134,11 +131,11 @@ internal static class AwsSdkModelJsonSerializer
     private static PropertyInfo[] GetProperties(Type type)
         => PropertiesCache.GetOrAdd(type, static t => t
             .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(p => p.CanRead && p.GetIndexParameters().Length == 0 && !IsSdkIsSetFlag(p))
+            .Where(p => !IsSdkIsSetFlag(p))
             .OrderBy(p => p.Name, StringComparer.Ordinal)
             .ToArray());
 
-    // The SDK exposes flags such as AttributeValue.IsBOOLSet that are not part of the wire format.
+    // Flags such as AttributeValue.IsBOOLSet are SDK client-side state, absent from the wire format.
     private static bool IsSdkIsSetFlag(PropertyInfo property)
         => property.PropertyType == typeof(bool)
         && property.Name.StartsWith("Is", StringComparison.Ordinal)

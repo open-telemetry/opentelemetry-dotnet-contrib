@@ -7,14 +7,14 @@ using OpenTelemetry.Instrumentation.AWS.Implementation;
 
 namespace OpenTelemetry.Instrumentation.AWS.Tests.Implementation;
 
-public class AwsSdkModelJsonSerializerTests
+public class AWSModelJsonSerializerTests
 {
     [Fact]
     public void SerializesConsumedCapacityWithSortedPascalCaseKeys()
     {
         var value = new ConsumedCapacity { TableName = "T", CapacityUnits = 1.5 };
 
-        Assert.Equal("{\"CapacityUnits\":1.5,\"TableName\":\"T\"}", AwsSdkModelJsonSerializer.Serialize(value));
+        Assert.Equal("{\"CapacityUnits\":1.5,\"TableName\":\"T\"}", AWSModelJsonSerializer.Serialize(value));
     }
 
     [Fact]
@@ -22,7 +22,7 @@ public class AwsSdkModelJsonSerializerTests
     {
         var value = new GlobalSecondaryIndex { IndexName = "Idx", KeySchema = [] };
 
-        Assert.Equal("{\"IndexName\":\"Idx\"}", AwsSdkModelJsonSerializer.Serialize(value));
+        Assert.Equal("{\"IndexName\":\"Idx\"}", AWSModelJsonSerializer.Serialize(value));
     }
 
     [Fact]
@@ -30,7 +30,7 @@ public class AwsSdkModelJsonSerializerTests
     {
         var value = new Projection { ProjectionType = ProjectionType.KEYS_ONLY };
 
-        Assert.Equal("{\"ProjectionType\":\"KEYS_ONLY\"}", AwsSdkModelJsonSerializer.Serialize(value));
+        Assert.Equal("{\"ProjectionType\":\"KEYS_ONLY\"}", AWSModelJsonSerializer.Serialize(value));
     }
 
     [Fact]
@@ -40,7 +40,7 @@ public class AwsSdkModelJsonSerializerTests
         stream.Position = 2;
         var value = new AttributeValue { B = stream };
 
-        Assert.Equal("{\"B\":\"AQID\"}", AwsSdkModelJsonSerializer.Serialize(value));
+        Assert.Equal("{\"B\":\"AQID\"}", AWSModelJsonSerializer.Serialize(value));
         Assert.Equal(2, stream.Position);
     }
 
@@ -55,7 +55,7 @@ public class AwsSdkModelJsonSerializerTests
 
         Assert.Equal(
             "{\"ItemCollectionKey\":{\"pk\":{\"S\":\"a\"}},\"SizeEstimateRangeGB\":[1,2]}",
-            AwsSdkModelJsonSerializer.Serialize(value));
+            AWSModelJsonSerializer.Serialize(value));
     }
 
     [Fact]
@@ -63,13 +63,13 @@ public class AwsSdkModelJsonSerializerTests
     {
         var value = new AttributeValue { S = "user+1@é.com & <x>" };
 
-        Assert.Equal("{\"S\":\"user+1@é.com & <x>\"}", AwsSdkModelJsonSerializer.Serialize(value));
+        Assert.Equal("{\"S\":\"user+1@é.com & <x>\"}", AWSModelJsonSerializer.Serialize(value));
     }
 
     [Fact]
     public void ReturnsNullForNullAndEmptyObject()
     {
-        Assert.Null(AwsSdkModelJsonSerializer.Serialize(null));
-        Assert.Null(AwsSdkModelJsonSerializer.Serialize(new ConsumedCapacity()));
+        Assert.Null(AWSModelJsonSerializer.Serialize(null));
+        Assert.Null(AWSModelJsonSerializer.Serialize(new ConsumedCapacity()));
     }
 }

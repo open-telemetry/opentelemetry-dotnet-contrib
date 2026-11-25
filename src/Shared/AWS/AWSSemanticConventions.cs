@@ -134,6 +134,90 @@ internal partial class AWSSemanticConventions
         public ParameterMappingBuilderImpl AddAttributeAWSDynamoTableName(string value)
             => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSDynamoTableName, value);
 
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSDynamoAttributeDefinitions"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSDynamoAttributeDefinitions(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSDynamoAttributeDefinitions, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSDynamoAttributesToGet"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSDynamoAttributesToGet(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSDynamoAttributesToGet, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSDynamoConsistentRead"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSDynamoConsistentRead(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSDynamoConsistentRead, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSDynamoConsumedCapacity"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSDynamoConsumedCapacity(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSDynamoConsumedCapacity, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSDynamoCount"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSDynamoCount(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSDynamoCount, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSDynamoExclusiveStartTable"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSDynamoExclusiveStartTable(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSDynamoExclusiveStartTable, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSDynamoGlobalSecondaryIndexUpdates"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSDynamoGlobalSecondaryIndexUpdates(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSDynamoGlobalSecondaryIndexUpdates, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSDynamoGlobalSecondaryIndexes"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSDynamoGlobalSecondaryIndexes(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSDynamoGlobalSecondaryIndexes, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSDynamoIndexName"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSDynamoIndexName(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSDynamoIndexName, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSDynamoItemCollectionMetrics"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSDynamoItemCollectionMetrics(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSDynamoItemCollectionMetrics, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSDynamoLimit"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSDynamoLimit(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSDynamoLimit, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSDynamoLocalSecondaryIndexes"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSDynamoLocalSecondaryIndexes(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSDynamoLocalSecondaryIndexes, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSDynamoProjection"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSDynamoProjection(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSDynamoProjection, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSDynamoProvisionedReadCapacity"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSDynamoProvisionedReadCapacity(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSDynamoProvisionedReadCapacity, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSDynamoProvisionedWriteCapacity"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSDynamoProvisionedWriteCapacity(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSDynamoProvisionedWriteCapacity, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSDynamoScanForward"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSDynamoScanForward(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSDynamoScanForward, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSDynamoScannedCount"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSDynamoScannedCount(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSDynamoScannedCount, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSDynamoSegment"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSDynamoSegment(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSDynamoSegment, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSDynamoSelect"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSDynamoSelect(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSDynamoSelect, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSDynamoTableCount"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSDynamoTableCount(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSDynamoTableCount, value);
+
+        /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSDynamoTotalSegments"/>
+        public ParameterMappingBuilderImpl AddAttributeAWSDynamoTotalSegments(string value)
+            => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSDynamoTotalSegments, value);
+
         /// <inheritdoc cref="AWSSemanticConventionsBase.AttributeAWSSQSQueueUrl"/>
         public ParameterMappingBuilderImpl AddAttributeAWSSQSQueueUrl(string value)
             => this.awsSemanticConventions.AddDic(this, x => x.AttributeAWSSQSQueueUrl, value);

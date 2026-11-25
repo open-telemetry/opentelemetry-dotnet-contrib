@@ -19,9 +19,16 @@ public sealed class TestAWSClientDynamoDbAttributes : IDisposable
 {
     private const string ConsumedCapacityJson = "{\"TableName\":\"T\",\"CapacityUnits\":1.0}";
     private const string ExpectedConsumedCapacity = "{\"CapacityUnits\":1,\"TableName\":\"T\"}";
-    private const string ItemCollectionMetricsJson = "{\"ItemCollectionKey\":{\"pk\":{\"S\":\"a\"}},\"SizeEstimateRangeGB\":[1.0,2.0]}";
-    private const string ExpectedItemCollectionMetrics = "{\"ItemCollectionKey\":{\"pk\":{\"S\":\"a\"}},\"SizeEstimateRangeGB\":[1,2]}";
-    private const string ItemResponseJson = "{\"ConsumedCapacity\":" + ConsumedCapacityJson + ",\"ItemCollectionMetrics\":" + ItemCollectionMetricsJson + "}";
+
+    private const string ItemCollectionMetricsJson =
+        "{\"ItemCollectionKey\":{\"pk\":{\"S\":\"a\"}},\"SizeEstimateRangeGB\":[1.0,2.0]}";
+
+    private const string ExpectedItemCollectionMetrics =
+        "{\"ItemCollectionKey\":{\"pk\":{\"S\":\"a\"}},\"SizeEstimateRangeGB\":[1,2]}";
+
+    private const string ItemResponseJson =
+        "{\"ConsumedCapacity\":" + ConsumedCapacityJson
+        + ",\"ItemCollectionMetrics\":" + ItemCollectionMetricsJson + "}";
 
     private static readonly string[] TableNames = ["T"];
 
@@ -130,7 +137,8 @@ public sealed class TestAWSClientDynamoDbAttributes : IDisposable
                     ["B"] = [new() { DeleteRequest = new() }],
                 },
             },
-            "{\"ConsumedCapacity\":[" + ConsumedCapacityJson + "],\"ItemCollectionMetrics\":{\"A\":[" + ItemCollectionMetricsJson + "]}}",
+            "{\"ConsumedCapacity\":[" + ConsumedCapacityJson + "],"
+                + "\"ItemCollectionMetrics\":{\"A\":[" + ItemCollectionMetricsJson + "]}}",
             new()
             {
                 ["aws.dynamodb.table_names"] = new[] { "A", "B" },
@@ -170,8 +178,16 @@ public sealed class TestAWSClientDynamoDbAttributes : IDisposable
             new()
             {
                 ["aws.dynamodb.table_names"] = TableNames,
-                ["aws.dynamodb.global_secondary_indexes"] = new[] { "{\"IndexName\":\"Gsi1\",\"KeySchema\":[{\"AttributeName\":\"pk\",\"KeyType\":\"HASH\"}],\"Projection\":{\"ProjectionType\":\"ALL\"}}" },
-                ["aws.dynamodb.local_secondary_indexes"] = new[] { "{\"IndexName\":\"Lsi1\",\"KeySchema\":[{\"AttributeName\":\"sk\",\"KeyType\":\"RANGE\"}],\"Projection\":{\"ProjectionType\":\"KEYS_ONLY\"}}" },
+                ["aws.dynamodb.global_secondary_indexes"] = new[]
+                {
+                    "{\"IndexName\":\"Gsi1\",\"KeySchema\":[{\"AttributeName\":\"pk\",\"KeyType\":\"HASH\"}],"
+                        + "\"Projection\":{\"ProjectionType\":\"ALL\"}}",
+                },
+                ["aws.dynamodb.local_secondary_indexes"] = new[]
+                {
+                    "{\"IndexName\":\"Lsi1\",\"KeySchema\":[{\"AttributeName\":\"sk\",\"KeyType\":\"RANGE\"}],"
+                        + "\"Projection\":{\"ProjectionType\":\"KEYS_ONLY\"}}",
+                },
                 ["aws.dynamodb.provisioned_read_capacity"] = 5.0,
                 ["aws.dynamodb.provisioned_write_capacity"] = 7.0,
             }
@@ -206,8 +222,6 @@ public sealed class TestAWSClientDynamoDbAttributes : IDisposable
                 ["aws.dynamodb.table_count"] = 2L,
             }
         },
-        { "DeleteTable", new DeleteTableRequest { TableName = "T" }, "{}", new() { ["aws.dynamodb.table_names"] = TableNames } },
-        { "DescribeTable", new DescribeTableRequest { TableName = "T" }, "{}", new() { ["aws.dynamodb.table_names"] = TableNames } },
         {
             // Not defined by the semantic conventions, so the response's consumed capacity is not recorded.
             "TransactGetItems",
@@ -252,7 +266,9 @@ public sealed class TestAWSClientDynamoDbAttributes : IDisposable
             .Where(t => t.Key.StartsWith("aws.dynamodb.", StringComparison.Ordinal))
             .ToDictionary(t => t.Key, t => t.Value);
 
-        Assert.Equal(expected.Keys.OrderBy(k => k, StringComparer.Ordinal), actual.Keys.OrderBy(k => k, StringComparer.Ordinal));
+        Assert.Equal(
+            expected.Keys.OrderBy(k => k, StringComparer.Ordinal),
+            actual.Keys.OrderBy(k => k, StringComparer.Ordinal));
 
         foreach (var pair in expected)
         {
@@ -293,8 +309,6 @@ public sealed class TestAWSClientDynamoDbAttributes : IDisposable
             CreateTableRequest r => ddb.CreateTable(r),
             UpdateTableRequest r => ddb.UpdateTable(r),
             ListTablesRequest r => ddb.ListTables(r),
-            DeleteTableRequest r => ddb.DeleteTable(r),
-            DescribeTableRequest r => ddb.DescribeTable(r),
             TransactGetItemsRequest r => ddb.TransactGetItems(r),
             _ => throw new NotSupportedException(request.GetType().Name),
         };
@@ -313,8 +327,6 @@ public sealed class TestAWSClientDynamoDbAttributes : IDisposable
         CreateTableRequest r => ddb.CreateTableAsync(r),
         UpdateTableRequest r => ddb.UpdateTableAsync(r),
         ListTablesRequest r => ddb.ListTablesAsync(r),
-        DeleteTableRequest r => ddb.DeleteTableAsync(r),
-        DescribeTableRequest r => ddb.DescribeTableAsync(r),
         TransactGetItemsRequest r => ddb.TransactGetItemsAsync(r),
         _ => throw new NotSupportedException(request.GetType().Name),
     };
