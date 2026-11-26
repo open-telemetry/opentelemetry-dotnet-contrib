@@ -54,6 +54,16 @@ internal static class WorkflowAttributes
     public const string AttributeWorkflowTriggerType = "workflow.trigger.type";
 
     /// <summary>
+    /// The unique identifier of the workflow execution.
+    /// </summary>
+    public const string AttributeWorkflowExecutionId = "workflow.execution.id";
+
+    /// <summary>
+    /// The time when the workflow execution was created.
+    /// </summary>
+    public const string AttributeWorkflowExecutionCreationTime = "workflow.execution.creation.time";
+
+    /// <summary>
     /// Describes a class of error the operation ended with.
     /// </summary>
     public const string AttributeErrorType = "error.type";

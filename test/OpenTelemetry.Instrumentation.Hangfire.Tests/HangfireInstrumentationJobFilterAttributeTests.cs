@@ -45,10 +45,17 @@ public class HangfireInstrumentationJobFilterAttributeTests
         }
 
         // Assert
-        var activity = Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
+        var activity = Assert.Single(exportedItems, i => (i.GetTagItem("workflow.execution.id") as string) == jobId);
 
         Assert.Contains("JOB TestJob.Execute", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
+        var createdAt = Assert.IsType<string>(activity.GetTagItem("workflow.execution.creation.time"));
+        Assert.True(DateTimeOffset.TryParseExact(
+            createdAt,
+            "O",
+            System.Globalization.CultureInfo.InvariantCulture,
+            System.Globalization.DateTimeStyles.RoundtripKind,
+            out _));
     }
 
     [Fact]
@@ -72,7 +79,7 @@ public class HangfireInstrumentationJobFilterAttributeTests
         }
 
         // Assert
-        var activity = Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
+        var activity = Assert.Single(exportedItems, i => (i.GetTagItem("workflow.execution.id") as string) == jobId);
 
         Assert.Contains("JOB TestJob.ThrowException", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
@@ -102,7 +109,7 @@ public class HangfireInstrumentationJobFilterAttributeTests
         }
 
         // Assert
-        var activity = Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
+        var activity = Assert.Single(exportedItems, i => (i.GetTagItem("workflow.execution.id") as string) == jobId);
 
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
         Assert.Null(activity.StatusDescription);
@@ -130,7 +137,7 @@ public class HangfireInstrumentationJobFilterAttributeTests
         }
 
         // Assert
-        var activity = Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
+        var activity = Assert.Single(exportedItems, i => (i.GetTagItem("workflow.execution.id") as string) == jobId);
 
         Assert.Contains("JOB TestJob.ThrowException", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
@@ -164,7 +171,7 @@ public class HangfireInstrumentationJobFilterAttributeTests
         }
 
         // Assert
-        var activity = Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
+        var activity = Assert.Single(exportedItems, i => (i.GetTagItem("workflow.execution.id") as string) == jobId);
 
         Assert.Contains("JOB TestJob.ThrowException", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
@@ -200,7 +207,7 @@ public class HangfireInstrumentationJobFilterAttributeTests
         }
 
         // Assert
-        var activity = Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
+        var activity = Assert.Single(exportedItems, i => (i.GetTagItem("workflow.execution.id") as string) == jobId);
 
         Assert.Contains($"JOB {jobId}", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
@@ -223,7 +230,7 @@ public class HangfireInstrumentationJobFilterAttributeTests
         await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
 
         // Assert
-        var activity = Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
+        var activity = Assert.Single(exportedItems, i => (i.GetTagItem("workflow.execution.id") as string) == jobId);
         Assert.Contains("JOB TestJob.Execute", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
     }
@@ -251,7 +258,7 @@ public class HangfireInstrumentationJobFilterAttributeTests
 
             provider.ForceFlush();
 
-            var activity = Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
+            var activity = Assert.Single(exportedItems, i => (i.GetTagItem("workflow.execution.id") as string) == jobId);
             Assert.Equal("JOB TestJob.Execute", activity.DisplayName);
             Assert.Equal(ActivityStatusCode.Unset, activity.Status);
         }
@@ -350,7 +357,7 @@ public class HangfireInstrumentationJobFilterAttributeTests
         }
         else
         {
-            var jobActivity = Assert.Single(exportedItems, a => (a.GetTagItem("job.id") as string) == jobId);
+            var jobActivity = Assert.Single(exportedItems, a => (a.GetTagItem("workflow.execution.id") as string) == jobId);
             var childActivity = Assert.Single(childActivities);
             Assert.Equal(jobActivity.SpanId, childActivity.ParentSpanId);
         }

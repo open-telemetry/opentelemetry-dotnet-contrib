@@ -76,8 +76,8 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
                     }
                     else
                     {
-                        activity.SetTag(HangfireInstrumentationConstants.JobIdTag, filterContext.BackgroundJob.Id);
-                        activity.SetTag(HangfireInstrumentationConstants.JobCreatedAtTag, filterContext.BackgroundJob.CreatedAt.ToString("O"));
+                        activity.SetTag(WorkflowAttributes.AttributeWorkflowExecutionId, filterContext.BackgroundJob.Id);
+                        activity.SetTag(WorkflowAttributes.AttributeWorkflowExecutionCreationTime, filterContext.BackgroundJob.CreatedAt.ToString("O"));
                     }
                 }
 
