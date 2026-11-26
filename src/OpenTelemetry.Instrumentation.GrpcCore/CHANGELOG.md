@@ -8,10 +8,9 @@
   attribute is renamed to `rpc.status_code`.
   ([#6071](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6071))
 
-* Fixed `rpc.method` and the span name for a call with no method or with the
-  empty method path `//`. They are now `_OTHER` and `grpc`, not
-  `unknownservice/unknownmethod` or empty. For the method paths `//other` and
-  `/other/`, they are now `other`, not `_OTHER` and `grpc`.
+* Fixed `rpc.method` and the span name for a call with no method, or with a
+  method path that is not in the `/service/method` form. They are now `_OTHER`
+  and `grpc`, and `rpc.method_original` has the method name.
   ([#6109](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6109))
 
 ## 1.0.0-beta.20

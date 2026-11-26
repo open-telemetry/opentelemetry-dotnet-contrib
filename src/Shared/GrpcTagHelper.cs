@@ -51,18 +51,30 @@ internal static class GrpcTagHelper
         => grpcMethod.Trim('/');
 
     /// <summary>
-    /// Sets the <c>rpc.method</c> tag and the display name of the activity, and removes the
-    /// <c>grpc.method</c> tag.
+    /// Sets the <c>rpc.method</c> (and, if applicable, <c>rpc.method_original</c>) tags and the
+    /// display name of the activity, and removes the <c>grpc.method</c> tag.
     /// </summary>
     /// <param name="activity">The activity to update.</param>
     /// <param name="trimmedMethod">The gRPC method name as returned by <see cref="TrimGrpcMethod"/>.</param>
     public static void SetTrimmedGrpcMethodAndDisplayName(Activity activity, string trimmedMethod)
     {
-        if (trimmedMethod.Length == 0)
+#if NET || NETSTANDARD2_1_OR_GREATER
+        var separator = trimmedMethod.IndexOf('/', StringComparison.Ordinal);
+#else
+        var separator = trimmedMethod.IndexOf('/');
+#endif
+
+#if NET11_0_OR_GREATER
+        if (separator < 0 || separator != trimmedMethod.LastIndexOf('/', StringComparison.Ordinal))
+#else
+        if (separator < 0 || separator != trimmedMethod.LastIndexOf('/'))
+#endif
         {
-            // The RPC semantic conventions indicate the span name should be the RPC system when rpc.method is not available.
+            // A method that is not in the "service/method" form cannot be recognized, and the RPC
+            // semantic conventions indicate the span name should be the RPC system in that case.
             activity.DisplayName = RpcSystemGrpc;
             activity.SetTag(SemanticConventions.AttributeRpcMethod, RpcMethodOther);
+            activity.SetTag(SemanticConventions.AttributeRpcMethodOriginal, trimmedMethod.Length > 0 ? trimmedMethod : null);
         }
         else
         {

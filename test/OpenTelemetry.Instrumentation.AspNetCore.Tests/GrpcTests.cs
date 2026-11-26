@@ -4,6 +4,8 @@
 using System.Diagnostics;
 using System.Net;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Routing.Patterns;
 using OpenTelemetry.Instrumentation.AspNetCore.Implementation;
 using OpenTelemetry.Trace;
 
@@ -89,6 +91,7 @@ public class GrpcTests
         var context = CreateContext(IPAddress.Loopback, remotePort: 4317);
         context.Request.Path = path;
         context.Request.RouteValues["unimplementedMethod"] = unimplementedMethod;
+        context.SetEndpoint(CreateEndpoint("{unimplementedService}/{unimplementedMethod:grpcunimplemented}"));
         context.Response.ContentType = "application/grpc";
         context.Response.Headers["grpc-status"] = "12";
 
@@ -119,6 +122,7 @@ public class GrpcTests
         var context = CreateContext(IPAddress.Loopback, remotePort: 4317);
         context.Request.Path = "/package.Service/Missing";
         context.Request.RouteValues["unimplementedMethod"] = "Missing";
+        context.SetEndpoint(CreateEndpoint("{unimplementedService}/{unimplementedMethod:grpcunimplemented}"));
         context.Response.ContentType = "application/grpc";
         context.Response.Headers["grpc-status"] = "5";
 
@@ -145,6 +149,7 @@ public class GrpcTests
         var context = CreateContext(IPAddress.Loopback, remotePort: 4317);
         context.Request.Path = "/package.Service/Missing";
         context.Request.RouteValues["unimplementedMethod"] = "Missing";
+        context.SetEndpoint(CreateEndpoint("{unimplementedService}/{unimplementedMethod:grpcunimplemented}"));
         context.Response.ContentType = "application/grpc";
 
         if (grpcStatus != null)
@@ -187,6 +192,33 @@ public class GrpcTests
         AssertTag(activity, SemanticConventions.AttributeRpcMethodOriginal, null);
     }
 
+    [Theory]
+    [InlineData("{unimplementedMethod}")]
+    [InlineData("{unimplementedMethod:alpha}")]
+    public void OnStopActivityIgnoresUnimplementedMethodRouteValueWithoutGrpcUnimplementedConstraint(string routePattern)
+    {
+        // Arrange
+        var listener = CreateListener();
+        using var activity = new Activity("operation") { IsAllDataRequested = true };
+        var context = CreateContext(IPAddress.Loopback, remotePort: 4317);
+        context.Request.Path = "/Missing";
+        context.Request.RouteValues["unimplementedMethod"] = "Missing";
+        context.SetEndpoint(CreateEndpoint(routePattern));
+        context.Response.ContentType = "application/grpc";
+        context.Response.Headers["grpc-status"] = "12";
+
+        // Act
+        listener.OnStopActivity(activity, context);
+
+        // Assert
+        Assert.Equal("operation", activity.DisplayName);
+        Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+
+        AssertTag(activity, SemanticConventions.AttributeRpcSystemName, null);
+        AssertTag(activity, SemanticConventions.AttributeRpcMethod, null);
+        AssertTag(activity, SemanticConventions.AttributeRpcMethodOriginal, null);
+    }
+
     [Fact]
     public void OnStopActivityIgnoresUnimplementedMethodWhenGrpcSupportIsDisabled()
     {
@@ -196,6 +228,7 @@ public class GrpcTests
         var context = CreateContext(IPAddress.Loopback, remotePort: 4317);
         context.Request.Path = "/package.Service/Missing";
         context.Request.RouteValues["unimplementedMethod"] = "Missing";
+        context.SetEndpoint(CreateEndpoint("{unimplementedService}/{unimplementedMethod:grpcunimplemented}"));
         context.Response.ContentType = "application/grpc";
         context.Response.Headers["grpc-status"] = "12";
 
@@ -232,6 +265,9 @@ public class GrpcTests
 
         return activity;
     }
+
+    private static RouteEndpoint CreateEndpoint(string routePattern) =>
+        new(_ => Task.CompletedTask, RoutePatternFactory.Parse(routePattern), order: 0, metadata: null, displayName: null);
 
     private static DefaultHttpContext CreateContext(IPAddress? remoteIpAddress, int remotePort)
     {

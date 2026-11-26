@@ -6,6 +6,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Http;
+#if NET
+using Microsoft.AspNetCore.Routing;
+#endif
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
@@ -410,7 +413,8 @@ internal class HttpInListener : ListenerHandler
 #if NET
             else if (this.options.EnableGrpcAspNetCoreSupport &&
                 int.TryParse(response.Headers.GrpcStatus, NumberStyles.None, CultureInfo.InvariantCulture, out var grpcStatusCode) &&
-                context.Request.RouteValues.ContainsKey("unimplementedMethod"))
+                context.Request.RouteValues.ContainsKey("unimplementedMethod") &&
+                (context.GetEndpoint() as RouteEndpoint)?.RoutePattern.GetParameter("unimplementedMethod")?.ParameterPolicies is [{ Content: "grpcunimplemented" }])
             {
                 // Grpc.AspNetCore.Server answers a call to a method or service that it does not
                 // implement from this route, and does not add a grpc.method tag.
