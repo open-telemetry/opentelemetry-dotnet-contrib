@@ -15,7 +15,6 @@ internal enum DynamoDbValueKind
     /// <summary>A string, or the value of an SDK <see cref="ConstantClass"/>.</summary>
     String,
 
-    /// <summary>A boolean.</summary>
     Bool,
 
     /// <summary>An integer, recorded as a <see cref="long"/>.</summary>
@@ -33,7 +32,6 @@ internal enum DynamoDbValueKind
     /// <summary>The keys of a dictionary.</summary>
     Keys,
 
-    /// <summary>An object serialized to JSON.</summary>
     Json,
 }
 

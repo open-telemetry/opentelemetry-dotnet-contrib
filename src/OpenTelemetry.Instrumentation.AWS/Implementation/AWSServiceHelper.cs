@@ -76,7 +76,7 @@ internal class AWSServiceHelper
 
     // The DynamoDB request and response parameters recorded for each operation the semantic conventions define.
     // aws.dynamodb.table_names from TableName is recorded through ServiceRequestParameterMap.
-    // See https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/db/dynamodb.md.
+    // See https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/db/dynamodb.md
     internal static IReadOnlyDictionary<string, DynamoDbParameter[]> DynamoDbRequestParameterMap { get; } =
         BuildDynamoDbRequestParameterMap();
 
@@ -225,13 +225,10 @@ internal class AWSServiceHelper
         var consumedCapacity = new DynamoDbParameter("ConsumedCapacity", DynamoDbValueKind.StringArray);
         var itemCollectionMetrics = new DynamoDbParameter("ItemCollectionMetrics", DynamoDbValueKind.Json);
 
-        return new Dictionary<string, DynamoDbParameter[]>(11, StringComparer.Ordinal)
+        return new Dictionary<string, DynamoDbParameter[]>(9, StringComparer.Ordinal)
         {
             ["BatchGetItem"] = [consumedCapacity],
             ["BatchWriteItem"] = [consumedCapacity, itemCollectionMetrics],
-
-            // The semantic conventions list these for CreateTable and UpdateTable; the SDK's responses don't have them.
-            ["CreateTable"] = [consumedCapacity, itemCollectionMetrics],
             ["DeleteItem"] = [consumedCapacity, itemCollectionMetrics],
             ["GetItem"] = [consumedCapacity],
             ["ListTables"] = [new("TableNames", DynamoDbValueKind.Count)],
@@ -244,7 +241,6 @@ internal class AWSServiceHelper
                 new("ScannedCount", DynamoDbValueKind.Long),
             ],
             ["UpdateItem"] = [consumedCapacity, itemCollectionMetrics],
-            ["UpdateTable"] = [consumedCapacity],
         };
     }
 

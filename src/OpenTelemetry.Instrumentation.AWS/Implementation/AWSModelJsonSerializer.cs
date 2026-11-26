@@ -26,15 +26,13 @@ internal static class AWSModelJsonSerializer
 
     private static readonly ConcurrentDictionary<Type, PropertyInfo[]> PropertiesCache = new();
 
-    private static readonly DateTime UnixEpoch = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
-
     /// <summary>
     /// Serializes <paramref name="value"/> to JSON.
     /// </summary>
     /// <param name="value">The value to serialize.</param>
     /// <returns>
     /// The JSON, or <see langword="null"/> if the value is <see langword="null"/>
-    /// or serializes to an empty object or array.
+    /// or serializes to an empty object.
     /// </returns>
     internal static string? Serialize(object? value)
     {
@@ -50,7 +48,7 @@ internal static class AWSModelJsonSerializer
         }
 
         var json = Encoding.UTF8.GetString(stream.GetBuffer(), 0, (int)stream.Length);
-        return json is "{}" or "[]" ? null : json;
+        return json == "{}" ? null : json;
     }
 
     private static void Write(Utf8JsonWriter writer, object? value)
@@ -74,15 +72,6 @@ internal static class AWSModelJsonSerializer
                 break;
             case MemoryStream memoryStream:
                 writer.WriteBase64StringValue(memoryStream.ToArray());
-                break;
-            case DateTime dateTime:
-                var utc = dateTime.Kind == DateTimeKind.Unspecified
-                    ? DateTime.SpecifyKind(dateTime, DateTimeKind.Utc)
-                    : dateTime.ToUniversalTime();
-                writer.WriteNumberValue((utc - UnixEpoch).TotalSeconds);
-                break;
-            case int i:
-                writer.WriteNumberValue(i);
                 break;
             case long l:
                 writer.WriteNumberValue(l);
@@ -124,7 +113,9 @@ internal static class AWSModelJsonSerializer
         foreach (var property in GetProperties(value.GetType()))
         {
             var propertyValue = property.GetValue(value);
-            if (IsWritable(propertyValue))
+
+            // Empty collections are unset SDK properties; serialized key attributes are never lists.
+            if (propertyValue is not (null or ICollection { Count: 0 }))
             {
                 writer.WritePropertyName(property.Name);
                 Write(writer, propertyValue);
@@ -143,20 +134,12 @@ internal static class AWSModelJsonSerializer
     private static PropertyInfo[] GetProperties(Type type)
         => PropertiesCache.GetOrAdd(type, static t => t
             .GetProperties(BindingFlags.Public | BindingFlags.Instance)
-            .Where(p => !IsSdkIsSetFlag(p))
+            .Where(p => p.CanRead && !IsSdkIsSetFlag(p))
             .OrderBy(p => p.Name, StringComparer.Ordinal)
             .ToArray());
 
-    private static bool IsWritable(object? value) => value switch
-    {
-        // Empty collections are unset SDK properties; serialized key attributes are never lists.
-        null or ICollection { Count: 0 } => false,
-        string or bool or ConstantClass or MemoryStream or DateTime or int or long or double or IEnumerable => true,
-        _ => IsSdkModelType(value.GetType()),
-    };
-
     // Only AWS SDK model objects are reflected into, so a value of any other type added by a newer SDK
-    // version is left out of the JSON.
+    // version is written as null.
     private static bool IsSdkModelType(Type type)
         => type.IsClass && type.Namespace is { } ns && ns.StartsWith("Amazon.", StringComparison.Ordinal);
 
