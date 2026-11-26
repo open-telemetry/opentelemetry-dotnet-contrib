@@ -94,7 +94,7 @@ public sealed class TestAWSClientDynamoDbAttributes : IDisposable
         },
         {
             "Scan",
-            new ScanRequest { TableName = "T" },
+            new ScanRequest { TableName = "T", AttributesToGet = [] },
             "{}",
             new() { ["aws.dynamodb.table_names"] = TableNames }
         },
@@ -241,13 +241,14 @@ public sealed class TestAWSClientDynamoDbAttributes : IDisposable
         string operation,
         AmazonDynamoDBRequest request,
         string responseJson,
-        Dictionary<string, object> expected)
+        Dictionary<string, object> expected,
+        SemanticConventionVersion version = SemanticConventionVersion.Latest)
     {
         var exportedItems = new List<Activity>();
 
         using (Sdk.CreateTracerProviderBuilder()
                    .SetSampler(new AlwaysOnSampler())
-                   .AddAWSInstrumentation(o => o.SemanticConventionVersion = SemanticConventionVersion.Latest)
+                   .AddAWSInstrumentation(o => o.SemanticConventionVersion = version)
                    .AddInMemoryExporter(exportedItems)
                    .Build())
         {
@@ -282,6 +283,19 @@ public sealed class TestAWSClientDynamoDbAttributes : IDisposable
             }
         }
     }
+
+    [Fact]
+#if NETFRAMEWORK
+    public void EmitsSemanticConventionAttributesOnV1_28_0()
+#else
+    public Task EmitsSemanticConventionAttributesOnV1_28_0()
+#endif
+        => this.EmitsSemanticConventionAttributes(
+            "Query",
+            new QueryRequest { TableName = "T", Limit = 10 },
+            "{}",
+            new() { ["aws.dynamodb.table_names"] = TableNames, ["aws.dynamodb.limit"] = 10L },
+            SemanticConventionVersion.V1_28_0);
 
     public void Dispose() =>
         RuntimePipelineCustomizerRegistry.Instance.Deregister(AWS.Implementation.AWSTracingPipelineCustomizer.UniqueName);

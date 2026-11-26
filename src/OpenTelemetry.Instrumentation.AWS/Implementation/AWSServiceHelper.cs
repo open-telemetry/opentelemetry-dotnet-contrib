@@ -229,6 +229,8 @@ internal class AWSServiceHelper
         {
             ["BatchGetItem"] = [consumedCapacity],
             ["BatchWriteItem"] = [consumedCapacity, itemCollectionMetrics],
+
+            // The semantic conventions list these for CreateTable and UpdateTable; the SDK's responses don't have them.
             ["CreateTable"] = [consumedCapacity, itemCollectionMetrics],
             ["DeleteItem"] = [consumedCapacity, itemCollectionMetrics],
             ["GetItem"] = [consumedCapacity],

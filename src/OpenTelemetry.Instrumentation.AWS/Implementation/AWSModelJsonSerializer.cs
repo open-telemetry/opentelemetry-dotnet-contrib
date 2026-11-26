@@ -49,7 +49,7 @@ internal static class AWSModelJsonSerializer
             Write(writer, value);
         }
 
-        var json = Encoding.UTF8.GetString(stream.ToArray());
+        var json = Encoding.UTF8.GetString(stream.GetBuffer(), 0, (int)stream.Length);
         return json is "{}" or "[]" ? null : json;
     }
 
@@ -76,7 +76,10 @@ internal static class AWSModelJsonSerializer
                 writer.WriteBase64StringValue(memoryStream.ToArray());
                 break;
             case DateTime dateTime:
-                writer.WriteNumberValue((dateTime.ToUniversalTime() - UnixEpoch).TotalSeconds);
+                var utc = dateTime.Kind == DateTimeKind.Unspecified
+                    ? DateTime.SpecifyKind(dateTime, DateTimeKind.Utc)
+                    : dateTime.ToUniversalTime();
+                writer.WriteNumberValue((utc - UnixEpoch).TotalSeconds);
                 break;
             case int i:
                 writer.WriteNumberValue(i);
@@ -135,7 +138,7 @@ internal static class AWSModelJsonSerializer
     [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage(
         "Trimming",
         "IL2070",
-        Justification = "The reflected properties were already used by the AWS SDK's marshallers so the properties could not have been trimmed.")]
+        Justification = "Request properties are read by the AWS SDK's marshallers; trimmed response properties are left out of the JSON.")]
 #endif
     private static PropertyInfo[] GetProperties(Type type)
         => PropertiesCache.GetOrAdd(type, static t => t
@@ -146,6 +149,7 @@ internal static class AWSModelJsonSerializer
 
     private static bool IsWritable(object? value) => value switch
     {
+        // Empty collections are unset SDK properties; serialized key attributes are never lists.
         null or ICollection { Count: 0 } => false,
         string or bool or ConstantClass or MemoryStream or DateTime or int or long or double or IEnumerable => true,
         _ => IsSdkModelType(value.GetType()),

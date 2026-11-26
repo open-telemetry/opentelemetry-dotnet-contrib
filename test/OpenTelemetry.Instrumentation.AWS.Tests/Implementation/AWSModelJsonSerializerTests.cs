@@ -79,6 +79,17 @@ public class AWSModelJsonSerializerTests
     }
 
     [Fact]
+    public void WritesUnspecifiedDateTimeAsUtc()
+    {
+        var value = new TableDescription
+        {
+            CreationDateTime = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Unspecified),
+        };
+
+        Assert.Equal("{\"CreationDateTime\":1767225600}", AWSModelJsonSerializer.Serialize(value));
+    }
+
+    [Fact]
     public void WritesNullForTypesOutsideTheSdkModel()
         => Assert.Equal(
             "[null,\"a\"]",
