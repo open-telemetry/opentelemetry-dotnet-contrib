@@ -656,16 +656,16 @@ internal class HttpInListener : ListenerHandler
 
         if (request.QueryString.HasValue)
         {
-            var query = request.QueryString.Value.AsSpan(1);
+            var query = request.QueryString.Value.Substring(1);
             if (this.options.DisableUrlQueryRedaction)
             {
-                tags.Add(SemanticConventions.AttributeUrlQuery, query.ToString());
+                tags.Add(SemanticConventions.AttributeUrlQuery, query);
             }
             else
             {
                 // ASP.NET Core 11+ sets url.query natively (https://github.com/dotnet/aspnetcore/pull/68824)
                 // but what it redacts is narrower in scope, so overwrite it for backwards compatibility.
-                tags.Add(SemanticConventions.AttributeUrlQuery, RedactionHelper.GetRedactedQueryString(query) ?? query.ToString());
+                tags.Add(SemanticConventions.AttributeUrlQuery, RedactionHelper.GetRedactedQueryString(query));
             }
         }
 
