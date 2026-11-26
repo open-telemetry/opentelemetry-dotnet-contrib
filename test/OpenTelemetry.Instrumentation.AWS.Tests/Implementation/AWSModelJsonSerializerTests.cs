@@ -28,9 +28,9 @@ public class AWSModelJsonSerializerTests
     [Fact]
     public void DoesNotEscapeNonAsciiOrHtmlSensitiveCharacters()
     {
-        var value = new AttributeValue { S = "user+1@é.com & <x>" };
+        var value = new AttributeValue { S = "user+1@\u00E9.com & <x>" };
 
-        Assert.Equal("{\"S\":\"user+1@é.com & <x>\"}", AWSModelJsonSerializer.Serialize(value));
+        Assert.Equal("{\"S\":\"user+1@\u00E9.com & <x>\"}", AWSModelJsonSerializer.Serialize(value));
     }
 
     [Fact]

@@ -161,6 +161,7 @@ public sealed class TestAWSClientDynamoDbAttributes : IDisposable
                         IndexName = "Gsi1",
                         KeySchema = [new() { AttributeName = "pk", KeyType = KeyType.HASH }],
                         Projection = new() { ProjectionType = ProjectionType.ALL },
+                        ProvisionedThroughput = new() { ReadCapacityUnits = 3, WriteCapacityUnits = 4 },
                     },
                 ],
                 LocalSecondaryIndexes =
@@ -181,7 +182,8 @@ public sealed class TestAWSClientDynamoDbAttributes : IDisposable
                 ["aws.dynamodb.global_secondary_indexes"] = new[]
                 {
                     "{\"IndexName\":\"Gsi1\",\"KeySchema\":[{\"AttributeName\":\"pk\",\"KeyType\":\"HASH\"}],"
-                        + "\"Projection\":{\"ProjectionType\":\"ALL\"}}",
+                        + "\"Projection\":{\"ProjectionType\":\"ALL\"},"
+                        + "\"ProvisionedThroughput\":{\"ReadCapacityUnits\":3,\"WriteCapacityUnits\":4}}",
                 },
                 ["aws.dynamodb.local_secondary_indexes"] = new[]
                 {

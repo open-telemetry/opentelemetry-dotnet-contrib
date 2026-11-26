@@ -64,9 +64,6 @@ internal static class AWSModelJsonSerializer
             case string s:
                 writer.WriteStringValue(s);
                 break;
-            case bool b:
-                writer.WriteBooleanValue(b);
-                break;
             case ConstantClass constant:
                 writer.WriteStringValue(constant.Value);
                 break;
