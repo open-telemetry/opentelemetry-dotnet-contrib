@@ -86,6 +86,7 @@ which Google Cloud Platform environment an application is running in.
 | cloud.account.id        | auto          |
 | cloud.availability_zone | auto          |
 | cloud.region            | auto          |
+| cloud.resource_id       | auto          |
 
 ### Google Cloud Run Jobs
 
@@ -96,6 +97,7 @@ which Google Cloud Platform environment an application is running in.
 | cloud.account.id             | auto          |
 | cloud.availability_zone      | auto          |
 | cloud.region                 | auto          |
+| cloud.resource_id            | auto          |
 | faas.name                    | auto          |
 | gcp.cloud_run.job.execution  | auto          |
 | gcp.cloud_run.job.task_index | auto          |

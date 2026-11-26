@@ -66,14 +66,65 @@ public class GcpResourceDetectorTests
         var platform = new Platform(details);
         var attrs = GcpResourceDetector.ExtractCloudRunResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
         Assert.NotNull(attrs);
-        Assert.Equal(7, attrs.Count);
+        Assert.Equal(8, attrs.Count);
         Assert.Equal(ResourceAttributeConstants.GcpCloudProviderValue, attrs[ResourceSemanticConventions.AttributeCloudProvider]);
         Assert.Equal("projectId", attrs[ResourceSemanticConventions.AttributeCloudAccount]);
         Assert.Equal("us-central1-a", attrs[ResourceSemanticConventions.AttributeCloudAvailabilityZone]);
         Assert.Equal(ResourceAttributeConstants.GcpCloudRunPlatformValue, attrs[ResourceSemanticConventions.AttributeCloudPlatform]);
         Assert.Equal("us-central1", attrs[ResourceSemanticConventions.AttributeCloudRegion]);
+        Assert.Equal(
+            "//run.googleapis.com/projects/projectId/locations/us-central1/services/serviceName",
+            attrs[ResourceSemanticConventions.AttributeCloudResourceId]);
         Assert.Equal("serviceName", attrs[ResourceSemanticConventions.AttributeFaasName]);
         Assert.Equal("revisionName", attrs[ResourceSemanticConventions.AttributeFaasVersion]);
+    }
+
+    [Fact]
+    public void DetectCloudRunPlatformSetsCloudResourceId()
+    {
+        var details = new CloudRunPlatformDetails(
+            metadataJson: "json",
+            projectId: "projectId",
+            zone: "us-central1-a",
+            serviceName: "serviceName",
+            revisionName: "revisionName",
+            configurationName: "configurationName");
+        var platform = new Platform(details);
+
+        var resource = GcpResourceDetector.Detect(platform);
+
+        Assert.NotNull(resource);
+        Assert.NotNull(resource.SchemaUrl);
+
+        var actual = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
+        Assert.Equal(ResourceAttributeConstants.GcpCloudRunPlatformValue, actual[ResourceSemanticConventions.AttributeCloudPlatform]);
+        Assert.Equal(
+            "//run.googleapis.com/projects/projectId/locations/us-central1/services/serviceName",
+            actual[ResourceSemanticConventions.AttributeCloudResourceId]);
+    }
+
+    [Theory]
+    [InlineData("", "us-central1-a", "serviceName")]
+    [InlineData("projectId", "", "serviceName")]
+    [InlineData("projectId", "us-central1-a", "")]
+    public void TestExtractCloudRunResourceAttributesOmitsCloudResourceIdWhenComponentMissing(
+        string projectId,
+        string zone,
+        string serviceName)
+    {
+        var details = new CloudRunPlatformDetails(
+            metadataJson: "json",
+            projectId: projectId,
+            zone: zone,
+            serviceName: serviceName,
+            revisionName: "revisionName",
+            configurationName: "configurationName");
+        var platform = new Platform(details);
+
+        var attrs = GcpResourceDetector.ExtractCloudRunResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
+
+        Assert.Equal(7, attrs.Count);
+        Assert.DoesNotContain(ResourceSemanticConventions.AttributeCloudResourceId, attrs.Keys);
     }
 
     [Fact]
@@ -256,6 +307,9 @@ public class GcpResourceDetectorTests
 
         var actual = resource.Attributes.ToDictionary(x => x.Key, x => x.Value);
         Assert.Equal(ResourceAttributeConstants.GcpCloudRunPlatformValue, actual[ResourceSemanticConventions.AttributeCloudPlatform]);
+        Assert.Equal(
+            "//run.googleapis.com/projects/projectId/locations/us-central1/jobs/jobName",
+            actual[ResourceSemanticConventions.AttributeCloudResourceId]);
     }
 
     [Fact]
@@ -269,12 +323,15 @@ public class GcpResourceDetectorTests
 
         var actual = GcpResourceDetector.ExtractCloudRunJobResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
 
-        Assert.Equal(8, actual.Count);
+        Assert.Equal(9, actual.Count);
         Assert.Equal(ResourceAttributeConstants.GcpCloudProviderValue, actual[ResourceSemanticConventions.AttributeCloudProvider]);
         Assert.Equal("projectId", actual[ResourceSemanticConventions.AttributeCloudAccount]);
         Assert.Equal(ResourceAttributeConstants.GcpCloudRunPlatformValue, actual[ResourceSemanticConventions.AttributeCloudPlatform]);
         Assert.Equal("us-central1-a", actual[ResourceSemanticConventions.AttributeCloudAvailabilityZone]);
         Assert.Equal("us-central1", actual[ResourceSemanticConventions.AttributeCloudRegion]);
+        Assert.Equal(
+            "//run.googleapis.com/projects/projectId/locations/us-central1/jobs/jobName",
+            actual[ResourceSemanticConventions.AttributeCloudResourceId]);
         Assert.Equal("jobName", actual[ResourceSemanticConventions.AttributeFaasName]);
         Assert.Equal("jobName-abcde", actual[ResourceAttributeConstants.AttributeGcpCloudRunJobExecution]);
         Assert.Equal(3, actual[ResourceAttributeConstants.AttributeGcpCloudRunJobTaskIndex]);
@@ -294,9 +351,32 @@ public class GcpResourceDetectorTests
 
         var actual = GcpResourceDetector.ExtractCloudRunJobResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
 
-        Assert.Equal(6, actual.Count);
+        Assert.Equal(7, actual.Count);
+        Assert.Equal(
+            "//run.googleapis.com/projects/projectId/locations/us-central1/jobs/jobName",
+            actual[ResourceSemanticConventions.AttributeCloudResourceId]);
         Assert.DoesNotContain(ResourceAttributeConstants.AttributeGcpCloudRunJobExecution, actual.Keys);
         Assert.DoesNotContain(ResourceAttributeConstants.AttributeGcpCloudRunJobTaskIndex, actual.Keys);
+    }
+
+    [Theory]
+    [InlineData("", "us-central1-a", "jobName")]
+    [InlineData("projectId", "", "jobName")]
+    [InlineData("projectId", "us-central1-a", "")]
+    public void TestExtractCloudRunJobResourceAttributesOmitsCloudResourceIdWhenComponentMissing(
+        string projectId,
+        string zone,
+        string jobName)
+    {
+        using var scope = EnvironmentVariableScope.Create(
+            (ExecutionEnvVar, null),
+            (TaskIndexEnvVar, null));
+
+        var platform = new Platform(new CloudRunJobPlatformDetails("{}", projectId, zone, jobName));
+
+        var actual = GcpResourceDetector.ExtractCloudRunJobResourceAttributes(platform).ToDictionary(x => x.Key, x => x.Value);
+
+        Assert.DoesNotContain(ResourceSemanticConventions.AttributeCloudResourceId, actual.Keys);
     }
 
     [Fact]
