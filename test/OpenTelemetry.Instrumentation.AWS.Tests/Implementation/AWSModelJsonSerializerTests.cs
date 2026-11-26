@@ -67,6 +67,24 @@ public class AWSModelJsonSerializerTests
     }
 
     [Fact]
+    public void WritesIntAsNumber()
+        => Assert.Equal("[1,2]", AWSModelJsonSerializer.Serialize(new List<int> { 1, 2 }));
+
+    [Fact]
+    public void WritesDateTimeAsEpochSeconds()
+    {
+        var value = new TableDescription { CreationDateTime = new DateTime(2026, 1, 1, 0, 0, 0, DateTimeKind.Utc) };
+
+        Assert.Equal("{\"CreationDateTime\":1767225600}", AWSModelJsonSerializer.Serialize(value));
+    }
+
+    [Fact]
+    public void WritesNullForTypesOutsideTheSdkModel()
+        => Assert.Equal(
+            "[null,\"a\"]",
+            AWSModelJsonSerializer.Serialize(new List<object> { TimeSpan.FromSeconds(1), "a" }));
+
+    [Fact]
     public void ReturnsNullForNullAndEmptyObject()
     {
         Assert.Null(AWSModelJsonSerializer.Serialize(null));

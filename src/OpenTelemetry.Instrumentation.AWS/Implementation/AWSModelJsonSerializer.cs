@@ -26,6 +26,8 @@ internal static class AWSModelJsonSerializer
 
     private static readonly ConcurrentDictionary<Type, PropertyInfo[]> PropertiesCache = new();
 
+    private static readonly DateTime UnixEpoch = new(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
+
     /// <summary>
     /// Serializes <paramref name="value"/> to JSON.
     /// </summary>
@@ -73,6 +75,12 @@ internal static class AWSModelJsonSerializer
             case MemoryStream memoryStream:
                 writer.WriteBase64StringValue(memoryStream.ToArray());
                 break;
+            case DateTime dateTime:
+                writer.WriteNumberValue((dateTime.ToUniversalTime() - UnixEpoch).TotalSeconds);
+                break;
+            case int i:
+                writer.WriteNumberValue(i);
+                break;
             case long l:
                 writer.WriteNumberValue(l);
                 break;
@@ -98,8 +106,11 @@ internal static class AWSModelJsonSerializer
 
                 writer.WriteEndArray();
                 break;
-            default:
+            case var _ when IsSdkModelType(value.GetType()):
                 WriteObject(writer, value);
+                break;
+            default:
+                writer.WriteNullValue();
                 break;
         }
     }
@@ -110,13 +121,11 @@ internal static class AWSModelJsonSerializer
         foreach (var property in GetProperties(value.GetType()))
         {
             var propertyValue = property.GetValue(value);
-            if (propertyValue == null || propertyValue is ICollection { Count: 0 })
+            if (IsWritable(propertyValue))
             {
-                continue;
+                writer.WritePropertyName(property.Name);
+                Write(writer, propertyValue);
             }
-
-            writer.WritePropertyName(property.Name);
-            Write(writer, propertyValue);
         }
 
         writer.WriteEndObject();
@@ -134,6 +143,18 @@ internal static class AWSModelJsonSerializer
             .Where(p => !IsSdkIsSetFlag(p))
             .OrderBy(p => p.Name, StringComparer.Ordinal)
             .ToArray());
+
+    private static bool IsWritable(object? value) => value switch
+    {
+        null or ICollection { Count: 0 } => false,
+        string or bool or ConstantClass or MemoryStream or DateTime or int or long or double or IEnumerable => true,
+        _ => IsSdkModelType(value.GetType()),
+    };
+
+    // Only AWS SDK model objects are reflected into, so a value of any other type added by a newer SDK
+    // version is left out of the JSON.
+    private static bool IsSdkModelType(Type type)
+        => type.IsClass && type.Namespace is { } ns && ns.StartsWith("Amazon.", StringComparison.Ordinal);
 
     // Flags such as AttributeValue.IsBOOLSet are SDK client-side state, absent from the wire format.
     private static bool IsSdkIsSetFlag(PropertyInfo property)
