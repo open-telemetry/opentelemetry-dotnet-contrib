@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+* Added the `aws.dynamodb.*` span attributes that the semantic conventions
+  define for DynamoDB operations, such as `aws.dynamodb.limit`,
+  `aws.dynamodb.index_name` and `aws.dynamodb.consumed_capacity`.
+  `BatchGetItem` and `BatchWriteItem` spans now also set
+  `aws.dynamodb.table_names`.
+  ([#6140](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6140))
+
 ## 1.21.0
 
 Released 2026-Nov-11
