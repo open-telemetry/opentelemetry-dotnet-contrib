@@ -19,6 +19,11 @@ internal static class WorkflowAttributes
     public const string AttributeWorkflowTaskName = "workflow.task.name";
 
     /// <summary>
+    /// Fully qualified identifier of the task.
+    /// </summary>
+    public const string AttributeWorkflowTaskId = "workflow.task.id";
+
+    /// <summary>
     /// Name of the workflow.
     /// </summary>
     public const string AttributeWorkflowDefinitionName = "workflow.definition.name";

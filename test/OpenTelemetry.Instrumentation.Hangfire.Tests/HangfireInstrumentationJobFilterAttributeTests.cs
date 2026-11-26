@@ -49,6 +49,29 @@ public class HangfireInstrumentationJobFilterAttributeTests
 
         Assert.Contains("JOB TestJob.Execute", activity.DisplayName);
         Assert.Equal(ActivityKind.Internal, activity.Kind);
+        Assert.Equal($"{typeof(TestJob).FullName}.Execute", activity.GetTagItem("workflow.task.id"));
+        Assert.Equal("TestJob.Execute", activity.GetTagItem("workflow.task.name"));
+    }
+
+    [Fact]
+    public async Task Should_Provide_Workflow_Attributes_To_Sampler()
+    {
+        // Arrange
+        var sampler = new WorkflowAttributesSampler();
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .AddHangfireInstrumentation()
+                   .SetSampler(sampler)
+                   .Build())
+        {
+            // Act
+            var jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
+            await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+        }
+
+        // Assert
+        Assert.Equal($"{typeof(TestJob).FullName}.Execute", sampler.TaskId);
+        Assert.Equal("TestJob.Execute", sampler.TaskName);
     }
 
     [Fact]
@@ -1093,6 +1116,32 @@ public class HangfireInstrumentationJobFilterAttributeTests
 
         public void ThrowIfCancellationRequested()
         {
+        }
+    }
+
+    private sealed class WorkflowAttributesSampler : Sampler
+    {
+        public string? TaskId { get; private set; }
+
+        public string? TaskName { get; private set; }
+
+        public override SamplingResult ShouldSample(in SamplingParameters samplingParameters)
+        {
+            var tags = samplingParameters.Tags ?? [];
+            foreach (var tag in tags)
+            {
+                switch (tag.Key)
+                {
+                    case "workflow.task.id":
+                        this.TaskId = tag.Value as string;
+                        break;
+                    case "workflow.task.name":
+                        this.TaskName = tag.Value as string;
+                        break;
+                }
+            }
+
+            return new SamplingResult(SamplingDecision.RecordAndSample);
         }
     }
 }

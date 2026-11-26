@@ -58,10 +58,16 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
                 Baggage.Current = propagationContext.Baggage;
             }
 
+            var tags = new TagList
+            {
+                { WorkflowAttributes.AttributeWorkflowTaskId, filterContext.BackgroundJob.FormatJobId() },
+                { WorkflowAttributes.AttributeWorkflowTaskName, filterContext.BackgroundJob.FormatJobName() },
+            };
+
             // Created, not started: Activity.Id caches the trace flags on first read, so a filtered activity
             // must have Recorded cleared before Start lets listeners see it.
             activity = HangfireInstrumentation.ActivitySource
-                .CreateActivity(HangfireInstrumentationConstants.ActivityName, ActivityKind.Internal, parentContext);
+                .CreateActivity(HangfireInstrumentationConstants.ActivityName, ActivityKind.Internal, parentContext, tags);
 
             if (activity != null)
             {

@@ -23,6 +23,9 @@
   trace.
   ([#6111](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6111))
 
+* Added `workflow.task.id` and `workflow.task.name` attributes to job activities.
+  ([#6108](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6108))
+
 ## 1.21.0-beta.1
 
 Released 2026-Nov-11
