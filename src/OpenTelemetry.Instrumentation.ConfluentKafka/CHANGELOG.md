@@ -2,6 +2,25 @@
 
 ## Unreleased
 
+* Added opt-in, process-aggregated producer metrics from librdkafka statistics,
+  including transmitted records and bytes, buffer capacity, in-flight requests,
+  queue latency, and throttling.
+  ([#5508](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5508))
+
+* Fixed producer construction with enumerable configuration and preserved
+  per-producer statistics callbacks when client metrics are enabled.
+  ([#5508](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5508))
+
+* Moved native producer statistics processing off the Kafka poll thread using
+  bounded channels adapted from Aspire, with overflow diagnostics and
+  per-producer disposal cleanup.
+  ([#5508](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5508))
+
+* Track producer transmission deltas per partition, preserve configuration and
+  callback error handling on instrumented builds, and enforce the native
+  one-day statistics interval limit.
+  ([#5508](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5508))
+
 ## 0.6.0-alpha.1
 
 Released 2026-Nov-11

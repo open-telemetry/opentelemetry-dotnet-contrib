@@ -4,6 +4,7 @@
     <TargetFrameworks>$(TargetFrameworksForLibraries);$(NetFrameworkMinimumSupportedVersion)</TargetFrameworks>
     <Description>Confluent.Kafka instrumentation for OpenTelemetry .NET.</Description>
     <PackageTags>$(PackageTags);distributed-tracing;Kafka;Confluent.Kafka</PackageTags>
+    <PackageThirdPartyNoticesFile>THIRD-PARTY-NOTICES.TXT</PackageThirdPartyNoticesFile>
     <IncludeSharedExceptionExtensionsSource>true</IncludeSharedExceptionExtensionsSource>
     <MinVerTagPrefix>Instrumentation.ConfluentKafka-</MinVerTagPrefix>
   </PropertyGroup>
@@ -28,6 +29,8 @@
     <PackageReference Include="Confluent.Kafka" />
     <PackageReference Include="Microsoft.Extensions.Options" />
     <PackageReference Include="OpenTelemetry.Api.ProviderBuilderExtensions" />
+    <PackageReference Include="System.Text.Json" Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' != '.NETCoreApp'" />
+    <PackageReference Include="System.Threading.Channels" Condition="'$([MSBuild]::GetTargetFrameworkIdentifier(`$(TargetFramework)`))' != '.NETCoreApp'" />
   </ItemGroup>
 
 </Project>

@@ -23,6 +23,18 @@ public sealed class InstrumentedProducerBuilder<TKey, TValue> : ProducerBuilder<
     {
     }
 
+    internal bool EnableClientMetrics
+    {
+        get => this.options.ClientMetrics;
+        set => this.options.ClientMetrics = value;
+    }
+
+    internal TimeSpan StatisticsInterval
+    {
+        get => this.options.StatisticsInterval;
+        set => this.options.StatisticsInterval = value;
+    }
+
     internal bool EnableMetrics
     {
         get => this.options.Metrics;
@@ -41,6 +53,61 @@ public sealed class InstrumentedProducerBuilder<TKey, TValue> : ProducerBuilder<
     /// <returns>an <see cref="IProducer{TKey,TValue}"/>.</returns>
     public override IProducer<TKey, TValue> Build()
     {
-        return new InstrumentedProducer<TKey, TValue>(base.Build(), this.options, ((ClientConfig)this.Config).BootstrapServers);
+        if (!this.options.ClientMetrics)
+        {
+            var bootstrapServers = GetBootstrapServers(this.Config);
+            return new InstrumentedProducer<TKey, TValue>(base.Build(), this.options, bootstrapServers);
+        }
+
+        var nativeConfig = this.Config.ToList();
+        if (!nativeConfig.Any(pair => string.Equals(pair.Key, "statistics.interval.ms", StringComparison.Ordinal)))
+        {
+            nativeConfig.Add(new KeyValuePair<string, string>(
+                "statistics.interval.ms",
+                ((int)this.options.StatisticsInterval.TotalMilliseconds).ToString(System.Globalization.CultureInfo.InvariantCulture)));
+        }
+
+        var userHandler = this.StatisticsHandler;
+        var registration = CreateMetricsRegistration();
+        try
+        {
+            var handler = KafkaProducerStatisticsHandler.Create(registration.Enqueue, userHandler);
+            var producer = new InstrumentedProducer<TKey, TValue>(
+                this.BuildNativeProducer(nativeConfig, handler), this.options, GetBootstrapServers(nativeConfig), registration);
+            registration = null;
+            return producer;
+        }
+        finally
+        {
+            registration?.Dispose();
+        }
     }
+
+    private static KafkaProducerMetricsRegistration CreateMetricsRegistration() => new KafkaProducerMetricsRegistration();
+
+    private static string? GetBootstrapServers(IEnumerable<KeyValuePair<string, string>> config)
+        => config.LastOrDefault(pair => string.Equals(pair.Key, "bootstrap.servers", StringComparison.Ordinal)).Value;
+
+    private IProducer<TKey, TValue> BuildNativeProducer(
+        IEnumerable<KeyValuePair<string, string>> config,
+        Action<IProducer<TKey, TValue>, string> statisticsHandler)
+    {
+        // Confluent.Kafka callbacks read their builder's handlers dynamically. Each client needs its own builder.
+        var builder = new InstrumentedProducerBuilder<TKey, TValue>(config)
+        {
+            LogHandler = this.LogHandler,
+            ErrorHandler = this.ErrorHandler,
+            StatisticsHandler = statisticsHandler,
+            OAuthBearerTokenRefreshHandler = this.OAuthBearerTokenRefreshHandler,
+            Partitioners = this.Partitioners,
+            DefaultPartitioner = this.DefaultPartitioner,
+            KeySerializer = this.KeySerializer,
+            ValueSerializer = this.ValueSerializer,
+            AsyncKeySerializer = this.AsyncKeySerializer,
+            AsyncValueSerializer = this.AsyncValueSerializer,
+        };
+        return builder.BuildNativeProducer();
+    }
+
+    private IProducer<TKey, TValue> BuildNativeProducer() => base.Build();
 }

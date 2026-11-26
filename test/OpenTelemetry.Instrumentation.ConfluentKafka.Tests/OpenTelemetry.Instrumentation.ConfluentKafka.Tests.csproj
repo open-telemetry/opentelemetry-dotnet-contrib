@@ -33,6 +33,7 @@
 
   <ItemGroup>
     <EmbeddedResource Include="*.Dockerfile" LogicalName="%(FileName)%(Extension)" />
+    <EmbeddedResource Include="Statistics/Fixtures/*.json" LogicalName="%(FileName)%(Extension)" />
   </ItemGroup>
 
 </Project>
