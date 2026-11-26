@@ -2,6 +2,27 @@
 
 ## Unreleased
 
+* Fixed activities started by a job excluded by `Filter` being collected as
+  new root traces. The unrecorded job activity now stays current until the job
+  completes, so the default sampler drops them.
+  ([#6110](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6110))
+
+* Fixed a failure while starting or stopping the job activity, such as a
+  throwing propagator, `ActivityStarted` or `ActivityStopped` listener, failing
+  the job and leaving the activity running or current. The failure is now
+  logged instead. A job whose activity fails to start runs without one, and
+  the failed activity is not exported.
+  ([#6111](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6111))
+
+* Fixed a `DisplayNameFunc` that throws or returns `null` failing the job. The
+  default display name is used instead.
+  ([#6111](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6111))
+
+* Fixed a propagated context that cannot be read from the job parameters
+  failing the job. The failure is now logged and the job activity starts a new
+  trace.
+  ([#6111](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6111))
+
 ## 1.21.0-beta.1
 
 Released 2026-Nov-11

@@ -2,6 +2,12 @@
 
 ## Unreleased
 
+* Allow `ConsumeAndProcessMessageAsync` to be used with any
+  `IConsumer<TKey, TValue>` implementation (such as test doubles in unit tests)
+  instead of throwing `ArgumentException` when the consumer is not an internal
+  `InstrumentedConsumer<TKey, TValue>`.
+  ([#5918](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/5918))
+
 ## 0.6.0-alpha.1
 
 Released 2026-Nov-11

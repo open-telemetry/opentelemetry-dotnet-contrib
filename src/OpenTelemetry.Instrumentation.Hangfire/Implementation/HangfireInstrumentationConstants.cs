@@ -12,5 +12,6 @@ internal static class HangfireInstrumentationConstants
     public const string ActivityKey = "opentelemetry_activity_key";
     public const string ActivityContextKey = "opentelemetry_activity_context";
     public const string PreviousBaggageKey = "opentelemetry_previous_baggage";
+    public const string PreviousActivityKey = "opentelemetry_previous_activity";
     public const string BaggageSlotName = "otel.baggage";
 }
