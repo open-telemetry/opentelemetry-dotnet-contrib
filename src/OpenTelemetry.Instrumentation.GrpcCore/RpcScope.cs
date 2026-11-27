@@ -181,6 +181,45 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     }
 
     /// <summary>
+    /// Creates the tags to start the activity with, so that samplers can use them.
+    /// </summary>
+    /// <param name="additionalTags">The additional tags.</param>
+    /// <param name="channelTarget">The channel target, used when the call has no host.</param>
+    /// <returns>The tags.</returns>
+    protected List<KeyValuePair<string, object?>> CreateActivityTags(
+        IReadOnlyDictionary<string, object?>? additionalTags,
+        string? channelTarget = null)
+    {
+        List<KeyValuePair<string, object?>> tags = [new(SemanticConventions.AttributeRpcSystemName, GrpcTagHelper.RpcSystemGrpc)];
+
+        if (string.Equals(this.FullServiceName, GrpcTagHelper.GrpcMethodOther, StringComparison.Ordinal))
+        {
+            tags.Add(new(SemanticConventions.AttributeRpcMethod, GrpcTagHelper.RpcMethodOther));
+            tags.Add(new(SemanticConventions.AttributeRpcMethodOriginal, this.FullServiceName));
+        }
+        else
+        {
+            tags.Add(new(SemanticConventions.AttributeRpcMethod, this.FullServiceName));
+        }
+
+        if (this.host is { Length: > 0 } host)
+        {
+            TryAddServerTags(tags, host);
+        }
+        else if (channelTarget is { } target && !string.IsNullOrWhiteSpace(target))
+        {
+            AddServerTagsFromTarget(tags, target);
+        }
+
+        if (additionalTags != null)
+        {
+            tags.AddRange(additionalTags);
+        }
+
+        return tags;
+    }
+
+    /// <summary>
     /// Sets the activity for this RPC scope. Should only be called once.
     /// </summary>
     /// <param name="activity">The activity.</param>
@@ -188,34 +227,89 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
     {
         this.activity = activity;
 
-        if (this.activity == null || !this.activity.IsAllDataRequested)
+        if (activity != null && string.Equals(this.FullServiceName, GrpcTagHelper.GrpcMethodOther, StringComparison.Ordinal))
         {
-            return;
-        }
-
-        GrpcTagHelper.SetGrpcSystemName(this.activity);
-        GrpcTagHelper.SetGrpcMethodAndDisplayNameFromActivity(this.activity, this.FullServiceName);
-
-        if (this.host is { Length: > 0 } host)
-        {
-            TrySetServerAttributes(this.activity, host);
+            activity.DisplayName = GrpcTagHelper.RpcSystemGrpc;
         }
     }
 
-    private static void TrySetServerAttributes(Activity activity, string host)
+    private static bool TryAddServerTags(List<KeyValuePair<string, object?>> tags, string hostAndPort)
     {
-        // Add a placeholder for the scheme so the parse succeeds. The value is not important.
-        if (!Uri.TryCreate($"http://{host}", UriKind.Absolute, out var uri))
+        // A scheme with no default port keeps an explicit port such as 80.
+        if (!Uri.TryCreate($"grpc://{hostAndPort}", UriKind.Absolute, out var uri) || uri.Host.Length == 0)
         {
-            return;
+            return false;
         }
 
-        activity.SetTag(SemanticConventions.AttributeServerAddress, uri.Host);
+        var host = uri.Host;
+        if (uri.HostNameType == UriHostNameType.IPv6)
+        {
+            host = host.Substring(1, host.Length - 2);
+        }
+
+        tags.Add(new(SemanticConventions.AttributeServerAddress, host));
 
         if (!uri.IsDefaultPort)
         {
-            activity.SetTag(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(uri.Port, cacheValue: true));
+            tags.Add(new(SemanticConventions.AttributeServerPort, PortTelemetryHelper.GetBoxedPort(uri.Port, cacheValue: true)));
         }
+
+        return true;
+    }
+
+    // See https://github.com/grpc/grpc/blob/v1.76.0/doc/naming.md.
+    private static void AddServerTagsFromTarget(List<KeyValuePair<string, object?>> tags, string target)
+    {
+        var colon = target.IndexOf(':');
+        var scheme = colon > 0 ? target.Substring(0, colon) : null;
+        var rest = target.Substring(colon + 1);
+
+        switch (scheme)
+        {
+            case "dns":
+                if (rest.StartsWith("//", StringComparison.Ordinal))
+                {
+                    // Skip the authority, which names the DNS server.
+                    var slash = rest.IndexOf('/', 2);
+                    rest = slash < 0 ? string.Empty : rest.Substring(slash + 1);
+                }
+
+                if (TryAddServerTags(tags, rest))
+                {
+                    return;
+                }
+
+                break;
+
+            case "unix":
+                tags.Add(new(SemanticConventions.AttributeServerAddress, rest.StartsWith("//", StringComparison.Ordinal) ? rest.Substring(2) : rest));
+                return;
+
+            case "ipv4":
+            case "ipv6":
+                if (string.Equals(scheme, "ipv6", StringComparison.Ordinal) &&
+                    !rest.StartsWith("[", StringComparison.Ordinal))
+                {
+                    rest = $"[{rest}]";
+                }
+
+                if (rest.IndexOf(',') < 0 && TryAddServerTags(tags, rest))
+                {
+                    return;
+                }
+
+                break;
+
+            default:
+                if (target.IndexOf("://", StringComparison.Ordinal) < 0 && TryAddServerTags(tags, target))
+                {
+                    return;
+                }
+
+                break;
+        }
+
+        tags.Add(new(SemanticConventions.AttributeServerAddress, target));
     }
 
     /// <summary>
@@ -332,17 +426,17 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
             return;
         }
 
-        var messageSize = message.CalculateSize();
+        // Servers receive requests and send responses.
+        var sent = request != (this.activity.Kind == ActivityKind.Server);
 
         var attributes = new ActivityTagsCollection(
         [
             new("name", "message"),
-            new(SemanticConventions.AttributeMessageType, request ? "SENT" : "RECEIVED"),
+            new(SemanticConventions.AttributeMessageType, sent ? "SENT" : "RECEIVED"),
             new(SemanticConventions.AttributeMessageId, request ? this.requestMessageCounter : this.responseMessageCounter),
 
-            // TODO how to get the real compressed or uncompressed sizes
-            new(SemanticConventions.AttributeMessageCompressedSize, messageSize),
-            new(SemanticConventions.AttributeMessageUncompressedSize, messageSize),
+            // The compressed size is not set, because an interceptor sees the message before compression.
+            new(SemanticConventions.AttributeMessageUncompressedSize, message.CalculateSize()),
         ]);
 
         this.activity.AddEvent(new ActivityEvent(eventName, default, attributes));

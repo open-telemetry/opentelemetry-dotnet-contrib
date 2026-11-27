@@ -12,19 +12,22 @@ namespace OpenTelemetry.Instrumentation.GrpcCore.Tests;
 internal sealed class TestServerCallContext : ServerCallContext
 {
     private readonly Metadata requestHeaders;
+    private readonly string host;
 
     /// <summary>
     /// Initializes a new instance of the <see cref="TestServerCallContext"/> class.
     /// </summary>
     /// <param name="requestHeaders">The request headers.</param>
-    public TestServerCallContext(Metadata requestHeaders)
+    /// <param name="host">The host the client used to reach the server.</param>
+    public TestServerCallContext(Metadata requestHeaders, string host = "localhost")
     {
         this.requestHeaders = requestHeaders;
+        this.host = host;
     }
 
     protected override string MethodCore => "/OpenTelemetry.Instrumentation.GrpcCore.Tests.Foobar/" + FoobarService.UnaryMethod;
 
-    protected override string HostCore => "localhost";
+    protected override string HostCore => this.host;
 
     protected override string PeerCore => "ipv4:127.0.0.1:12345";
 

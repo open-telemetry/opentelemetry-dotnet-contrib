@@ -45,10 +45,14 @@ services.AddOpenTelemetry().WithTracing(x =>
 Once configured, the OpenTelemetry SDK will listen for the activities created
 by the client and server interceptors.
 
-Create a client interceptor:
+Create a client interceptor. To get `server.address` for calls that have no
+host, set `ChannelTarget` to the target of the channel:
 
 ```csharp
-var clientInterceptor = new ClientTracingInterceptor(new ClientTracingInterceptorOptions());
+var clientInterceptor = new ClientTracingInterceptor(new ClientTracingInterceptorOptions
+{
+    ChannelTarget = channel.Target,
+});
 ```
 
 Create a server interceptor:
