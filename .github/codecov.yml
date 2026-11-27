@@ -36,6 +36,11 @@ flags:
     paths:
       - src/OpenTelemetry.DynamicControl
 
+  unittests-Exporter.AzureDataExplorer:
+    carryforward: true
+    paths:
+      - src/OpenTelemetry.Exporter.AzureDataExplorer
+
   unittests-Exporter.Geneva:
     carryforward: true
     paths:
