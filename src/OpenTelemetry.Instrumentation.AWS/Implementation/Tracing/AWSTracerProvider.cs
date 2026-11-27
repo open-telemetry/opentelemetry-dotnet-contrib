@@ -12,10 +12,13 @@ internal sealed class AWSTracerProvider : TracerProvider
 {
     private readonly ConcurrentDictionary<string, ActivitySource> activitySources = new();
     private readonly Version semanticConventionVersion;
+    private readonly bool recordException;
     private readonly bool useProducerKindForMessageSend;
 
-    public AWSTracerProvider(SemanticConventionVersion version)
+    public AWSTracerProvider(SemanticConventionVersion version, bool recordException)
     {
+        this.recordException = recordException;
+
         // Since v1.44.0 the semantic conventions for AWS SNS and AWS SQS describe sending a message as a producer span.
         this.semanticConventionVersion = AWSSemanticConventions.GetVersion(version);
         this.useProducerKindForMessageSend = AWSServiceHelper.UsesProducerSpansForMessageSend(version);
@@ -33,7 +36,7 @@ internal sealed class AWSTracerProvider : TracerProvider
 #endif
         }
 
-        return new AWSTracer(activitySource, this.useProducerKindForMessageSend);
+        return new AWSTracer(activitySource, this.recordException, this.useProducerKindForMessageSend);
     }
 
     private static ActivitySource CreateActivitySource(string name, Version version)
