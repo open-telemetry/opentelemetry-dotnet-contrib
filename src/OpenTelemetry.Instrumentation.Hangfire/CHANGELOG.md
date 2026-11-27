@@ -23,6 +23,10 @@
   trace.
   ([#6111](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6111))
 
+* Added the `workflow.platform.name` attribute with the value `hangfire`
+  to job activities.
+  ([#6106](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6106))
+
 ## 1.21.0-beta.1
 
 Released 2026-Nov-11

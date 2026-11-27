@@ -52,6 +52,32 @@ public class HangfireInstrumentationJobFilterAttributeTests
     }
 
     [Fact]
+    public async Task Should_Create_Activity_With_Platform_Name()
+    {
+        // Arrange
+        var exportedItems = new List<Activity>();
+
+        string jobId;
+
+        using (var provider = Sdk.CreateTracerProviderBuilder()
+                   .AddHangfireInstrumentation()
+                   .AddInMemoryExporter(exportedItems)
+                   .SetSampler<AlwaysOnSampler>()
+                   .Build())
+        {
+            // Act
+            jobId = BackgroundJob.Enqueue<TestJob>(x => x.Execute());
+            await this.hangfireFixture.WaitJobProcessedAsync(jobId, 5);
+
+            provider.ForceFlush();
+        }
+
+        // Assert
+        var activity = Assert.Single(exportedItems, i => (i.GetTagItem("job.id") as string) == jobId);
+        Assert.Equal("hangfire", activity.GetTagItem("workflow.platform.name"));
+    }
+
+    [Fact]
     public async Task Should_Create_Activity_With_Status_Error_When_Job_Failed()
     {
         // Arrange
