@@ -1,6 +1,11 @@
 # Changelog
 
 ## Unreleased
+* Fix `container.id` not being set by the AWS ECS resource detector on ECS
+  Fargate (Linux), where the container ID cannot be parsed from
+  `/proc/self/cgroup`. The detector now falls back to the `DockerId` reported
+  by the ECS task metadata endpoint.
+  ([#6141](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6141))
 
 ## 1.21.0
 
