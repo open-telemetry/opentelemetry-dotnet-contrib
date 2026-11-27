@@ -23,8 +23,15 @@ namespace OpenTelemetry.Instrumentation.Remoting.Implementation;
 internal sealed class TelemetryDynamicSink : IDynamicMessageSink
 {
     private const string AttributeRpcSystemNameValue = "dotnet.remoting";
+
+    private static readonly IEnumerable<KeyValuePair<string, object?>> NonMethodMessageTags =
+    [
+        new(SemanticConventions.AttributeRpcSystemName, AttributeRpcSystemNameValue),
+    ];
+
     private readonly ActivitySource remotingActivitySource;
     private readonly string savedAspnetActivityPropertyName;
+    private readonly string unpairedStartsPropertyName;
 
     private readonly TelemetryDynamicSinkProvider optionsProvider;
 
@@ -35,6 +42,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
         this.optionsProvider = optionsProvider;
         this.remotingActivitySource = activitySource;
         this.savedAspnetActivityPropertyName = activitySource.Name + ".SavedAspnetActivity";
+        this.unpairedStartsPropertyName = activitySource.Name + ".UnpairedStarts";
     }
 
     public void ProcessMessageStart(IMessage reqMsg, bool bCliSide, bool bAsync)
@@ -45,12 +53,14 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
         {
             if (options.Filter?.Invoke(reqMsg) == false)
             {
+                this.CountUnpairedStart(bCliSide, bAsync);
                 return;
             }
         }
         catch (Exception e)
         {
             RemotingInstrumentationEventSource.Log.MessageFilterException(e);
+            this.CountUnpairedStart(bCliSide, bAsync);
             return;
         }
 
@@ -59,9 +69,11 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
             var methodMsg = reqMsg as IMethodMessage;
             var activityName = methodMsg != null ? this.GetFullyQualifiedMethod(methodMsg) : AttributeRpcSystemNameValue;
 
-            IEnumerable<KeyValuePair<string, object?>>? tags = methodMsg != null
+            var tags = methodMsg != null
                 ? BuildSamplingTags(methodMsg, activityName)
-                : null;
+                : NonMethodMessageTags;
+
+            Activity? activity = null;
 
             // Are we executing on client?
             if (bCliSide)
@@ -72,7 +84,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                 ActivityContext contextToInject = default;
 
                 // Start new outgoing activity
-                var activity = this.remotingActivitySource.StartActivity(
+                activity = this.remotingActivitySource.StartActivity(
                     activityName,
                     ActivityKind.Client,
                     default(ActivityContext),
@@ -100,8 +112,6 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                 var callContext = (LogicalCallContext)reqMsg.Properties["__CallContext"];
                 var activityParentContext = options.Propagator.Extract(default, callContext, ExtractActivityProperties);
 
-                Activity? ourActivity = null;
-
                 // Do we already have an incoming activity?
                 // Existing activity might be started by an instrumentation layer higher up the
                 // stack. E.g. if we are using http as a transport for remoting, and we have
@@ -113,7 +123,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                 {
                     // We don't have an existing incoming activity. Start a brand new one ourselves using the extracted context.
 
-                    ourActivity = this.remotingActivitySource.StartActivity(
+                    activity = this.remotingActivitySource.StartActivity(
                         activityName,
                         ActivityKind.Server,
                         activityParentContext.ActivityContext,
@@ -132,7 +142,7 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                     // The context was propagated between HttpClient and ASP.NET Instrumentation.
                     // We let this context take over and simply create our Remoting activity as a child of the ASP.NET one.
 
-                    ourActivity = this.remotingActivitySource.StartActivity(
+                    activity = this.remotingActivitySource.StartActivity(
                         activityName,
                         ActivityKind.Server,
                         default(ActivityContext),
@@ -151,12 +161,12 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                     // the context. ASP.NET activity is saved as a custom property so that we can restore it later
                     // (see ProcessMessageFinish) to give ASP.NET Instrumentation a chance to stop it.
 
-                    ourActivity = this.remotingActivitySource.StartActivity(
+                    activity = this.remotingActivitySource.StartActivity(
                         activityName,
                         ActivityKind.Server,
                         activityParentContext.ActivityContext,
                         tags);
-                    ourActivity?.SetCustomProperty(this.savedAspnetActivityPropertyName, parentActivity);
+                    activity?.SetCustomProperty(this.savedAspnetActivityPropertyName, parentActivity);
                 }
                 else
                 {
@@ -166,10 +176,15 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
                     // Current (better than creating a new "root" Remoting activity).
                 }
 
-                if (ourActivity != null)
+                if (activity != null)
                 {
-                    this.SetPostCreationAttributes(ourActivity, methodMsg);
+                    this.SetPostCreationAttributes(activity, methodMsg);
                 }
+            }
+
+            if (activity == null)
+            {
+                this.CountUnpairedStart(bCliSide, bAsync);
             }
         }
         catch (Exception e)
@@ -200,6 +215,12 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
             if (activity.Source == this.remotingActivitySource
                 && activity.Kind == (bCliSide ? ActivityKind.Client : ActivityKind.Server))
             {
+                if (!bAsync && activity.GetCustomProperty(this.unpairedStartsPropertyName) is int unpairedStarts and > 0)
+                {
+                    activity.SetCustomProperty(this.unpairedStartsPropertyName, unpairedStarts - 1);
+                    return;
+                }
+
                 if (replyMsg is IMethodReturnMessage returnMsg)
                 {
                     if (returnMsg.Exception == null)
@@ -311,6 +332,19 @@ internal sealed class TelemetryDynamicSink : IDynamicMessageSink
     // typeName will be a full .NET type name as a string "SharedLib.IHelloServer, SharedLib, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null"
     private string GetServiceName(string typeName)
         => this.optionsProvider.GetServiceName(typeName);
+
+    // A start that created no activity leaves the caller's activity current, so its finish must not stop it.
+    private void CountUnpairedStart(bool bCliSide, bool bAsync)
+    {
+        if (!bAsync
+            && Activity.Current is { } current
+            && current.Source == this.remotingActivitySource
+            && current.Kind == (bCliSide ? ActivityKind.Client : ActivityKind.Server))
+        {
+            var unpairedStarts = current.GetCustomProperty(this.unpairedStartsPropertyName) as int? ?? 0;
+            current.SetCustomProperty(this.unpairedStartsPropertyName, unpairedStarts + 1);
+        }
+    }
 
     private void SetPostCreationAttributes(Activity activity, IMethodMessage? msg)
     {

@@ -287,6 +287,12 @@ public class RemotingInstrumentationTests
         var activity = Assert.Single(activities);
         Assert.Equal("dotnet.remoting", samplingParameters.Name);
         Assert.Equal("dotnet.remoting", activity.DisplayName);
+
+        Assert.NotNull(samplingParameters.Tags);
+        var samplingTags = samplingParameters.Tags.ToDictionary(tag => tag.Key, tag => tag.Value);
+
+        Assert.Equal("dotnet.remoting", Assert.Contains(SemanticConventions.AttributeRpcSystemName, samplingTags));
+        Assert.Equal("dotnet.remoting", activity.GetTagItem(SemanticConventions.AttributeRpcSystemName));
     }
 
     [Fact]
@@ -312,6 +318,75 @@ public class RemotingInstrumentationTests
         sink.ProcessMessageFinish(message, bCliSide: true, bAsync: false);
 
         Assert.Single(activities);
+    }
+
+    [Fact]
+    public void TelemetryDynamicSink_FinishOfDroppedNestedCallDoesNotStopOuterActivity()
+    {
+        var sampler = new TestSampler
+        {
+            SamplingAction = parameters => new SamplingResult(
+                parameters.Name == ExpectedRpcMethod ? SamplingDecision.RecordAndSample : SamplingDecision.Drop),
+        };
+        var activities = new List<Activity>();
+        using var provider = new TelemetryDynamicSinkProvider(
+            new TestOptionsMonitor<RemotingInstrumentationOptions>(new RemotingInstrumentationOptions()));
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .SetSampler(sampler)
+            .AddSource(TelemetryDynamicSinkProvider.ActivitySourceName)
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        var sink = provider.GetDynamicSink();
+        var outerMessage = new FakeMethodMessage("tcp://remote-host:8080/RemoteObject.rem", typeof(RemoteObject).AssemblyQualifiedName!, "DoStuff");
+        var innerMessage = new FakeMethodMessage("tcp://remote-host:8080/RemoteObject.rem", typeof(RemoteObject).AssemblyQualifiedName!, "DoOtherStuff");
+
+        sink.ProcessMessageStart(outerMessage, bCliSide: true, bAsync: false);
+        var outerActivity = Activity.Current;
+
+        sink.ProcessMessageStart(innerMessage, bCliSide: true, bAsync: false);
+        sink.ProcessMessageFinish(innerMessage, bCliSide: true, bAsync: false);
+
+        Assert.Empty(activities);
+        Assert.Same(outerActivity, Activity.Current);
+
+        sink.ProcessMessageFinish(outerMessage, bCliSide: true, bAsync: false);
+
+        Assert.Same(outerActivity, Assert.Single(activities));
+    }
+
+    [Fact]
+    public void TelemetryDynamicSink_FinishOfFilteredNestedCallDoesNotStopOuterActivity()
+    {
+        var activities = new List<Activity>();
+        using var provider = new TelemetryDynamicSinkProvider(
+            new TestOptionsMonitor<RemotingInstrumentationOptions>(new RemotingInstrumentationOptions
+            {
+                Filter = message => message is IMethodMessage methodMessage && methodMessage.MethodName == "DoStuff",
+            }));
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSource(TelemetryDynamicSinkProvider.ActivitySourceName)
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        var sink = provider.GetDynamicSink();
+        var outerMessage = new FakeMethodMessage("tcp://remote-host:8080/RemoteObject.rem", typeof(RemoteObject).AssemblyQualifiedName!, "DoStuff");
+        var innerMessage = new FakeMethodMessage("tcp://remote-host:8080/RemoteObject.rem", typeof(RemoteObject).AssemblyQualifiedName!, "DoOtherStuff");
+
+        sink.ProcessMessageStart(outerMessage, bCliSide: true, bAsync: false);
+        var outerActivity = Activity.Current;
+
+        sink.ProcessMessageStart(innerMessage, bCliSide: true, bAsync: false);
+        sink.ProcessMessageFinish(innerMessage, bCliSide: true, bAsync: false);
+
+        Assert.Empty(activities);
+        Assert.Same(outerActivity, Activity.Current);
+
+        sink.ProcessMessageFinish(outerMessage, bCliSide: true, bAsync: false);
+
+        Assert.Same(outerActivity, Assert.Single(activities));
     }
 
     [Fact]
