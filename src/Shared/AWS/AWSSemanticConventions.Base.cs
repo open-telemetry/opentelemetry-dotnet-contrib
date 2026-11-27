@@ -305,6 +305,174 @@ internal partial class AWSSemanticConventions
         public virtual string AttributeAWSDynamoTableName => string.Empty;
 
         /// <summary>
+        /// The JSON-serialized value of each item in the <c>AttributeDefinitions</c> request field.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsDynamodbAttributeDefinitions
+        /// </remarks>
+        public virtual string AttributeAWSDynamoAttributeDefinitions => string.Empty;
+
+        /// <summary>
+        /// The value of the <c>AttributesToGet</c> request parameter.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsDynamodbAttributesToGet
+        /// </remarks>
+        public virtual string AttributeAWSDynamoAttributesToGet => string.Empty;
+
+        /// <summary>
+        /// The value of the <c>ConsistentRead</c> request parameter.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsDynamodbConsistentRead
+        /// </remarks>
+        public virtual string AttributeAWSDynamoConsistentRead => string.Empty;
+
+        /// <summary>
+        /// The JSON-serialized value of each item in the <c>ConsumedCapacity</c> response field.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsDynamodbConsumedCapacity
+        /// </remarks>
+        public virtual string AttributeAWSDynamoConsumedCapacity => string.Empty;
+
+        /// <summary>
+        /// The value of the <c>Count</c> response parameter.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsDynamodbCount
+        /// </remarks>
+        public virtual string AttributeAWSDynamoCount => string.Empty;
+
+        /// <summary>
+        /// The value of the <c>ExclusiveStartTableName</c> request parameter.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsDynamodbExclusiveStartTable
+        /// </remarks>
+        public virtual string AttributeAWSDynamoExclusiveStartTable => string.Empty;
+
+        /// <summary>
+        /// The JSON-serialized value of each item in the <c>GlobalSecondaryIndexUpdates</c> request field.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsDynamodbGlobalSecondaryIndexUpdates
+        /// </remarks>
+        public virtual string AttributeAWSDynamoGlobalSecondaryIndexUpdates => string.Empty;
+
+        /// <summary>
+        /// The JSON-serialized value of each item of the <c>GlobalSecondaryIndexes</c> request field.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsDynamodbGlobalSecondaryIndexes
+        /// </remarks>
+        public virtual string AttributeAWSDynamoGlobalSecondaryIndexes => string.Empty;
+
+        /// <summary>
+        /// The value of the <c>IndexName</c> request parameter.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsDynamodbIndexName
+        /// </remarks>
+        public virtual string AttributeAWSDynamoIndexName => string.Empty;
+
+        /// <summary>
+        /// The JSON-serialized value of the <c>ItemCollectionMetrics</c> response field.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsDynamodbItemCollectionMetrics
+        /// </remarks>
+        public virtual string AttributeAWSDynamoItemCollectionMetrics => string.Empty;
+
+        /// <summary>
+        /// The value of the <c>Limit</c> request parameter.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsDynamodbLimit
+        /// </remarks>
+        public virtual string AttributeAWSDynamoLimit => string.Empty;
+
+        /// <summary>
+        /// The JSON-serialized value of each item of the <c>LocalSecondaryIndexes</c> request field.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsDynamodbLocalSecondaryIndexes
+        /// </remarks>
+        public virtual string AttributeAWSDynamoLocalSecondaryIndexes => string.Empty;
+
+        /// <summary>
+        /// The value of the <c>ProjectionExpression</c> request parameter.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsDynamodbProjection
+        /// </remarks>
+        public virtual string AttributeAWSDynamoProjection => string.Empty;
+
+        /// <summary>
+        /// The value of the <c>ProvisionedThroughput.ReadCapacityUnits</c> request parameter.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsDynamodbProvisionedReadCapacity
+        /// </remarks>
+        public virtual string AttributeAWSDynamoProvisionedReadCapacity => string.Empty;
+
+        /// <summary>
+        /// The value of the <c>ProvisionedThroughput.WriteCapacityUnits</c> request parameter.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsDynamodbProvisionedWriteCapacity
+        /// </remarks>
+        public virtual string AttributeAWSDynamoProvisionedWriteCapacity => string.Empty;
+
+        /// <summary>
+        /// The value of the <c>ScanIndexForward</c> request parameter.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsDynamodbScanForward
+        /// </remarks>
+        public virtual string AttributeAWSDynamoScanForward => string.Empty;
+
+        /// <summary>
+        /// The value of the <c>ScannedCount</c> response parameter.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsDynamodbScannedCount
+        /// </remarks>
+        public virtual string AttributeAWSDynamoScannedCount => string.Empty;
+
+        /// <summary>
+        /// The value of the <c>Segment</c> request parameter.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsDynamodbSegment
+        /// </remarks>
+        public virtual string AttributeAWSDynamoSegment => string.Empty;
+
+        /// <summary>
+        /// The value of the <c>Select</c> request parameter.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsDynamodbSelect
+        /// </remarks>
+        public virtual string AttributeAWSDynamoSelect => string.Empty;
+
+        /// <summary>
+        /// The number of items in the <c>TableNames</c> response parameter.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsDynamodbTableCount
+        /// </remarks>
+        public virtual string AttributeAWSDynamoTableCount => string.Empty;
+
+        /// <summary>
+        /// The value of the <c>TotalSegments</c> request parameter.
+        /// </summary>
+        /// <remarks>
+        /// AwsAttributes.AttributeAwsDynamodbTotalSegments
+        /// </remarks>
+        public virtual string AttributeAWSDynamoTotalSegments => string.Empty;
+
+        /// <summary>
         /// Returns attribute names whose values must be reported as a <c>string[]</c>
         /// (string array) rather than a plain <c>string</c>, as required by the
         /// OpenTelemetry Semantic Conventions specification.

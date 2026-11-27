@@ -19,6 +19,27 @@ internal partial class AWSSemanticConventions
     private class AWSSemanticConventions_V1_28_0 : AWSSemanticConventionsLegacy
     {
         public override string AttributeAWSDynamoTableName => "aws.dynamodb.table_names";
+        public override string AttributeAWSDynamoAttributeDefinitions => "aws.dynamodb.attribute_definitions";
+        public override string AttributeAWSDynamoAttributesToGet => "aws.dynamodb.attributes_to_get";
+        public override string AttributeAWSDynamoConsistentRead => "aws.dynamodb.consistent_read";
+        public override string AttributeAWSDynamoConsumedCapacity => "aws.dynamodb.consumed_capacity";
+        public override string AttributeAWSDynamoCount => "aws.dynamodb.count";
+        public override string AttributeAWSDynamoExclusiveStartTable => "aws.dynamodb.exclusive_start_table";
+        public override string AttributeAWSDynamoGlobalSecondaryIndexUpdates => "aws.dynamodb.global_secondary_index_updates";
+        public override string AttributeAWSDynamoGlobalSecondaryIndexes => "aws.dynamodb.global_secondary_indexes";
+        public override string AttributeAWSDynamoIndexName => "aws.dynamodb.index_name";
+        public override string AttributeAWSDynamoItemCollectionMetrics => "aws.dynamodb.item_collection_metrics";
+        public override string AttributeAWSDynamoLimit => "aws.dynamodb.limit";
+        public override string AttributeAWSDynamoLocalSecondaryIndexes => "aws.dynamodb.local_secondary_indexes";
+        public override string AttributeAWSDynamoProjection => "aws.dynamodb.projection";
+        public override string AttributeAWSDynamoProvisionedReadCapacity => "aws.dynamodb.provisioned_read_capacity";
+        public override string AttributeAWSDynamoProvisionedWriteCapacity => "aws.dynamodb.provisioned_write_capacity";
+        public override string AttributeAWSDynamoScanForward => "aws.dynamodb.scan_forward";
+        public override string AttributeAWSDynamoScannedCount => "aws.dynamodb.scanned_count";
+        public override string AttributeAWSDynamoSegment => "aws.dynamodb.segment";
+        public override string AttributeAWSDynamoSelect => "aws.dynamodb.select";
+        public override string AttributeAWSDynamoTableCount => "aws.dynamodb.table_count";
+        public override string AttributeAWSDynamoTotalSegments => "aws.dynamodb.total_segments";
 
         // aws.dynamodb.table_names is specified as string[] in the OTel semantic conventions
         public override IReadOnlyCollection<string> ArrayValueAttributeNames { get; } =
