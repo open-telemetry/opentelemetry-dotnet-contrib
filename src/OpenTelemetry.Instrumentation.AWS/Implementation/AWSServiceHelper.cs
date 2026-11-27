@@ -27,29 +27,33 @@ internal class AWSServiceHelper
                 .AddAttributeAWSBedrockKnowledgeBaseId("KnowledgeBaseId")
                 .AddAttributeAWSS3BucketName("BucketName")
                 .AddAttributeAWSS3Key("Key")
+                .AddAttributeAWSStepFunctionsStateMachineArn("StateMachineArn")
+                .AddAttributeAWSStepFunctionsActivityArn("ActivityArn")
                 .AddAttributeMessageId("MessageId")
                 .Build();
 
         this.ArrayValueAttributeNames = new(semanticConventions.GetArrayValueAttributeNames(), StringComparer.Ordinal);
     }
 
-    internal static IReadOnlyDictionary<string, List<string>> ServiceRequestParameterMap { get; } = new Dictionary<string, List<string>>(7)
+    internal static IReadOnlyDictionary<string, List<string>> ServiceRequestParameterMap { get; } = new Dictionary<string, List<string>>(8)
     {
         { AWSServiceType.DynamoDbService, ["TableName"] },
         { AWSServiceType.S3Service, ["BucketName", "Key"] },
         { AWSServiceType.SNSService, ["TopicArn"] },
         { AWSServiceType.SQSService, ["QueueUrl"] },
+        { AWSServiceType.StepFunctionsService, ["StateMachineArn", "ActivityArn"] },
         { AWSServiceType.BedrockAgentService, ["AgentId", "KnowledgeBaseId", "DataSourceId"] },
         { AWSServiceType.BedrockAgentRuntimeService, ["AgentId", "KnowledgeBaseId"] },
         { AWSServiceType.BedrockRuntimeService, ["ModelId"] },
     };
 
-    internal static IReadOnlyDictionary<string, List<string>> ServiceResponseParameterMap { get; } = new Dictionary<string, List<string>>(4)
+    internal static IReadOnlyDictionary<string, List<string>> ServiceResponseParameterMap { get; } = new Dictionary<string, List<string>>(5)
     {
         { AWSServiceType.BedrockService, ["GuardrailId"] },
         { AWSServiceType.BedrockAgentService, ["AgentId", "DataSourceId"] },
         { AWSServiceType.SNSService, ["MessageId", "TopicArn"] },
         { AWSServiceType.SQSService, ["MessageId", "QueueUrl"] },
+        { AWSServiceType.StepFunctionsService, ["StateMachineArn", "ActivityArn"] },
     };
 
     internal static IReadOnlyDictionary<string, IReadOnlyDictionary<string, string>> MessagingOperationTypeMap { get; } = new Dictionary<string, IReadOnlyDictionary<string, string>>(2)

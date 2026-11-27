@@ -146,7 +146,12 @@ internal sealed class AWSTracingPipelineHandler : PipelineHandler
                     {
                         if (this.awsServiceHelper.ParameterAttributeMap.TryGetValue(parameter, out var attribute))
                         {
-                            activity.SetTag(attribute, property.GetValue(response));
+                            // A response that omits the value must not remove one taken from the request.
+                            var value = property.GetValue(response);
+                            if (value != null)
+                            {
+                                activity.SetTag(attribute, value);
+                            }
                         }
                     }
                 }
