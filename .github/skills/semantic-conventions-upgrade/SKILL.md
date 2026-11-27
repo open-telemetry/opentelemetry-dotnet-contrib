@@ -445,9 +445,9 @@ markdownlint .
 
 For kind A changes:
 
-1. Update `SEMCONV_VERSION` (and `GENERATOR_VERSION` if needed) in **both**
-   `src/OpenTelemetry.SemanticConventions/scripts/generate.sh` and
-   `generate.ps1`. Keep them identical.
+1. Update `SEMCONV_VERSION` (and `GENERATOR_VERSION` if needed) in
+   `src/OpenTelemetry.SemanticConventions/scripts/versions.env`, shared by
+   both generation scripts.
 2. If the target registry uses features the pinned Weaver does not understand
    (for example `unref`), bump the generator and also update
    `test/Shared/weaver.Dockerfile` so the tests use a compatible version
