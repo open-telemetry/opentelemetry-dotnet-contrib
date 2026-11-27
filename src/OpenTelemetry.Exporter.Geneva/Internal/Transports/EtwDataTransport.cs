@@ -1,9 +1,6 @@
 // Copyright The OpenTelemetry Authors
 // SPDX-License-Identifier: Apache-2.0
 
-#if NET
-using System.Diagnostics.CodeAnalysis;
-#endif
 using System.Diagnostics.Tracing;
 
 namespace OpenTelemetry.Exporter.Geneva.Transports;
@@ -36,7 +33,7 @@ internal sealed class EtwDataTransport : IDataTransport, IDisposable
         this.disposed = true;
     }
 
-    internal sealed class EtwEventSource : EventSource
+    internal sealed class EtwEventSource : RawEventSource
     {
         public EtwEventSource(string providerName)
             : base(providerName, EventSourceSettings.EtwManifestEventFormat)
@@ -59,18 +56,7 @@ internal sealed class EtwDataTransport : IDataTransport, IDisposable
 
 #pragma warning restore CA1822 // Mark members as static
         [NonEvent]
-#if NET
-        [UnconditionalSuppressMessage("ReflectionAnalysis", "IL2026:RequiresUnreferencedCode", Justification = "WriteEventCore is safe when eventData object is a primitive type, which it is in this case.")]
-#endif
-        public unsafe void SendEvent(int eventId, byte[] data, int size)
-        {
-            var dataDesc = stackalloc EventData[1];
-            fixed (byte* ptr = data)
-            {
-                dataDesc[0].DataPointer = (nint)ptr;
-                dataDesc[0].Size = size;
-                this.WriteEventCore(eventId, 1, dataDesc);
-            }
-        }
+        public void SendEvent(int eventId, byte[] data, int size)
+            => this.WriteRawEvent(eventId, data, 0, size);
     }
 }

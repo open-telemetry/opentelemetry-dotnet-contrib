@@ -49,6 +49,11 @@ internal enum ExemplarFlags : byte
 internal struct BinaryHeader
 {
     /// <summary>
+    /// The size of the header in bytes.
+    /// </summary>
+    public const int Size = 4;
+
+    /// <summary>
     /// The event ID that represents how it will be processed.
     /// </summary>
     [FieldOffset(0)]
@@ -184,7 +189,7 @@ internal static class MetricSerializer
             bufferSpan = bufferSpan.Slice(bufferIndex);
             var stringSpan = bufferSpan.Slice(2);
             var lengthWritten = (short)Encoding.UTF8.GetBytes(value, stringSpan);
-            MemoryMarshal.Write(bufferSpan, lengthWritten);
+            BinaryPrimitives.WriteInt16LittleEndian(bufferSpan, lengthWritten);
             bufferIndex += sizeof(short) + lengthWritten;
 #else
             // Advanced the buffer to account for the length, we will write it back after encoding.
@@ -218,7 +223,7 @@ internal static class MetricSerializer
         bufferSpan = bufferSpan.Slice(bufferIndex);
         sourceSpan.CopyTo(bufferSpan.Slice(2));
         var encodedLength = (short)encodedValue.Length;
-        MemoryMarshal.Write(bufferSpan, encodedLength);
+        BinaryPrimitives.WriteInt16LittleEndian(bufferSpan, encodedLength);
         bufferIndex += sizeof(short) + encodedLength;
 #else
         SerializeInt16(buffer, ref bufferIndex, (short)encodedValue.Length);
