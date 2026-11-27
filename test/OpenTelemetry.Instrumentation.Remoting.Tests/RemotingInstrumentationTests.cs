@@ -8,12 +8,15 @@ using System.Runtime.Remoting.Messaging;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using OpenTelemetry.Instrumentation.Remoting.Implementation;
+using OpenTelemetry.Tests;
 using OpenTelemetry.Trace;
 
 namespace OpenTelemetry.Instrumentation.Remoting.Tests;
 
 public class RemotingInstrumentationTests
 {
+    private const string ExpectedRpcMethod = "OpenTelemetry.Instrumentation.Remoting.Tests.RemotingInstrumentationTests+RemoteObject/DoStuff";
+
     [Theory]
     [InlineData(true, null)]
     [InlineData(false, "Exception message")]
@@ -161,8 +164,139 @@ public class RemotingInstrumentationTests
     public void TelemetryDynamicSinkProvider_ExtractServiceName_HandlesQualifiedAndPlainTypeNames(string typeName, string expectedServiceName) =>
         Assert.Equal(expectedServiceName, TelemetryDynamicSinkProvider.ExtractServiceName(typeName));
 
+    [Theory]
+    [InlineData("http://remote-host/RemoteObject.rem", "remote-host", 80)]
+    [InlineData("https://remote-host:443/RemoteObject.rem", "remote-host", 443)]
+    [InlineData("tcp://remote-host:8080/RemoteObject.rem", "remote-host", 8080)]
+    [InlineData("tcp://remote-host/RemoteObject.rem", "remote-host", null)]
+    public void TelemetryDynamicSink_SetsServerAddressAndPortWhenUriIsAbsolute(string uri, string expectedServerAddress, int? expectedServerPort)
+    {
+        var sampler = new TestSampler();
+        var activities = new List<Activity>();
+        using var provider = new TelemetryDynamicSinkProvider(
+            new TestOptionsMonitor<RemotingInstrumentationOptions>(new RemotingInstrumentationOptions()));
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .SetSampler(sampler)
+            .AddSource(TelemetryDynamicSinkProvider.ActivitySourceName)
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        var sink = provider.GetDynamicSink();
+        var message = new FakeMethodMessage(uri, typeof(RemoteObject).AssemblyQualifiedName!, "DoStuff");
+
+        sink.ProcessMessageStart(message, bCliSide: true, bAsync: false);
+        var samplingParameters = sampler.LatestSamplingParameters;
+        sink.ProcessMessageFinish(message, bCliSide: true, bAsync: false);
+
+        Assert.NotNull(samplingParameters.Tags);
+        var samplingTags = samplingParameters.Tags.ToDictionary(tag => tag.Key, tag => tag.Value);
+        samplingTags.TryGetValue(SemanticConventions.AttributeServerPort, out var samplingServerPort);
+
+        Assert.Equal(expectedServerAddress, Assert.Contains(SemanticConventions.AttributeServerAddress, samplingTags));
+        Assert.Equal(expectedServerPort, (int?)samplingServerPort);
+
+        var activity = Assert.Single(activities);
+        Assert.Equal(expectedServerAddress, activity.GetTagItem(SemanticConventions.AttributeServerAddress));
+        Assert.Equal(expectedServerPort, (int?)activity.GetTagItem(SemanticConventions.AttributeServerPort));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void TelemetryDynamicSink_UsesMethodAsSpanNameAtCreation(bool clientSide)
+    {
+        var sampler = new TestSampler();
+        var activities = new List<Activity>();
+        using var provider = new TelemetryDynamicSinkProvider(
+            new TestOptionsMonitor<RemotingInstrumentationOptions>(new RemotingInstrumentationOptions()));
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .SetSampler(sampler)
+            .AddSource(TelemetryDynamicSinkProvider.ActivitySourceName)
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        var sink = provider.GetDynamicSink();
+        var message = new FakeMethodMessage("tcp://remote-host:8080/RemoteObject.rem", typeof(RemoteObject).AssemblyQualifiedName!, "DoStuff");
+
+        sink.ProcessMessageStart(message, bCliSide: clientSide, bAsync: false);
+        var samplingParameters = sampler.LatestSamplingParameters;
+        sink.ProcessMessageFinish(message, bCliSide: clientSide, bAsync: false);
+
+        var activity = Assert.Single(activities);
+        Assert.Equal(clientSide ? ActivityKind.Client : ActivityKind.Server, activity.Kind);
+        Assert.Equal(ExpectedRpcMethod, samplingParameters.Name);
+        Assert.Equal(ExpectedRpcMethod, activity.DisplayName);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void TelemetryDynamicSink_UsesMethodAsSpanNameAtCreationWhenServerHasParentActivity(bool sameTrace)
+    {
+        var sampler = new TestSampler();
+        var activities = new List<Activity>();
+        using var provider = new TelemetryDynamicSinkProvider(
+            new TestOptionsMonitor<RemotingInstrumentationOptions>(new RemotingInstrumentationOptions()));
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .SetSampler(sampler)
+            .AddSource(TelemetryDynamicSinkProvider.ActivitySourceName)
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        var sink = provider.GetDynamicSink();
+        var message = new FakeMethodMessage("tcp://remote-host:8080/RemoteObject.rem", typeof(RemoteObject).AssemblyQualifiedName!, "DoStuff");
+
+        using var parent = new Activity("parent").SetIdFormat(ActivityIdFormat.W3C).Start();
+        var remoteTraceId = sameTrace ? parent.TraceId : ActivityTraceId.CreateRandom();
+        message.LogicalCallContext.SetData("traceparent", $"00-{remoteTraceId}-{ActivitySpanId.CreateRandom()}-01");
+
+        sink.ProcessMessageStart(message, bCliSide: false, bAsync: false);
+        var samplingParameters = sampler.LatestSamplingParameters;
+        sink.ProcessMessageFinish(message, bCliSide: false, bAsync: false);
+
+        var activity = Assert.Single(activities);
+        Assert.Equal(ExpectedRpcMethod, samplingParameters.Name);
+        Assert.Equal(ExpectedRpcMethod, activity.DisplayName);
+        Assert.Same(parent, Activity.Current);
+    }
+
     [Fact]
-    public void TelemetryDynamicSink_SetsServerAddressAndPortWhenUriIsAbsoluteWithNonDefaultPort()
+    public void TelemetryDynamicSink_UsesRpcSystemNameAsSpanNameForNonMethodMessage()
+    {
+        var sampler = new TestSampler();
+        var activities = new List<Activity>();
+        using var provider = new TelemetryDynamicSinkProvider(
+            new TestOptionsMonitor<RemotingInstrumentationOptions>(new RemotingInstrumentationOptions()));
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .SetSampler(sampler)
+            .AddSource(TelemetryDynamicSinkProvider.ActivitySourceName)
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        var sink = provider.GetDynamicSink();
+        var message = new FakeMessage();
+
+        sink.ProcessMessageStart(message, bCliSide: true, bAsync: false);
+        var samplingParameters = sampler.LatestSamplingParameters;
+        sink.ProcessMessageFinish(message, bCliSide: true, bAsync: false);
+
+        var activity = Assert.Single(activities);
+        Assert.Equal("dotnet.remoting", samplingParameters.Name);
+        Assert.Equal("dotnet.remoting", activity.DisplayName);
+
+        Assert.NotNull(samplingParameters.Tags);
+        var samplingTags = samplingParameters.Tags.ToDictionary(tag => tag.Key, tag => tag.Value);
+
+        Assert.Equal("dotnet.remoting", Assert.Contains(SemanticConventions.AttributeRpcSystemName, samplingTags));
+        Assert.Equal("dotnet.remoting", activity.GetTagItem(SemanticConventions.AttributeRpcSystemName));
+    }
+
+    [Fact]
+    public void TelemetryDynamicSink_FinishStopsOnlyActivityStartedOnSameSide()
     {
         var activities = new List<Activity>();
         using var provider = new TelemetryDynamicSinkProvider(
@@ -177,11 +311,82 @@ public class RemotingInstrumentationTests
         var message = new FakeMethodMessage("tcp://remote-host:8080/RemoteObject.rem", typeof(RemoteObject).AssemblyQualifiedName!, "DoStuff");
 
         sink.ProcessMessageStart(message, bCliSide: true, bAsync: false);
+        sink.ProcessMessageFinish(message, bCliSide: false, bAsync: false);
+
+        Assert.Empty(activities);
+
         sink.ProcessMessageFinish(message, bCliSide: true, bAsync: false);
 
-        var activity = Assert.Single(activities);
-        Assert.Equal("remote-host", activity.GetTagItem(SemanticConventions.AttributeServerAddress));
-        Assert.Equal(8080, activity.GetTagItem(SemanticConventions.AttributeServerPort));
+        Assert.Single(activities);
+    }
+
+    [Fact]
+    public void TelemetryDynamicSink_FinishOfDroppedNestedCallDoesNotStopOuterActivity()
+    {
+        var sampler = new TestSampler
+        {
+            SamplingAction = parameters => new SamplingResult(
+                parameters.Name == ExpectedRpcMethod ? SamplingDecision.RecordAndSample : SamplingDecision.Drop),
+        };
+        var activities = new List<Activity>();
+        using var provider = new TelemetryDynamicSinkProvider(
+            new TestOptionsMonitor<RemotingInstrumentationOptions>(new RemotingInstrumentationOptions()));
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .SetSampler(sampler)
+            .AddSource(TelemetryDynamicSinkProvider.ActivitySourceName)
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        var sink = provider.GetDynamicSink();
+        var outerMessage = new FakeMethodMessage("tcp://remote-host:8080/RemoteObject.rem", typeof(RemoteObject).AssemblyQualifiedName!, "DoStuff");
+        var innerMessage = new FakeMethodMessage("tcp://remote-host:8080/RemoteObject.rem", typeof(RemoteObject).AssemblyQualifiedName!, "DoOtherStuff");
+
+        sink.ProcessMessageStart(outerMessage, bCliSide: true, bAsync: false);
+        var outerActivity = Activity.Current;
+
+        sink.ProcessMessageStart(innerMessage, bCliSide: true, bAsync: false);
+        sink.ProcessMessageFinish(innerMessage, bCliSide: true, bAsync: false);
+
+        Assert.Empty(activities);
+        Assert.Same(outerActivity, Activity.Current);
+
+        sink.ProcessMessageFinish(outerMessage, bCliSide: true, bAsync: false);
+
+        Assert.Same(outerActivity, Assert.Single(activities));
+    }
+
+    [Fact]
+    public void TelemetryDynamicSink_FinishOfFilteredNestedCallDoesNotStopOuterActivity()
+    {
+        var activities = new List<Activity>();
+        using var provider = new TelemetryDynamicSinkProvider(
+            new TestOptionsMonitor<RemotingInstrumentationOptions>(new RemotingInstrumentationOptions
+            {
+                Filter = message => message is IMethodMessage methodMessage && methodMessage.MethodName == "DoStuff",
+            }));
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddSource(TelemetryDynamicSinkProvider.ActivitySourceName)
+            .AddInMemoryExporter(activities)
+            .Build();
+
+        var sink = provider.GetDynamicSink();
+        var outerMessage = new FakeMethodMessage("tcp://remote-host:8080/RemoteObject.rem", typeof(RemoteObject).AssemblyQualifiedName!, "DoStuff");
+        var innerMessage = new FakeMethodMessage("tcp://remote-host:8080/RemoteObject.rem", typeof(RemoteObject).AssemblyQualifiedName!, "DoOtherStuff");
+
+        sink.ProcessMessageStart(outerMessage, bCliSide: true, bAsync: false);
+        var outerActivity = Activity.Current;
+
+        sink.ProcessMessageStart(innerMessage, bCliSide: true, bAsync: false);
+        sink.ProcessMessageFinish(innerMessage, bCliSide: true, bAsync: false);
+
+        Assert.Empty(activities);
+        Assert.Same(outerActivity, Activity.Current);
+
+        sink.ProcessMessageFinish(outerMessage, bCliSide: true, bAsync: false);
+
+        Assert.Same(outerActivity, Assert.Single(activities));
     }
 
     [Fact]
@@ -272,6 +477,14 @@ public class RemotingInstrumentationTests
         public object GetArg(int argNum) => throw new NotSupportedException();
 
         public string GetArgName(int index) => throw new NotSupportedException();
+    }
+
+    private sealed class FakeMessage : IMessage
+    {
+        public IDictionary Properties { get; } = new Hashtable
+        {
+            ["__CallContext"] = (LogicalCallContext)Activator.CreateInstance(typeof(LogicalCallContext), nonPublic: true),
+        };
     }
 
     private sealed class TestOptionsMonitor<TOptions> : IOptionsMonitor<TOptions>
