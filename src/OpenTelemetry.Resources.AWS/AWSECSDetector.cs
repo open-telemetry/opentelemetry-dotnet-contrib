@@ -42,12 +42,15 @@ internal sealed partial class AWSECSDetector : IResourceDetector
                 .AttributeBuilder
                 .AddAttributeCloudProviderIsAWS()
                 .AddAttributeCloudPlatformIsAwsEcs();
+        var hasContainerId = false;
+
         try
         {
             var containerId = GetECSContainerId(AWSECSMetadataPath);
             if (containerId != null)
             {
                 resourceAttributes.AddAttributeContainerId(containerId);
+                hasContainerId = true;
             }
         }
         catch (Exception ex)
@@ -57,7 +60,7 @@ internal sealed partial class AWSECSDetector : IResourceDetector
 
         try
         {
-            this.ExtractMetadataV4ResourceAttributes(resourceAttributes);
+            this.ExtractMetadataV4ResourceAttributes(resourceAttributes, hasContainerId);
         }
         catch (Exception ex)
         {
@@ -90,7 +93,7 @@ internal sealed partial class AWSECSDetector : IResourceDetector
         Environment.GetEnvironmentVariable(AWSECSMetadataURLKey) != null ||
         Environment.GetEnvironmentVariable(AWSECSMetadataURLV4Key) != null;
 
-    internal void ExtractMetadataV4ResourceAttributes(AWSSemanticConventions.AttributeBuilderImpl resourceAttributes)
+    internal void ExtractMetadataV4ResourceAttributes(AWSSemanticConventions.AttributeBuilderImpl resourceAttributes, bool containerIdAlreadySet)
     {
         var metadataV4Url = Environment.GetEnvironmentVariable(AWSECSMetadataURLV4Key);
         if (metadataV4Url == null)
@@ -107,10 +110,10 @@ internal sealed partial class AWSECSDetector : IResourceDetector
         using var containerResponse = JsonDocument.Parse(metadataV4ContainerResponse);
         using var taskResponse = JsonDocument.Parse(metadataV4TaskResponse);
 
-        // On Linux the container ID is obtained from a file which does not exist on Windows.
-        // The ECS Metadata V4 container endpoint always carries the same ID in the "DockerId" field.
+        // The cgroup file carries no usable container ID on Windows or on ECS Fargate
+        // (<32 hex>-<digits>). The ECS Metadata V4 container endpoint always carries the ID in "DockerId".
         // See https://docs.aws.amazon.com/AmazonECS/latest/developerguide/task-metadata-endpoint-v4-response.html.
-        if (OperatingSystem.IsWindows() &&
+        if (!containerIdAlreadySet &&
             containerResponse.RootElement.TryGetProperty("DockerId", out var dockerIdElement) &&
             dockerIdElement.GetString() is string { Length: > 0 } dockerId)
         {
