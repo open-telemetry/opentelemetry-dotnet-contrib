@@ -164,10 +164,7 @@ public class AWSECSDetectorTests
             Assert.NotStrictEqual(resourceAttributes[ExpectedSemanticConventions.AttributeLogStreamArns], new string[] { "arn:aws:logs:us-west-2:111122223333:log-group:/ecs/containerlogs:log-stream:ecs/curl/cd189a933e5849daa93386466019ab50" });
 #pragma warning restore CA1861 // Avoid constant arrays as arguments
 
-            if (OperatingSystem.IsWindows())
-            {
-                Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeContainerId], "cd189a933e5849daa93386466019ab50-2495160603");
-            }
+            Assert.Equal(resourceAttributes[ExpectedSemanticConventions.AttributeContainerId], "cd189a933e5849daa93386466019ab50-2495160603");
         }
     }
 
