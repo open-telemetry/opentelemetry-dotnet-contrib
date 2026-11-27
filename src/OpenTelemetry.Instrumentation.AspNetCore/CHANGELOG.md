@@ -8,6 +8,12 @@
   attribute is renamed to `rpc.status_code`.
   ([#6071](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6071))
 
+* **Breaking Change**: Fixed missing gRPC attributes on the server span for an
+  unimplemented method or service, when gRPC support is on. The span now has
+  `rpc.method` set to `_OTHER`, `rpc.method_original` set to the called method,
+  the name `grpc` and the status `Error`.
+  ([#6109](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6109))
+
 ## 1.21.0
 
 Released 2026-Nov-11

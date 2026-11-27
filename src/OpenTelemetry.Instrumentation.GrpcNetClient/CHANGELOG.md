@@ -8,6 +8,11 @@
   attribute is renamed to `rpc.status_code`.
   ([#6071](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6071))
 
+* Fixed `rpc.method` and the span name for a method path that is not in the
+  `/service/method` form. They are now `_OTHER` and `grpc`, and
+  `rpc.method_original` has the method name.
+  ([#6109](https://github.com/open-telemetry/opentelemetry-dotnet-contrib/pull/6109))
+
 ## 1.21.0-beta.1
 
 Released 2026-Nov-11

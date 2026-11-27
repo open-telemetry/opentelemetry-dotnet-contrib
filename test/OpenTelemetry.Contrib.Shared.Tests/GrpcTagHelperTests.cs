@@ -23,6 +23,9 @@ public class GrpcTagHelperTests
     [Theory]
     [InlineData("/some.service/somemethod", "some.service/somemethod")]
     [InlineData("some.service/somemethod", "some.service/somemethod")]
+    [InlineData("/com.example.ExampleService/exampleMethod", "com.example.ExampleService/exampleMethod")]
+    [InlineData("/EchoService/Echo", "EchoService/Echo")]
+    [InlineData("/Service/other", "Service/other")]
     public void GrpcTagHelper_SetGrpcMethodAndDisplayNameFromActivity_RecognizedMethod(string grpcMethod, string expected)
     {
         using var activity = new Activity("operationName");
@@ -37,9 +40,13 @@ public class GrpcTagHelperTests
     }
 
     [Theory]
-    [InlineData("other")]
-    [InlineData("/other")]
-    public void GrpcTagHelper_SetGrpcMethodAndDisplayNameFromActivity_UnrecognizedMethod(string grpcMethod)
+    [InlineData("other", "other")]
+    [InlineData("/other", "other")]
+    [InlineData("//other", "other")]
+    [InlineData("/other/", "other")]
+    [InlineData("/some.service/", "some.service")]
+    [InlineData("/InvalidMethod", "InvalidMethod")]
+    public void GrpcTagHelper_SetGrpcMethodAndDisplayNameFromActivity_IncompleteMethod(string grpcMethod, string expectedRpcMethodOriginal)
     {
         using var activity = new Activity("operationName");
         activity.SetTag(GrpcTagHelper.GrpcMethodTagName, grpcMethod);
@@ -48,7 +55,24 @@ public class GrpcTagHelperTests
 
         Assert.Equal(GrpcTagHelper.RpcSystemGrpc, activity.DisplayName);
         Assert.Equal(GrpcTagHelper.RpcMethodOther, activity.GetTagValue(SemanticConventions.AttributeRpcMethod));
-        Assert.Equal(GrpcTagHelper.GrpcMethodOther, activity.GetTagValue(SemanticConventions.AttributeRpcMethodOriginal));
+        Assert.Equal(expectedRpcMethodOriginal, activity.GetTagValue(SemanticConventions.AttributeRpcMethodOriginal));
+        Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcMethodTagName));
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData("/")]
+    [InlineData("//")]
+    public void GrpcTagHelper_SetGrpcMethodAndDisplayNameFromActivity_UnavailableMethod(string grpcMethod)
+    {
+        using var activity = new Activity("operationName");
+        activity.SetTag(GrpcTagHelper.GrpcMethodTagName, grpcMethod);
+
+        GrpcTagHelper.SetGrpcMethodAndDisplayNameFromActivity(activity);
+
+        Assert.Equal(GrpcTagHelper.RpcSystemGrpc, activity.DisplayName);
+        Assert.Equal(GrpcTagHelper.RpcMethodOther, activity.GetTagValue(SemanticConventions.AttributeRpcMethod));
+        Assert.Null(activity.GetTagValue(SemanticConventions.AttributeRpcMethodOriginal));
         Assert.Null(activity.GetTagValue(GrpcTagHelper.GrpcMethodTagName));
     }
 

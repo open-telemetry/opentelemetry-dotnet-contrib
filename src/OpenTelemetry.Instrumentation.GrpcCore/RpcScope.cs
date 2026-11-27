@@ -86,13 +86,13 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
         bool recordException)
     {
         this.host = host;
-        this.FullServiceName = fullServiceName?.Trim('/') ?? "unknownservice/unknownmethod";
+        this.FullServiceName = fullServiceName?.Trim('/') ?? string.Empty;
         this.recordMessageEvents = recordMessageEvents;
         this.recordException = recordException;
     }
 
     /// <summary>
-    /// Gets the full name of the service.
+    /// Gets the full name of the service, or an empty string if it is not available.
     /// </summary>
     protected string FullServiceName { get; }
 
@@ -326,7 +326,9 @@ internal abstract class RpcScope<TRequest, TResponse> : IDisposable
             // Only log once per call so a peer cannot also flood the log.
             if (Interlocked.Exchange(ref this.messageEventLimitLogged, 1) == 0)
             {
-                GrpcCoreInstrumentationEventSource.Log.MessageEventLimitExceeded(this.FullServiceName, MaxMessageEvents);
+                GrpcCoreInstrumentationEventSource.Log.MessageEventLimitExceeded(
+                    this.FullServiceName.Length > 0 ? this.FullServiceName : GrpcTagHelper.RpcMethodOther,
+                    MaxMessageEvents);
             }
 
             return;

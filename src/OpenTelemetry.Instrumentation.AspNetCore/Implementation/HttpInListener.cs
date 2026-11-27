@@ -6,6 +6,9 @@ using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Runtime.CompilerServices;
 using Microsoft.AspNetCore.Http;
+#if NET
+using Microsoft.AspNetCore.Routing;
+#endif
 using OpenTelemetry.Context.Propagation;
 using OpenTelemetry.Internal;
 using OpenTelemetry.Trace;
@@ -399,14 +402,33 @@ internal class HttpInListener : ListenerHandler
                         activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode));
                     }
 
+                    GrpcTagHelper.SetGrpcMethodAndDisplayNameFromActivity(activity, grpcMethod);
                     AddGrpcAttributes(
                         activity,
-                        grpcMethod,
                         context,
                         grpcStatusCode,
                         hasGrpcStatusCode);
                 }
             }
+#if NET
+            else if (this.options.EnableGrpcAspNetCoreSupport &&
+                int.TryParse(response.Headers.GrpcStatus, NumberStyles.None, CultureInfo.InvariantCulture, out var grpcStatusCode) &&
+                context.Request.RouteValues.ContainsKey("unimplementedMethod") &&
+                (context.GetEndpoint() as RouteEndpoint)?.RoutePattern.GetParameter("unimplementedMethod")?.ParameterPolicies is [{ Content: "grpcunimplemented" }])
+            {
+                // Grpc.AspNetCore.Server answers a call to a method or service that it does not
+                // implement from this route, and does not add a grpc.method tag.
+                if (!statusCodeSet)
+                {
+                    activity.SetTag(SemanticConventions.AttributeHttpResponseStatusCode, TelemetryHelper.GetBoxedStatusCode(response.StatusCode));
+                }
+
+                activity.DisplayName = GrpcTagHelper.RpcSystemGrpc;
+                activity.SetTag(SemanticConventions.AttributeRpcMethod, GrpcTagHelper.RpcMethodOther);
+                activity.SetTag(SemanticConventions.AttributeRpcMethodOriginal, GrpcTagHelper.TrimGrpcMethod(context.Request.Path.Value ?? string.Empty));
+                AddGrpcAttributes(activity, context, grpcStatusCode, validStatusCode: true);
+            }
+#endif
 
             if (activity.Status == ActivityStatusCode.Unset)
             {
@@ -489,7 +511,6 @@ internal class HttpInListener : ListenerHandler
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     private static void AddGrpcAttributes(
         Activity activity,
-        string? grpcMethod,
         HttpContext context,
         int grpcStatusCode,
         bool validStatusCode)
@@ -497,7 +518,6 @@ internal class HttpInListener : ListenerHandler
         // See the specs for semantic conventions.
         // https://github.com/open-telemetry/semantic-conventions/blob/v1.45.0/docs/rpc/rpc-spans.md
         GrpcTagHelper.SetGrpcSystemName(activity);
-        GrpcTagHelper.SetGrpcMethodAndDisplayNameFromActivity(activity, grpcMethod);
 
         if (context.Connection.RemoteIpAddress != null)
         {

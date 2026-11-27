@@ -214,7 +214,7 @@ public class ServerTracingInterceptor : Interceptor
             }
 
             var activity = GrpcCoreInstrumentation.ActivitySource.StartActivity(
-                this.FullServiceName,
+                this.FullServiceName.Length > 0 ? this.FullServiceName : GrpcTagHelper.RpcSystemGrpc,
                 ActivityKind.Server,
                 currentContext ?? default,
                 tags: options.AdditionalTags);

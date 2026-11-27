@@ -4,6 +4,8 @@
 using System.Diagnostics;
 using System.Net;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Routing;
+using Microsoft.AspNetCore.Routing.Patterns;
 using OpenTelemetry.Instrumentation.AspNetCore.Implementation;
 using OpenTelemetry.Trace;
 
@@ -78,6 +80,170 @@ public class GrpcTests
         AssertTag(activity, SemanticConventions.AttributeErrorType, null);
     }
 
+    [Theory]
+    [InlineData("/com.myservice.EchoService/unknownMethod", "unknownMethod", "com.myservice.EchoService/unknownMethod")]
+    [InlineData("/missing.Service/Method", "Method", "missing.Service/Method")]
+    public void OnStopActivityAddsGrpcAttributesForUnimplementedMethod(string path, string unimplementedMethod, string expectedRpcMethodOriginal)
+    {
+        // Arrange
+        var listener = CreateListener();
+        using var activity = new Activity("operation") { IsAllDataRequested = true };
+        var context = CreateContext(IPAddress.Loopback, remotePort: 4317);
+        context.Request.Path = path;
+        context.Request.RouteValues["unimplementedMethod"] = unimplementedMethod;
+        context.SetEndpoint(CreateEndpoint("{unimplementedService}/{unimplementedMethod:grpcunimplemented}"));
+        context.Response.ContentType = "application/grpc";
+        context.Response.Headers["grpc-status"] = "12";
+
+        // Act
+        listener.OnStopActivity(activity, context);
+
+        // Assert
+        Assert.Equal("grpc", activity.DisplayName);
+        Assert.Equal(ActivityStatusCode.Error, activity.Status);
+
+        AssertTag(activity, SemanticConventions.AttributeHttpResponseStatusCode, 200);
+
+        AssertTag(activity, SemanticConventions.AttributeRpcSystemName, "grpc");
+        AssertTag(activity, SemanticConventions.AttributeNetworkPeerAddress, "127.0.0.1");
+        AssertTag(activity, SemanticConventions.AttributeNetworkPeerPort, 4317);
+        AssertTag(activity, SemanticConventions.AttributeRpcMethod, "_OTHER");
+        AssertTag(activity, SemanticConventions.AttributeRpcMethodOriginal, expectedRpcMethodOriginal);
+        AssertTag(activity, SemanticConventions.AttributeRpcStatusCode, "UNIMPLEMENTED");
+        AssertTag(activity, SemanticConventions.AttributeErrorType, "UNIMPLEMENTED");
+    }
+
+    [Fact]
+    public void OnStopActivityResolvesServerSpanStatusForUnimplementedMethod()
+    {
+        // Arrange
+        var listener = CreateListener();
+        using var activity = new Activity("operation") { IsAllDataRequested = true };
+        var context = CreateContext(IPAddress.Loopback, remotePort: 4317);
+        context.Request.Path = "/package.Service/Missing";
+        context.Request.RouteValues["unimplementedMethod"] = "Missing";
+        context.SetEndpoint(CreateEndpoint("{unimplementedService}/{unimplementedMethod:grpcunimplemented}"));
+        context.Response.ContentType = "application/grpc";
+        context.Response.Headers["grpc-status"] = "5";
+
+        // Act
+        listener.OnStopActivity(activity, context);
+
+        // Assert
+        Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+
+        AssertTag(activity, SemanticConventions.AttributeRpcMethod, "_OTHER");
+        AssertTag(activity, SemanticConventions.AttributeRpcStatusCode, "NOT_FOUND");
+        AssertTag(activity, SemanticConventions.AttributeErrorType, null);
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    [InlineData("a")]
+    public void OnStopActivityIgnoresUnimplementedMethodWithoutGrpcStatus(string? grpcStatus)
+    {
+        // Arrange
+        var listener = CreateListener();
+        using var activity = new Activity("operation") { IsAllDataRequested = true };
+        var context = CreateContext(IPAddress.Loopback, remotePort: 4317);
+        context.Request.Path = "/package.Service/Missing";
+        context.Request.RouteValues["unimplementedMethod"] = "Missing";
+        context.SetEndpoint(CreateEndpoint("{unimplementedService}/{unimplementedMethod:grpcunimplemented}"));
+        context.Response.ContentType = "application/grpc";
+
+        if (grpcStatus != null)
+        {
+            context.Response.Headers["grpc-status"] = grpcStatus;
+        }
+
+        // Act
+        listener.OnStopActivity(activity, context);
+
+        // Assert
+        Assert.Equal("operation", activity.DisplayName);
+        Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+
+        AssertTag(activity, SemanticConventions.AttributeRpcSystemName, null);
+        AssertTag(activity, SemanticConventions.AttributeRpcMethod, null);
+        AssertTag(activity, SemanticConventions.AttributeRpcMethodOriginal, null);
+    }
+
+    [Fact]
+    public void OnStopActivityIgnoresGrpcStatusWithoutUnimplementedMethodRouteValue()
+    {
+        // Arrange
+        var listener = CreateListener();
+        using var activity = new Activity("operation") { IsAllDataRequested = true };
+        var context = CreateContext(IPAddress.Loopback, remotePort: 4317);
+        context.Request.Path = "/package.Service/Method";
+        context.Response.ContentType = "application/grpc";
+        context.Response.Headers["grpc-status"] = "12";
+
+        // Act
+        listener.OnStopActivity(activity, context);
+
+        // Assert
+        Assert.Equal("operation", activity.DisplayName);
+        Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+
+        AssertTag(activity, SemanticConventions.AttributeRpcSystemName, null);
+        AssertTag(activity, SemanticConventions.AttributeRpcMethod, null);
+        AssertTag(activity, SemanticConventions.AttributeRpcMethodOriginal, null);
+    }
+
+    [Theory]
+    [InlineData("{unimplementedMethod}")]
+    [InlineData("{unimplementedMethod:alpha}")]
+    public void OnStopActivityIgnoresUnimplementedMethodRouteValueWithoutGrpcUnimplementedConstraint(string routePattern)
+    {
+        // Arrange
+        var listener = CreateListener();
+        using var activity = new Activity("operation") { IsAllDataRequested = true };
+        var context = CreateContext(IPAddress.Loopback, remotePort: 4317);
+        context.Request.Path = "/Missing";
+        context.Request.RouteValues["unimplementedMethod"] = "Missing";
+        context.SetEndpoint(CreateEndpoint(routePattern));
+        context.Response.ContentType = "application/grpc";
+        context.Response.Headers["grpc-status"] = "12";
+
+        // Act
+        listener.OnStopActivity(activity, context);
+
+        // Assert
+        Assert.Equal("operation", activity.DisplayName);
+        Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+
+        AssertTag(activity, SemanticConventions.AttributeRpcSystemName, null);
+        AssertTag(activity, SemanticConventions.AttributeRpcMethod, null);
+        AssertTag(activity, SemanticConventions.AttributeRpcMethodOriginal, null);
+    }
+
+    [Fact]
+    public void OnStopActivityIgnoresUnimplementedMethodWhenGrpcSupportIsDisabled()
+    {
+        // Arrange
+        var listener = new HttpInListener(new AspNetCoreTraceInstrumentationOptions());
+        using var activity = new Activity("operation") { IsAllDataRequested = true };
+        var context = CreateContext(IPAddress.Loopback, remotePort: 4317);
+        context.Request.Path = "/package.Service/Missing";
+        context.Request.RouteValues["unimplementedMethod"] = "Missing";
+        context.SetEndpoint(CreateEndpoint("{unimplementedService}/{unimplementedMethod:grpcunimplemented}"));
+        context.Response.ContentType = "application/grpc";
+        context.Response.Headers["grpc-status"] = "12";
+
+        // Act
+        listener.OnStopActivity(activity, context);
+
+        // Assert
+        Assert.Equal("operation", activity.DisplayName);
+        Assert.Equal(ActivityStatusCode.Unset, activity.Status);
+
+        AssertTag(activity, SemanticConventions.AttributeRpcSystemName, null);
+        AssertTag(activity, SemanticConventions.AttributeRpcMethod, null);
+        AssertTag(activity, SemanticConventions.AttributeRpcMethodOriginal, null);
+    }
+
     private static void AssertTag(Activity activity, string name, object? expected) =>
         Assert.Equal(expected, activity.GetTagValue(name));
 
@@ -99,6 +265,9 @@ public class GrpcTests
 
         return activity;
     }
+
+    private static RouteEndpoint CreateEndpoint(string routePattern) =>
+        new(_ => Task.CompletedTask, RoutePatternFactory.Parse(routePattern), order: 0, metadata: null, displayName: null);
 
     private static DefaultHttpContext CreateContext(IPAddress? remoteIpAddress, int remotePort)
     {
