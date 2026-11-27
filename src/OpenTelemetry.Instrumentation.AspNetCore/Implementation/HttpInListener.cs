@@ -118,7 +118,6 @@ internal class HttpInListener : ListenerHandler
         // (which is no longer sampled) rather than to the exported sibling, so the
         // instrumentation must set those tags itself instead of deferring to the framework.
         var createdSibling = false;
-        var createdRoot = false;
 
         // The method-based display name, when the HTTP method was normalized while collecting the request tags.
         string? displayName = null;
@@ -142,11 +141,12 @@ internal class HttpInListener : ListenerHandler
                 // This makes the new activity as a "sibling" of the activity created by
                 // Asp.Net Core.
                 Activity? newOne;
+                var tags = this.GetRequestTags(request, createdSibling: true, out displayName);
                 if (Net7OrGreater)
                 {
                     // For NET7.0 onwards activity is created using ActivitySource so,
                     // we will use the source of the activity to create the new one.
-                    newOne = activity.Source.CreateActivity(ActivityOperationName, ActivityKind.Server, ctx.ActivityContext);
+                    newOne = activity.Source.CreateActivity(ActivityOperationName, ActivityKind.Server, ctx.ActivityContext, tags);
                 }
                 else
                 {
@@ -154,6 +154,12 @@ internal class HttpInListener : ListenerHandler
                     newOne = new Activity(ActivityOperationName);
 #pragma warning restore CA2000
                     newOne.SetParentId(ctx.ActivityContext.TraceId, ctx.ActivityContext.SpanId, ctx.ActivityContext.TraceFlags);
+
+                    for (var i = 0; i < tags.Count; i++)
+                    {
+                        var tag = tags[i];
+                        newOne.SetTag(tag.Key, tag.Value);
+                    }
                 }
 
                 newOne!.TraceStateString = ctx.ActivityContext.TraceState;
@@ -227,7 +233,6 @@ internal class HttpInListener : ListenerHandler
                 activity.IsAllDataRequested = false;
                 activity = root;
                 createdSibling = true;
-                createdRoot = true;
             }
         }
 #endif
@@ -267,10 +272,10 @@ internal class HttpInListener : ListenerHandler
                 ActivityInstrumentationHelper.SetKindProperty(activity, ActivityKind.Server);
             }
 
-            // The root was created with these tags.
-            if (!createdRoot)
+            // The sibling and the root were created with these tags.
+            if (!createdSibling)
             {
-                var tags = this.GetRequestTags(request, createdSibling, out displayName);
+                var tags = this.GetRequestTags(request, createdSibling: false, out displayName);
 
                 // Indexed, as foreach over a TagList boxes its enumerator.
                 for (var i = 0; i < tags.Count; i++)
@@ -651,15 +656,16 @@ internal class HttpInListener : ListenerHandler
 
         if (request.QueryString.HasValue)
         {
+            var query = request.QueryString.Value.Substring(1);
             if (this.options.DisableUrlQueryRedaction)
             {
-                tags.Add(SemanticConventions.AttributeUrlQuery, request.QueryString.Value);
+                tags.Add(SemanticConventions.AttributeUrlQuery, query);
             }
             else
             {
                 // ASP.NET Core 11+ sets url.query natively (https://github.com/dotnet/aspnetcore/pull/68824)
                 // but what it redacts is narrower in scope, so overwrite it for backwards compatibility.
-                tags.Add(SemanticConventions.AttributeUrlQuery, RedactionHelper.GetRedactedQueryString(request.QueryString.Value));
+                tags.Add(SemanticConventions.AttributeUrlQuery, RedactionHelper.GetRedactedQueryString(query));
             }
         }
 
