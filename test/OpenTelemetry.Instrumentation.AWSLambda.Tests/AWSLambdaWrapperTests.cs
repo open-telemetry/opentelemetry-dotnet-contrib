@@ -176,9 +176,11 @@ public class AWSLambdaWrapperTests : IDisposable
     }
 
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public void TestLambdaHandlerException(bool setCustomParent)
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public void TestLambdaHandlerException(bool setCustomParent, bool recordException)
     {
         var exportedItems = new List<Activity>();
 
@@ -186,6 +188,7 @@ public class AWSLambdaWrapperTests : IDisposable
                    .AddAWSLambdaConfigurations(opt =>
                    {
                        opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                       opt.RecordException = recordException;
                    })
                    .AddInMemoryExporter(exportedItems)
                    .Build()!)
@@ -205,7 +208,49 @@ public class AWSLambdaWrapperTests : IDisposable
         var activity = Assert.Single(exportedItems);
         this.AssertSpanProperties(activity, setCustomParent ? CustomParentId : XRayParentId);
         this.AssertSpanAttributes(activity);
-        this.AssertSpanException(activity);
+        this.AssertSpanException(activity, recordException);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task TestLambdaHandlerAsyncException(bool recordException)
+    {
+        var exportedItems = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations(opt =>
+                   {
+                       opt.SemanticConventionVersion = SemanticConventionVersion.Latest;
+                       opt.RecordException = recordException;
+                   })
+                   .AddInMemoryExporter(exportedItems)
+                   .Build()!)
+        {
+            await Assert.ThrowsAsync<Exception>(() =>
+                AWSLambdaWrapper.TraceAsync(tracerProvider, this.sampleHandlers.SampleHandlerAsyncNoReturnException, "TestException", this.sampleLambdaContext));
+        }
+
+        var activity = Assert.Single(exportedItems);
+        this.AssertSpanException(activity, recordException);
+    }
+
+    [Fact]
+    public void TestLambdaHandlerExceptionIsNotRecordedByDefault()
+    {
+        var exportedItems = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                   .AddAWSLambdaConfigurations()
+                   .AddInMemoryExporter(exportedItems)
+                   .Build()!)
+        {
+            Assert.Throws<Exception>(() =>
+                AWSLambdaWrapper.Trace(tracerProvider, this.sampleHandlers.SampleHandlerSyncNoReturnException, "TestException", this.sampleLambdaContext));
+        }
+
+        var activity = Assert.Single(exportedItems);
+        this.AssertSpanException(activity, recordException: false);
     }
 
     [Fact]
@@ -888,13 +933,22 @@ public class AWSLambdaWrapperTests : IDisposable
         Assert.Equal(this.sampleLambdaContext.MemoryLimitInMB * 1024L * 1024L, activity.GetTagValue(ExpectedSemanticConventions.AttributeFaasMaxMemory));
     }
 
-    private void AssertSpanException(Activity activity)
+    private void AssertSpanException(Activity activity, bool recordException)
     {
         Assert.Equal(ActivityStatusCode.Error, activity.Status);
-        Assert.Equal("TestException", activity.StatusDescription);
-        var exception = Assert.Single(activity.Events);
-        Assert.Equal("exception", exception.Name);
-        Assert.Equal("TestException", exception.Tags.SingleOrDefault(t => t.Key.Equals("exception.message")).Value);
+        Assert.Null(activity.StatusDescription);
+        Assert.Equal(typeof(Exception).FullName, activity.GetTagValue("error.type"));
+
+        if (recordException)
+        {
+            var exception = Assert.Single(activity.Events);
+            Assert.Equal("exception", exception.Name);
+            Assert.Equal("TestException", exception.Tags.SingleOrDefault(t => t.Key.Equals("exception.message")).Value);
+        }
+        else
+        {
+            Assert.Empty(activity.Events);
+        }
     }
 
     private static class ExpectedSemanticConventions

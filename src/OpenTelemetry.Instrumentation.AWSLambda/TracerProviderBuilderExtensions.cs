@@ -43,6 +43,7 @@ public static class TracerProviderBuilderExtensions
         AWSLambdaWrapper.DisableUrlQueryRedaction = AWSLambdaWrapper.IsUrlQueryRedactionDisabledFromEnvironment();
         AWSMessagingUtils.SetParentFromMessageBatch = options.SetParentFromBatch;
         AWSLambdaWrapper.EnrichWithInput = options.EnrichWithInput;
+        AWSLambdaWrapper.RecordException = options.RecordException;
 
         builder.AddSource(AWSLambdaWrapper.ActivitySourceName);
         builder.ConfigureResource(x => x.AddDetector(new AWSLambdaResourceDetector(awsSemanticConventions)));
