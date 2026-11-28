@@ -144,6 +144,7 @@ public class RemotingInstrumentationTests
 
         var activity = Assert.Single(activities);
         Assert.Equal(TelemetryDynamicSinkProvider.ActivitySourceName, activity.Source.Name);
+        Assert.StartsWith("https://opentelemetry.io/schemas/", activity.Source.TelemetrySchemaUrl);
         Assert.Equal("DoStuff", activity.GetTagItem("remoting.start.method"));
         Assert.Equal("DoStuff", activity.GetTagItem("remoting.finish.method"));
     }

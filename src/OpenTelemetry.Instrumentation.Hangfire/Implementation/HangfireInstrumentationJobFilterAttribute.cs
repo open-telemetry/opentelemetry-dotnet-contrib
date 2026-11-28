@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: Apache-2.0
 
 using System.Diagnostics;
+using Hangfire;
 using Hangfire.Client;
 using Hangfire.Common;
 using Hangfire.Server;
@@ -13,6 +14,11 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 
 internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, IServerFilter, IClientFilter
 {
+    private static readonly KeyValuePair<string, object?>[] CommonTags =
+    [
+        new(WorkflowAttributes.AttributeWorkflowPlatformName, WorkflowAttributes.WorkflowPlatformNameValues.Hangfire),
+    ];
+
     private readonly HangfireInstrumentationOptions options;
 
 #pragma warning disable CA1019 // Define accessors for attribute arguments
@@ -30,8 +36,7 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
             return;
         }
 
-        // Read first: if this throws, OnPerformed is not called, so the baggage must not have been changed yet.
-        var activityContextData = filterContext.GetJobParameter<Dictionary<string, string>>(HangfireInstrumentationConstants.ActivityContextKey);
+        var activityContextData = ReadActivityContextData(filterContext);
 
         // Assigning Baggage.Current writes into the holder already present in the execution context, which
         // on a long-lived Hangfire worker thread is shared with work started by earlier jobs. Detach the
@@ -41,46 +46,66 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
         filterContext.Items[HangfireInstrumentationConstants.PreviousBaggageKey] = RuntimeContext.GetValue(HangfireInstrumentationConstants.BaggageSlotName);
         RuntimeContext.SetValue(HangfireInstrumentationConstants.BaggageSlotName, null);
 
-        ActivityContext parentContext = default;
-        Baggage.Current = default;
+        var previousActivity = Activity.Current;
+        filterContext.Items[HangfireInstrumentationConstants.PreviousActivityKey] = previousActivity;
 
-        if (activityContextData is not null)
+        Activity? activity = null;
+
+        try
         {
-            var propagationContext = Propagators.DefaultTextMapPropagator.Extract(default, activityContextData, ExtractActivityProperties);
-            parentContext = propagationContext.ActivityContext;
-            Baggage.Current = propagationContext.Baggage;
-        }
+            ActivityContext parentContext = default;
+            Baggage.Current = default;
 
-        var activity = HangfireInstrumentation.ActivitySource
-            .StartActivity(HangfireInstrumentationConstants.ActivityName, ActivityKind.Internal, parentContext);
-
-        if (activity != null)
-        {
-            var displayNameFunc = this.options.DisplayNameFunc ?? HangfireInstrumentation.DefaultDisplayNameFunc;
-
-            activity.DisplayName = displayNameFunc(filterContext.BackgroundJob);
-
-            if (activity.IsAllDataRequested)
+            if (activityContextData is not null)
             {
-                try
-                {
-                    if (this.options.Filter?.Invoke(filterContext.BackgroundJob) == false)
-                    {
-                        SuppressAndDisposeActivity(activity);
-                        return;
-                    }
-                }
-                catch (Exception)
-                {
-                    SuppressAndDisposeActivity(activity);
-                    return;
-                }
-
-                activity.SetTag(HangfireInstrumentationConstants.JobIdTag, filterContext.BackgroundJob.Id);
-                activity.SetTag(HangfireInstrumentationConstants.JobCreatedAtTag, filterContext.BackgroundJob.CreatedAt.ToString("O"));
+                var propagationContext = Propagators.DefaultTextMapPropagator.Extract(default, activityContextData, ExtractActivityProperties);
+                parentContext = propagationContext.ActivityContext;
+                Baggage.Current = propagationContext.Baggage;
             }
 
-            filterContext.Items.Add(HangfireInstrumentationConstants.ActivityKey, activity);
+            // Created, not started: Activity.Id caches the trace flags on first read, so a filtered activity
+            // must have Recorded cleared before Start lets listeners see it.
+            activity = HangfireInstrumentation.ActivitySource
+                .CreateActivity(HangfireInstrumentationConstants.ActivityName, ActivityKind.Internal, parentContext, CommonTags);
+
+            if (activity != null)
+            {
+                if (activity.IsAllDataRequested)
+                {
+                    if (this.IsFilteredOut(filterContext.BackgroundJob))
+                    {
+                        // The activity stays current until OnPerformed, so activities started by the job
+                        // inherit the cleared Recorded flag and are dropped by a parent-based sampler.
+                        activity.IsAllDataRequested = false;
+                        activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+                    }
+                    else
+                    {
+                        activity.SetTag(HangfireInstrumentationConstants.JobIdTag, filterContext.BackgroundJob.Id);
+                        activity.SetTag(HangfireInstrumentationConstants.JobCreatedAtTag, filterContext.BackgroundJob.CreatedAt.ToString("O"));
+                    }
+                }
+
+                activity.Start();
+
+                activity.DisplayName = this.GetDisplayName(filterContext.BackgroundJob);
+
+                filterContext.Items.Add(HangfireInstrumentationConstants.ActivityKey, activity);
+            }
+        }
+        catch (Exception ex)
+        {
+            HangfireInstrumentationEventSource.Log.StartJobActivityFailed(ex);
+
+            // The activity is not in Items, so OnPerformed would not stop it. OnPerformed still restores
+            // the baggage after the job.
+            if (activity != null)
+            {
+                // Otherwise the half-started activity is exported with the placeholder name while the job runs.
+                activity.IsAllDataRequested = false;
+                activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
+                StopActivity(activity, previousActivity);
+            }
         }
     }
 
@@ -93,12 +118,20 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
             if (filterContext.Items.TryGetValue(HangfireInstrumentationConstants.ActivityKey, out var value)
                 && value is Activity activity)
             {
-                if (filterContext.Exception != null)
+                try
                 {
-                    this.SetStatusAndRecordException(activity, filterContext.Exception);
+                    if (filterContext.Exception != null && activity.IsAllDataRequested)
+                    {
+                        this.SetStatusAndRecordException(activity, filterContext.Exception);
+                    }
+                }
+                catch (Exception ex)
+                {
+                    HangfireInstrumentationEventSource.Log.RecordJobExceptionFailed(ex);
                 }
 
-                activity.Dispose();
+                filterContext.Items.TryGetValue(HangfireInstrumentationConstants.PreviousActivityKey, out var previousActivity);
+                StopActivity(activity, previousActivity as Activity);
             }
         }
         finally
@@ -133,6 +166,19 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
     {
     }
 
+    private static Dictionary<string, string>? ReadActivityContextData(PerformingContext filterContext)
+    {
+        try
+        {
+            return filterContext.GetJobParameter<Dictionary<string, string>>(HangfireInstrumentationConstants.ActivityContextKey);
+        }
+        catch (Exception ex)
+        {
+            HangfireInstrumentationEventSource.Log.ReadActivityContextFailed(ex);
+            return null;
+        }
+    }
+
     private static void InjectActivityProperties(IDictionary<string, string> jobParams, string key, string value)
     {
         jobParams[key] = value;
@@ -143,11 +189,52 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
         return telemetryData.TryGetValue(key, out var value) ? [value] : [];
     }
 
-    private static void SuppressAndDisposeActivity(Activity activity)
+    private static void StopActivity(Activity activity, Activity? previousActivity)
     {
-        activity.IsAllDataRequested = false;
-        activity.ActivityTraceFlags &= ~ActivityTraceFlags.Recorded;
-        activity.Dispose();
+        try
+        {
+            activity.Dispose();
+        }
+        catch (Exception ex)
+        {
+            HangfireInstrumentationEventSource.Log.StopJobActivityFailed(ex);
+        }
+
+        // Activity.Stop notifies listeners before it restores Activity.Current, so a throwing
+        // ActivityStopped listener leaves the stopped job activity current on the worker.
+        if (Activity.Current == activity)
+        {
+            Activity.Current = previousActivity;
+        }
+    }
+
+    private string GetDisplayName(BackgroundJob backgroundJob)
+    {
+        try
+        {
+            if (this.options.DisplayNameFunc?.Invoke(backgroundJob) is { } displayName)
+            {
+                return displayName;
+            }
+        }
+        catch (Exception ex)
+        {
+            HangfireInstrumentationEventSource.Log.DisplayNameFuncFailed(ex);
+        }
+
+        return HangfireInstrumentation.DefaultDisplayNameFunc(backgroundJob);
+    }
+
+    private bool IsFilteredOut(BackgroundJob backgroundJob)
+    {
+        try
+        {
+            return this.options.Filter?.Invoke(backgroundJob) == false;
+        }
+        catch (Exception)
+        {
+            return true;
+        }
     }
 
     private void SetStatusAndRecordException(Activity activity, Exception exception)

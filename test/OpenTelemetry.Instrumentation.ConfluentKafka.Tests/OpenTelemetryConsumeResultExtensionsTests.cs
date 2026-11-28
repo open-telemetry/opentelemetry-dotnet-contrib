@@ -111,13 +111,78 @@ public class OpenTelemetryConsumeResultExtensionsTests
     }
 
     [Fact]
-    public async Task ConsumeAndProcessMessageAsync_NonInstrumentedConsumer_ThrowsArgumentException()
+    public async Task ConsumeAndProcessMessageAsync_NonInstrumentedConsumer_InvokesHandlerAndCreatesProcessActivity()
     {
-        var plainConsumer = new FakeConsumer<string, string>();
+        var activities = new List<Activity>();
+        ConsumeResult<string, string>? handledResult = null;
+        Activity? handledActivity = null;
 
-        await Assert.ThrowsAsync<ArgumentException>(
-            "consumer",
-            () => plainConsumer.ConsumeAndProcessMessageAsync(NoOpHandler).AsTask());
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                                       .AddSource(ConfluentKafkaCommon.ActivitySource.Name)
+                                       .AddInMemoryExporter(activities)
+                                       .Build())
+        {
+            var plainConsumer = new FakeConsumer<string, string>
+            {
+                ConsumeResult = new ConsumeResult<string, string>
+                {
+                    Topic = "plain-topic",
+                    Partition = new Partition(0),
+                    Offset = new Offset(3),
+                    Message = new Message<string, string> { Key = "k", Value = "v" },
+                },
+            };
+
+            var result = await plainConsumer.ConsumeAndProcessMessageAsync((res, act, _) =>
+            {
+                handledResult = res;
+                handledActivity = act;
+                return new ValueTask(Task.CompletedTask);
+            });
+
+            Assert.NotNull(result);
+            Assert.Same(plainConsumer.ConsumeResult, result);
+            Assert.Same(plainConsumer.ConsumeResult, handledResult);
+            Assert.NotNull(handledActivity);
+
+            tracerProvider.ForceFlush();
+        }
+
+        var processActivity = Assert.Single(activities, a => a.DisplayName == "process plain-topic");
+        Assert.Equal("fake-consumer", processActivity.GetTagValue(SemanticConventions.AttributeMessagingClientId));
+        Assert.Null(processActivity.GetTagValue(SemanticConventions.AttributeMessagingConsumerGroupName));
+        Assert.Null(processActivity.GetTagValue(SemanticConventions.AttributeKafkaClusterId));
+    }
+
+    [Fact]
+    public async Task ConsumeAndProcessMessageAsync_NonInstrumentedConsumerWithNullName_OmitsClientIdTag()
+    {
+        var activities = new List<Activity>();
+
+        using (var tracerProvider = Sdk.CreateTracerProviderBuilder()
+                                       .AddSource(ConfluentKafkaCommon.ActivitySource.Name)
+                                       .AddInMemoryExporter(activities)
+                                       .Build())
+        {
+            var plainConsumer = new FakeConsumer<string, string>
+            {
+                Name = null!,
+                ConsumeResult = new ConsumeResult<string, string>
+                {
+                    Topic = "null-name-topic",
+                    Partition = new Partition(0),
+                    Offset = new Offset(1),
+                    Message = new Message<string, string> { Key = "k", Value = "v" },
+                },
+            };
+
+            await plainConsumer.ConsumeAndProcessMessageAsync(NoOpHandler);
+
+            tracerProvider.ForceFlush();
+        }
+
+        var processActivity = Assert.Single(activities, a => a.DisplayName == "process null-name-topic");
+        Assert.Null(processActivity.GetTagValue(SemanticConventions.AttributeMessagingClientId));
     }
 
     [Fact]
@@ -469,7 +534,7 @@ public class OpenTelemetryConsumeResultExtensionsTests
 
         public Handle Handle => null!;
 
-        public string Name => "fake-consumer";
+        public string Name { get; set; } = "fake-consumer";
 
         public string MemberId => string.Empty;
 
