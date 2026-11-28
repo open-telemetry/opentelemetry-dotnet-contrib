@@ -14,6 +14,11 @@ namespace OpenTelemetry.Instrumentation.Hangfire.Implementation;
 
 internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttribute, IServerFilter, IClientFilter
 {
+    private static readonly KeyValuePair<string, object?>[] CommonTags =
+    [
+        new(WorkflowAttributes.AttributeWorkflowPlatformName, WorkflowAttributes.WorkflowPlatformNameValues.Hangfire),
+    ];
+
     private readonly HangfireInstrumentationOptions options;
 
 #pragma warning disable CA1019 // Define accessors for attribute arguments
@@ -61,7 +66,7 @@ internal sealed class HangfireInstrumentationJobFilterAttribute : JobFilterAttri
             // Created, not started: Activity.Id caches the trace flags on first read, so a filtered activity
             // must have Recorded cleared before Start lets listeners see it.
             activity = HangfireInstrumentation.ActivitySource
-                .CreateActivity(HangfireInstrumentationConstants.ActivityName, ActivityKind.Internal, parentContext);
+                .CreateActivity(HangfireInstrumentationConstants.ActivityName, ActivityKind.Internal, parentContext, CommonTags);
 
             if (activity != null)
             {
