@@ -33,7 +33,8 @@ public class AWSLambdaWrapperTests : IDisposable
             ("AWS_LAMBDA_FUNCTION_NAME", "testfunction"),
             ("AWS_LAMBDA_FUNCTION_VERSION", "latest"),
             ("AWS_LAMBDA_FUNCTION_MEMORY_SIZE", "128"),
-            ("AWS_LAMBDA_LOG_STREAM_NAME", "2025/07/21/[$LATEST]7b176c212e954e62adfb9b5451cb5374"));
+            ("AWS_LAMBDA_LOG_STREAM_NAME", "2025/07/21/[$LATEST]7b176c212e954e62adfb9b5451cb5374"),
+            ("AWS_LAMBDA_LOG_GROUP_NAME", "/aws/lambda/testfunction"));
     }
 
     public void Dispose()
@@ -95,6 +96,22 @@ public class AWSLambdaWrapperTests : IDisposable
 
         var unexpectedName = expectedName == "faas.invocation.id" ? "faas.invocation_id" : "faas.invocation.id";
         Assert.Null(activity.GetTagValue(unexpectedName));
+    }
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("")]
+    public void ResourceOmitsLogGroupNamesWhenEnvironmentVariableIsUnsetOrEmpty(string? value)
+    {
+        using var envScope = EnvironmentVariableScope.Create("AWS_LAMBDA_LOG_GROUP_NAME", value);
+
+        using var tracerProvider = Sdk.CreateTracerProviderBuilder()
+            .AddAWSLambdaConfigurations()
+            .Build();
+
+        var resource = tracerProvider.GetResource();
+
+        Assert.DoesNotContain(resource.Attributes, x => x.Key == ExpectedSemanticConventions.AttributeLogGroupNames);
     }
 
     [Theory]
@@ -875,6 +892,9 @@ public class AWSLambdaWrapperTests : IDisposable
         Assert.Equal("latest", resourceAttributes[ExpectedSemanticConventions.AttributeFaasVersion]);
         Assert.Equal("2025/07/21/[$LATEST]7b176c212e954e62adfb9b5451cb5374", resourceAttributes[ExpectedSemanticConventions.AttributeFaasInstance]);
         Assert.Equal(134217728L, resourceAttributes[ExpectedSemanticConventions.AttributeFaasMaxMemory]);
+        Assert.Equal(
+            ["/aws/lambda/testfunction"],
+            Assert.IsType<string[]>(resourceAttributes[ExpectedSemanticConventions.AttributeLogGroupNames]));
     }
 
     private void AssertSpanAttributes(Activity activity)
@@ -910,5 +930,6 @@ public class AWSLambdaWrapperTests : IDisposable
         public const string AttributeFaasVersion = "faas.version";
         public const string AttributeFaasInstance = "faas.instance";
         public const string AttributeFaasMaxMemory = "faas.max_memory";
+        public const string AttributeLogGroupNames = "aws.log.group.names";
     }
 }

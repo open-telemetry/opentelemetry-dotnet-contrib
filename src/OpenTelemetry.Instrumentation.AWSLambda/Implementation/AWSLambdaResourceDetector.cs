@@ -25,6 +25,7 @@ internal sealed class AWSLambdaResourceDetector(AWSSemanticConventions semanticC
                 .AddAttributeFaasVersion(AWSLambdaUtils.GetFunctionVersion())
                 .AddAttributeFaasInstance(AWSLambdaUtils.GetFunctionInstance())
                 .AddAttributeFaasMaxMemory(AWSLambdaUtils.GetFunctionMemorySize())
+                .AddAttributeLogGroupNames(AWSLambdaUtils.GetLogGroupNames())
                 .Build();
 
         var version = this.semanticConventionBuilder.Version;
