@@ -13,6 +13,8 @@ using Amazon.BedrockRuntime;
 using Amazon.BedrockRuntime.Model;
 using Amazon.DynamoDBv2;
 using Amazon.DynamoDBv2.Model;
+using Amazon.Kinesis;
+using Amazon.Kinesis.Model;
 using Amazon.Runtime;
 using Amazon.Runtime.Internal;
 using Amazon.Runtime.Telemetry;
@@ -749,6 +751,61 @@ public class TestAWSClientInstrumentation : IDisposable
         Assert.Equal(ActivityStatusCode.Unset, awssdk_activity.Status);
         Assert.Equal(requestId, Utils.GetTagValue(awssdk_activity, "aws.request_id"));
         Assert.Equal(extendedRequestId, Utils.GetTagValue(awssdk_activity, "aws.extended_request_id"));
+    }
+
+    [Theory]
+    [InlineData(SemanticConventionVersion.V1_28_0, null)]
+    [InlineData(SemanticConventionVersion.V1_29_0, null)]
+    [InlineData(SemanticConventionVersion.V1_40_0, "my-test-stream")]
+    [InlineData(SemanticConventionVersion.V1_45_0, "my-test-stream")]
+    [InlineData(SemanticConventionVersion.Latest, "my-test-stream")]
+#if NETFRAMEWORK
+    public void TestKinesisPutRecordForSemanticConventionVersion(
+        SemanticConventionVersion version,
+        string? expectedStreamName)
+#else
+    public async Task TestKinesisPutRecordForSemanticConventionVersion(
+        SemanticConventionVersion version,
+        string? expectedStreamName)
+#endif
+    {
+        var exportedItems = new List<Activity>();
+        var requestId = "c3a8f2e1-7b4d-4e6a-9f0c-2d5b8a1e6f37";
+        var extendedRequestId = "wzHcyEWfmOGDIE5QOhTAqFDoDWP3y8IUvpNINCwL9N4TEHbUw0/gZJ+VZTmCNCWR7fezEN3eCiQ=";
+
+        using (Sdk.CreateTracerProviderBuilder()
+                   .SetSampler(new AlwaysOnSampler())
+                   .AddAWSInstrumentation(o => o.SemanticConventionVersion = version)
+                   .AddInMemoryExporter(exportedItems)
+                   .Build())
+        {
+            using var kinesis = new AmazonKinesisClient(new AnonymousAWSCredentials(), RegionEndpoint.USEast1);
+            var dummyResponse = """
+                {
+                  "ShardId": "shardId-000000000001",
+                  "SequenceNumber": "21269319989653637946712965403778482177"
+                }
+                """;
+            CustomResponses.SetResponse(kinesis, dummyResponse, requestId, extendedRequestId, true);
+            using var data = new MemoryStream([1, 2, 3]);
+            var request = new PutRecordRequest
+            {
+                StreamName = "my-test-stream",
+                PartitionKey = "test-partition-key",
+                Data = data,
+            };
+#if NETFRAMEWORK
+            kinesis.PutRecord(request);
+#else
+            await kinesis.PutRecordAsync(request, TestContext.Current.CancellationToken);
+#endif
+        }
+
+        var activity = Assert.Single(exportedItems, e => e.DisplayName == "Kinesis.PutRecord");
+
+        // aws.kinesis.stream_name was added in v1.34.0 of the semantic conventions,
+        // so it is only emitted from 1.40.0 onwards.
+        Assert.Equal(expectedStreamName, Utils.GetTagValue(activity, "aws.kinesis.stream_name"));
     }
 
     [Theory]

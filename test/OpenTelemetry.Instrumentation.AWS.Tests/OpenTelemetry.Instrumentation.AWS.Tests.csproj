@@ -12,6 +12,7 @@
     <PackageReference Include="AWSSDK.BedrockAgent" />
     <PackageReference Include="AWSSDK.BedrockAgentRuntime" />
     <PackageReference Include="AWSSDK.BedrockRuntime" />
+    <PackageReference Include="AWSSDK.Kinesis" />
     <PackageReference Include="AWSSDK.S3" />
     <PackageReference Include="AWSSDK.SimpleNotificationService" />
     <PackageReference Include="AWSSDK.SQS" />
